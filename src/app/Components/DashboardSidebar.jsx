@@ -28,31 +28,41 @@ const DashboardSidebar = () => {
 
   // Navigation items grouped by role
   const seekerNavItems = [
-    { id: "overview", href: "/seeker/overview", label: "Overview", icon: LayoutDashboard },
-    { id: "applied-jobs", href: "/seeker/applied-jobs", label: "Applied Jobs", icon: Briefcase },
-    { id: "bookmarks", href: "/seeker/bookmarks", label: "Saved Jobs", icon: Bookmark },
-    { id: "manage-resume", href: "/seeker/resume", label: "My Resume", icon: FileText },
+    { id: "seekerOverview", href: "/Seeker/seekerOverview", label: "Overview", icon: LayoutDashboard },
+    { id: "seekerProfile", href: "/Seeker/seekerProfile", label: "My Profile", icon: Briefcase },
+    { id: "browseJobs", href: "/Seeker/browseJobs", label: "Browse Jobs", icon: Bookmark },
+    { id: "savedJobs", href: "/Seeker/savedJobs", label: "Saved Jobs", icon: FileText },
+    { id: "myApplications", href: "/Seeker/myApplications", label: "My Applications", icon: FileText },
+    { id: "interviews", href: "/Seeker/interviews", label: "Interviews", icon: FileText },
+    { id: "notifications", href: "/Seeker/notifications", label: "Notifications", icon: FileText },
   ];
 
   const recruiterNavItems = [
-    { id: "overview", href: "/recruiter/overview", label: "Overview", icon: LayoutDashboard },
-    { id: "post-job", href: "/Recruter/jobForm", label: "Post a Job", icon: PlusCircle },
-    { id: "manage-jobs", href: "/recruiter/jobs", label: "Manage Jobs", icon: FileText },
-    { id: "candidates", href: "/recruiter/candidates", label: "Candidates", icon: Users },
-    { id: "profile", href: "/recruiter/company-profile", label: "Company Profile", icon: User },
+    { id: "recruterOverview", href: "/Recruter/recruterOverview", label: "Overview", icon: LayoutDashboard },
+    { id: "companyProfile", href: "/Recruter/companyProfile", label: "Company Profile", icon: PlusCircle },
+    { id: "jobForm", href: "/Recruter/jobForm", label: "Post a Job", icon: PlusCircle },
+    { id: "manageJobs", href: "/Recruter/manageJobs", label: "Manage Jobs", icon: FileText },
+    { id: "viewApplicants", href: "/Recruter/viewApplicants", label: "View Applicants", icon: Users },
+    { id: "notifications", href: "/Recruter/notifications", label: "Notifications", icon: User },
+    { id: "recruiterAnalytics", href: "/Recruter/recruiterAnalytics", label: "Recruiter Analytics", icon: User },
   ];
 
   const adminNavItems = [
-    { id: "home", href: "/admin/dashboard", label: "Dashboard Home", icon: LayoutDashboard },
-    { id: "manage-users", href: "/admin/users", label: "Manage Users", icon: Users },
-    { id: "manage-jobs", href: "/admin/jobs", label: "Manage All Jobs", icon: Briefcase },
-    { id: "transactions", href: "/admin/transactions", label: "Transactions", icon: CreditCard },
+    { id: "adminOverview", href: "/Admin/adminOverview", label: "Overview", icon: LayoutDashboard },
+    { id: "manageUsers", href: "/Admin/manageUsers", label: "Manage Users", icon: LayoutDashboard },
+    { id: "manageRecruiters", href: "/Admin/manageRecruiters", label: "Manage Recruiters", icon: Users },
+    { id: "manageCandidates", href: "/Admin/manageCandidates", label: "Manage Candidates", icon: Briefcase },
+    { id: "manageJobs", href: "/Admin/manageJobs", label: "Manage Jobs", icon: CreditCard },
+    { id: "application", href: "/Admin/application", label: "Application", icon: CreditCard },
+    { id: "reportsManagement", href: "/Admin/reportsManagement", label: "Reports Management", icon: CreditCard },
+    { id: "jobCategoriesManagement", href: "/Admin/jobCategoriesManagement", label: "Job Categories Management", icon: CreditCard },
+    { id: "notifications", href: "/Admin/notifications", label: "Notifications", icon: CreditCard },
+    { id: "analyticsDashboard", href: "/Admin/analyticsDashboard", label: "Analytics Dashboard", icon: CreditCard },
   ];
 
   const navLinkMap = {
     seeker: seekerNavItems,
     recruiter: recruiterNavItems,
-    recruter: recruiterNavItems, // fallback for legacy spelling
     admin: adminNavItems,
   };
 
@@ -67,7 +77,6 @@ const DashboardSidebar = () => {
   const roleColorMap = {
     admin: "danger",
     recruiter: "secondary",
-    recruter: "secondary",
     seeker: "primary",
   };
 

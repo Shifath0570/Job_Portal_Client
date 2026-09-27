@@ -69,8 +69,8 @@ export function JobForm() {
     setIsSubmitting(true);
 
     try {
-      // Replace '/api/jobs' with your actual Express/Next.js MongoDB backend route
-      const response = await fetch("/api/jobs", {
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000";
+      const response = await fetch(`${baseUrl}/api/jobs`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -82,11 +82,18 @@ export function JobForm() {
         }),
       });
 
+      // Check content-type to avoid JSON syntax errors if HTML is returned
+      const contentType = response.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        throw new Error(`Server returned non-JSON response (${response.status})`);
+      }
+
       const data = await response.json();
+
+      console.log(data)
 
       if (response.ok) {
         alert("Job posted successfully to MongoDB!");
-        // Reset form
         setFormData({
           title: "",
           category: "Development",
@@ -109,7 +116,7 @@ export function JobForm() {
       }
     } catch (error) {
       console.error("Submission Error:", error);
-      alert("Network error: Failed to connect to server.");
+      alert(`Network error: ${error.message}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -119,7 +126,7 @@ export function JobForm() {
     <section className="w-full min-h-screen bg-[#0a0a0f] py-16 text-white">
       {/* Container aligned to 75% width */}
       <div className="w-full lg:w-[75%] mx-auto px-4">
-        
+
         {/* Header Title */}
         <div className="mb-10 text-center lg:text-left">
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-2">
@@ -135,7 +142,7 @@ export function JobForm() {
 
         {/* Main Form Container */}
         <form onSubmit={handleSubmit} className="space-y-8">
-          
+
           {/* SECTION 1: Basic Job Overview */}
           <div className="bg-[#12121a]/80 border border-gray-800/80 rounded-2xl p-6 sm:p-8 space-y-6 shadow-xl">
             <h2 className="text-base font-semibold text-indigo-300 flex items-center gap-2 border-b border-gray-800/80 pb-3">

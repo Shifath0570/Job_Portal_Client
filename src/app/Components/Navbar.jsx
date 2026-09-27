@@ -1,19 +1,32 @@
-
 "use client";
 
 import React, { useState } from "react";
 import { authClient } from "../lib/auth-client";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 
 export function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
 
   const router = useRouter();
+  const pathname = usePathname();
+
+  // Dashboard route mappings based on user role
+  const dashboardLinks = {
+    seeker: "/Seeker/seekerOverview",
+    recruiter: "/Recruter/recruterOverview", // Fallback for typo
+    admin: "/Admin/adminOverview",
+  };
 
   // Better Auth session hook
   const { data: session, isPending } = authClient.useSession();
+  const user = session?.user;
+
+  
+  // Resolve current dashboard link by user role
+  const currentRole = user?.role?.toLowerCase() || "seeker";
+  const userDashboardHref = dashboardLinks[currentRole] || "/Seeker/seekerOverview";
 
   const handleLogout = async () => {
     await authClient.signOut({
@@ -56,25 +69,60 @@ export function Navbar() {
 
         {/* Desktop Navigation Links */}
         <nav className="hidden lg:flex items-center gap-6 xl:gap-8 text-sm font-medium text-gray-300">
-          <Link href="/jobs" className="hover:text-white transition-colors">
+          <Link
+            href="/publicPages/findJobs"
+            className={`transition-colors ${
+              pathname === "/jobs" ? "text-white font-semibold" : "hover:text-white"
+            }`}
+          >
             Find Jobs
           </Link>
-          <Link href="/companies" className="hover:text-white transition-colors">
+          <Link
+            href="/publicPages/companies"
+            className={`transition-colors ${
+              pathname === "/companies" ? "text-white font-semibold" : "hover:text-white"
+            }`}
+          >
             Companies
           </Link>
-          <Link href="/categories" className="hover:text-white transition-colors">
+          <Link
+            href="/publicPages/categories"
+            className={`transition-colors ${
+              pathname === "/categories" ? "text-white font-semibold" : "hover:text-white"
+            }`}
+          >
             Categories
           </Link>
-          <Link href="/resources" className="hover:text-white transition-colors whitespace-nowrap">
+          <Link
+            href="/publicPages/careerResources"
+            className={`transition-colors whitespace-nowrap ${
+              pathname === "/resources" ? "text-white font-semibold" : "hover:text-white"
+            }`}
+          >
             Career Resources
           </Link>
-          <Link href="/blog" className="hover:text-white transition-colors">
+          <Link
+            href="/publicPages/blog"
+            className={`transition-colors ${
+              pathname === "/blog" ? "text-white font-semibold" : "hover:text-white"
+            }`}
+          >
             Blog
           </Link>
-          <Link href="/about" className="hover:text-white transition-colors whitespace-nowrap">
+          <Link
+            href="/publicPages/aboutUs"
+            className={`transition-colors whitespace-nowrap ${
+              pathname === "/about" ? "text-white font-semibold" : "hover:text-white"
+            }`}
+          >
             About Us
           </Link>
-          <Link href="/contact" className="hover:text-white transition-colors whitespace-nowrap">
+          <Link
+            href="/publicPages/contactUs"
+            className={`transition-colors whitespace-nowrap ${
+              pathname === "/contact" ? "text-white font-semibold" : "hover:text-white"
+            }`}
+          >
             Contact Us
           </Link>
         </nav>
@@ -137,9 +185,9 @@ export function Navbar() {
                     </p>
                   </div>
 
-                  {/* Links */}
+                  {/* Dynamic Role Dashboard Link */}
                   <Link
-                    href="/dashboard"
+                    href={userDashboardHref}
                     onClick={() => setProfileOpen(false)}
                     className="flex items-center gap-2 px-4 py-2.5 text-gray-300 hover:bg-purple-600/20 hover:text-white transition-colors"
                   >
@@ -214,13 +262,13 @@ export function Navbar() {
       {mobileOpen && (
         <div className="lg:hidden bg-[#0a0a0f] border-b border-gray-800 px-6 py-4 flex flex-col gap-4">
           <nav className="flex flex-col gap-3 text-gray-300 text-sm">
-            <Link href="/jobs" onClick={() => setMobileOpen(false)} className="hover:text-white">Find Jobs</Link>
-            <Link href="/companies" onClick={() => setMobileOpen(false)} className="hover:text-white">Companies</Link>
-            <Link href="/categories" onClick={() => setMobileOpen(false)} className="hover:text-white">Categories</Link>
-            <Link href="/resources" onClick={() => setMobileOpen(false)} className="hover:text-white">Career Resources</Link>
-            <Link href="/blog" onClick={() => setMobileOpen(false)} className="hover:text-white">Blog</Link>
-            <Link href="/about" onClick={() => setMobileOpen(false)} className="hover:text-white">About Us</Link>
-            <Link href="/contact" onClick={() => setMobileOpen(false)} className="hover:text-white">Contact Us</Link>
+            <Link href="/jobs" onClick={() => setMobileOpen(false)} className={`hover:text-white ${pathname === "/jobs" ? "text-white font-bold" : ""}`}>Find Jobs</Link>
+            <Link href="/companies" onClick={() => setMobileOpen(false)} className={`hover:text-white ${pathname === "/companies" ? "text-white font-bold" : ""}`}>Companies</Link>
+            <Link href="/categories" onClick={() => setMobileOpen(false)} className={`hover:text-white ${pathname === "/categories" ? "text-white font-bold" : ""}`}>Categories</Link>
+            <Link href="/resources" onClick={() => setMobileOpen(false)} className={`hover:text-white ${pathname === "/resources" ? "text-white font-bold" : ""}`}>Career Resources</Link>
+            <Link href="/blog" onClick={() => setMobileOpen(false)} className={`hover:text-white ${pathname === "/blog" ? "text-white font-bold" : ""}`}>Blog</Link>
+            <Link href="/about" onClick={() => setMobileOpen(false)} className={`hover:text-white ${pathname === "/about" ? "text-white font-bold" : ""}`}>About Us</Link>
+            <Link href="/contact" onClick={() => setMobileOpen(false)} className={`hover:text-white ${pathname === "/contact" ? "text-white font-bold" : ""}`}>Contact Us</Link>
           </nav>
 
           <div className="pt-4 border-t border-gray-800 flex flex-col gap-2">
@@ -237,7 +285,7 @@ export function Navbar() {
                 </div>
 
                 <Link
-                  href="/dashboard"
+                  href={userDashboardHref}
                   onClick={() => setMobileOpen(false)}
                   className="w-full text-center border border-gray-700 text-white py-2 rounded-md text-sm font-medium"
                 >
@@ -283,6 +331,4 @@ export function Navbar() {
 }
 
 export default Navbar;
-
-
 
