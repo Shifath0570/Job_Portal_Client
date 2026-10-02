@@ -4,10 +4,6 @@
 import { authClient } from "@/app/lib/auth-client";
 import React, { useState } from "react";
 
-// ==========================================
-// Inline Custom SVG Icons
-// ==========================================
-
 const UploadIcon = (props) => (
   <svg
     {...props}
@@ -197,6 +193,7 @@ export default function CompanyProfile() {
     // Ensure session defaults are sent if not manually edited
     const payload = {
       ...formData,
+      user: user.id,
       companyName: companyNameValue,
       email: emailValue,
     };
