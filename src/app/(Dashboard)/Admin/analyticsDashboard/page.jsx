@@ -1,169 +1,17 @@
+
+
 "use client";
 
 import React, { useState } from "react";
-
-// ==========================================
-// Inline Custom SVG Icons
-// ==========================================
-
-const TrendingUpIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
-    <polyline points="16 7 22 7 22 13" />
-  </svg>
-);
-
-const UsersIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-    <circle cx="9" cy="7" r="4" />
-    <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-  </svg>
-);
-
-const BriefcaseIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <rect width="20" height="14" x="2" y="7" rx="2" ry="2" />
-    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
-  </svg>
-);
-
-const FileTextIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" />
-    <path d="M14 2v4a1 1 0 0 0 1 1h4" />
-    <path d="M10 9H8" />
-    <path d="M16 13H8" />
-    <path d="M16 17H8" />
-  </svg>
-);
-
-const UserCheckIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-    <circle cx="9" cy="7" r="4" />
-    <polyline points="16 11 18 13 22 9" />
-  </svg>
-);
-
-const UserPlusIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-    <circle cx="9" cy="7" r="4" />
-    <line x1="19" x2="19" y1="8" y2="14" />
-    <line x1="16" x2="22" y1="11" y2="11" />
-  </svg>
-);
-
-const LayersIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <polygon points="12 2 2 7 12 12 22 7 12 2" />
-    <polyline points="2 17 12 22 22 17" />
-    <polyline points="2 12 12 17 22 12" />
-  </svg>
-);
-
-const CalendarIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
-    <line x1="16" x2="16" y1="2" y2="6" />
-    <line x1="8" x2="8" y1="2" y2="6" />
-    <line x1="3" x2="21" y1="10" y2="10" />
-  </svg>
-);
-
-// ==========================================
-// Analytics Mock Data
-// ==========================================
+import {
+  TrendingUp,
+  Users,
+  Briefcase,
+  FileText,
+  UserCheck,
+  Layers,
+  Calendar,
+} from "lucide-react";
 
 const MONTHLY_USER_GROWTH = [
   { month: "Mar", totalUsers: 3200, heightPct: 40 },
@@ -218,7 +66,7 @@ export default function AnalyticsDashboard() {
 
         {/* Time Range Selector */}
         <div className="flex items-center gap-2 bg-[#14141f] border border-gray-800 p-1.5 rounded-xl self-start sm:self-auto">
-          <CalendarIcon className="w-4 h-4 text-purple-400 ml-2" />
+          <Calendar className="w-4 h-4 text-purple-400 ml-2" />
           {["1M", "3M", "6M", "1Y"].map((range) => (
             <button
               key={range}
@@ -244,13 +92,13 @@ export default function AnalyticsDashboard() {
               Total Users
             </span>
             <div className="p-2 bg-purple-500/10 border border-purple-500/20 text-purple-400 rounded-xl">
-              <UsersIcon className="w-4 h-4" />
+              <Users className="w-4 h-4" />
             </div>
           </div>
           <div>
             <h2 className="text-2xl font-extrabold text-white">9,450</h2>
             <div className="flex items-center gap-1.5 pt-1 text-emerald-400 text-xs font-semibold">
-              <TrendingUpIcon className="w-3.5 h-3.5" />
+              <TrendingUp className="w-3.5 h-3.5" />
               <span>+18.4% vs last month</span>
             </div>
           </div>
@@ -263,13 +111,13 @@ export default function AnalyticsDashboard() {
               Jobs Posted
             </span>
             <div className="p-2 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 rounded-xl">
-              <BriefcaseIcon className="w-4 h-4" />
+              <Briefcase className="w-4 h-4" />
             </div>
           </div>
           <div>
             <h2 className="text-2xl font-extrabold text-white">490</h2>
             <div className="flex items-center gap-1.5 pt-1 text-emerald-400 text-xs font-semibold">
-              <TrendingUpIcon className="w-3.5 h-3.5" />
+              <TrendingUp className="w-3.5 h-3.5" />
               <span>+14.2% vs last month</span>
             </div>
           </div>
@@ -282,13 +130,13 @@ export default function AnalyticsDashboard() {
               Job Applications
             </span>
             <div className="p-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-xl">
-              <FileTextIcon className="w-4 h-4" />
+              <FileText className="w-4 h-4" />
             </div>
           </div>
           <div>
             <h2 className="text-2xl font-extrabold text-white">3,400</h2>
             <div className="flex items-center gap-1.5 pt-1 text-emerald-400 text-xs font-semibold">
-              <TrendingUpIcon className="w-3.5 h-3.5" />
+              <TrendingUp className="w-3.5 h-3.5" />
               <span>+22.1% vs last month</span>
             </div>
           </div>
@@ -301,13 +149,13 @@ export default function AnalyticsDashboard() {
               Active Recruiters
             </span>
             <div className="p-2 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-xl">
-              <UserCheckIcon className="w-4 h-4" />
+              <UserCheck className="w-4 h-4" />
             </div>
           </div>
           <div>
             <h2 className="text-2xl font-extrabold text-white">530</h2>
             <div className="flex items-center gap-1.5 pt-1 text-emerald-400 text-xs font-semibold">
-              <TrendingUpIcon className="w-3.5 h-3.5" />
+              <TrendingUp className="w-3.5 h-3.5" />
               <span>+12.8% vs last month</span>
             </div>
           </div>
@@ -354,7 +202,7 @@ export default function AnalyticsDashboard() {
               <h2 className="text-base font-bold text-white">Most Popular Categories</h2>
               <p className="text-xs text-gray-400">Distribution by job posts</p>
             </div>
-            <LayersIcon className="w-5 h-5 text-purple-400" />
+            <Layers className="w-5 h-5 text-purple-400" />
           </div>
 
           <div className="space-y-4 pt-2">
@@ -475,3 +323,9 @@ export default function AnalyticsDashboard() {
     </div>
   );
 }
+
+
+
+
+
+

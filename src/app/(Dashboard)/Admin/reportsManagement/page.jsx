@@ -1,177 +1,18 @@
+
 "use client";
 
 import React, { useState } from "react";
-
-// ==========================================
-// Inline Custom SVG Icons
-// ==========================================
-
-const ShieldAlertIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
-    <line x1="12" x2="12" y1="8" y2="12" />
-    <line x1="12" x2="12.01" y1="16" y2="16" />
-  </svg>
-);
-
-const SearchIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <circle cx="11" cy="11" r="8" />
-    <path d="m21 21-4.3-4.3" />
-  </svg>
-);
-
-const FilterIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
-  </svg>
-);
-
-const EyeIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
-    <circle cx="12" cy="12" r="3" />
-  </svg>
-);
-
-const CheckCircleIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-    <polyline points="22 4 12 14.01 9 11.01" />
-  </svg>
-);
-
-const BanIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <circle cx="12" cy="12" r="10" />
-    <path d="m4.93 4.93 14.14 14.14" />
-  </svg>
-);
-
-const TrashIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M3 6h18" />
-    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
-    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
-  </svg>
-);
-
-const CloseIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M18 6 6 18" />
-    <path d="m6 6 12 12" />
-  </svg>
-);
-
-const ClockIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <circle cx="12" cy="12" r="10" />
-    <polyline points="12 6 12 12 16 14" />
-  </svg>
-);
-
-// ==========================================
-// Mock User Reports Data
-// ==========================================
+import {
+  ShieldAlert,
+  CheckCircle,
+  Search,
+  Filter,
+  Eye,
+  Clock,
+  Trash2,
+  Ban,
+  X,
+} from "lucide-react";
 
 const INITIAL_REPORTS = [
   {
@@ -183,7 +24,8 @@ const INITIAL_REPORTS = [
     companyName: "Global Apex Solutions",
     reportDate: "Aug 06, 2026",
     status: "Open", // Open | Under Review | Closed
-    description: "The listing asks applicants to pay a $50 upfront registration fee before receiving project materials.",
+    description:
+      "The listing asks applicants to pay a $50 upfront registration fee before receiving project materials.",
     evidenceLink: "https://example.com/flagged-job-901",
   },
   {
@@ -195,7 +37,8 @@ const INITIAL_REPORTS = [
     companyName: "Nova Tech Ventures",
     reportDate: "Aug 05, 2026",
     status: "Under Review",
-    description: "Company profile claims to be based in New York, but contact numbers redirect to phishing sites requesting SSN data.",
+    description:
+      "Company profile claims to be based in New York, but contact numbers redirect to phishing sites requesting SSN data.",
     evidenceLink: "https://example.com/flagged-company-902",
   },
   {
@@ -207,7 +50,8 @@ const INITIAL_REPORTS = [
     companyName: "Web3 Fast Track",
     reportDate: "Aug 03, 2026",
     status: "Open",
-    description: "Repeatedly posting promotional Telegram channel links inside the job description requirements.",
+    description:
+      "Repeatedly posting promotional Telegram channel links inside the job description requirements.",
     evidenceLink: "https://example.com/flagged-job-903",
   },
   {
@@ -219,7 +63,8 @@ const INITIAL_REPORTS = [
     companyName: "Vanguard Tech",
     reportDate: "Jul 29, 2026",
     status: "Closed",
-    description: "Job posting contained discriminatory age and gender restrictions explicitly in the qualifications section.",
+    description:
+      "Job posting contained discriminatory age and gender restrictions explicitly in the qualifications section.",
     evidenceLink: "https://example.com/flagged-job-904",
   },
 ];
@@ -319,7 +164,7 @@ export default function ReportsManagement() {
 
         <div className="flex items-center gap-2">
           <span className="px-3.5 py-1.5 bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs font-semibold rounded-xl flex items-center gap-1.5">
-            <ShieldAlertIcon className="w-3.5 h-3.5" />
+            <ShieldAlert className="w-3.5 h-3.5" />
             {reports.filter((r) => r.status === "Open").length} Active Flags
           </span>
         </div>
@@ -328,7 +173,7 @@ export default function ReportsManagement() {
       {/* Toast Notification Banner */}
       {toastMessage && (
         <div className="p-4 bg-purple-500/10 border border-purple-500/30 text-purple-300 text-xs font-semibold rounded-xl flex items-center gap-2">
-          <CheckCircleIcon className="w-4 h-4 text-purple-400 shrink-0" />
+          <CheckCircle className="w-4 h-4 text-purple-400 shrink-0" />
           {toastMessage}
         </div>
       )}
@@ -337,7 +182,7 @@ export default function ReportsManagement() {
       <div className="bg-[#14141f] border border-gray-800 rounded-2xl p-4 shadow-xl flex flex-col md:flex-row items-center justify-between gap-4">
         {/* Search Field */}
         <div className="relative w-full md:flex-1">
-          <SearchIcon className="w-4 h-4 absolute left-4 top-3 text-gray-500" />
+          <Search className="w-4 h-4 absolute left-4 top-3 text-gray-500" />
           <input
             type="text"
             placeholder="Search report ID, target listing, company, or reporter..."
@@ -349,8 +194,8 @@ export default function ReportsManagement() {
 
         {/* Filters */}
         <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 w-full md:w-auto">
-          <FilterIcon className="w-4 h-4 text-purple-400 shrink-0 hidden sm:block" />
-          
+          <Filter className="w-4 h-4 text-purple-400 shrink-0 hidden sm:block" />
+
           {/* Category Filter */}
           <select
             value={selectedTypeFilter}
@@ -382,7 +227,7 @@ export default function ReportsManagement() {
       <div className="bg-[#14141f] border border-gray-800 rounded-2xl p-6 shadow-xl space-y-4">
         {filteredReports.length === 0 ? (
           <div className="p-12 text-center text-gray-500 space-y-2">
-            <ShieldAlertIcon className="w-10 h-10 mx-auto text-gray-600 mb-2" />
+            <ShieldAlert className="w-10 h-10 mx-auto text-gray-600 mb-2" />
             <p className="text-sm font-semibold text-white">No reports match your criteria.</p>
             <p className="text-xs text-gray-400">Try adjusting your filters or search terms.</p>
           </div>
@@ -462,7 +307,7 @@ export default function ReportsManagement() {
                           title="View Report Details"
                           className="p-2 bg-[#0a0a0f] hover:bg-gray-800 border border-gray-800 text-gray-300 hover:text-white rounded-xl transition-all cursor-pointer"
                         >
-                          <EyeIcon className="w-3.5 h-3.5" />
+                          <Eye className="w-3.5 h-3.5" />
                         </button>
 
                         {/* Review Report */}
@@ -472,7 +317,7 @@ export default function ReportsManagement() {
                             title="Mark Under Review"
                             className="p-2 bg-[#0a0a0f] hover:bg-amber-500/10 border border-gray-800 hover:border-amber-500/30 text-amber-400 rounded-xl transition-all cursor-pointer"
                           >
-                            <ClockIcon className="w-3.5 h-3.5" />
+                            <Clock className="w-3.5 h-3.5" />
                           </button>
                         )}
 
@@ -483,7 +328,7 @@ export default function ReportsManagement() {
                             title="Remove Flagged Job Listing"
                             className="p-2 bg-[#0a0a0f] hover:bg-rose-500/10 border border-gray-800 hover:border-rose-500/30 text-rose-400 rounded-xl transition-all cursor-pointer"
                           >
-                            <TrashIcon className="w-3.5 h-3.5" />
+                            <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         )}
 
@@ -494,7 +339,7 @@ export default function ReportsManagement() {
                             title="Suspend Company Account"
                             className="p-2 bg-[#0a0a0f] hover:bg-rose-500/10 border border-gray-800 hover:border-rose-500/30 text-rose-400 rounded-xl transition-all cursor-pointer"
                           >
-                            <BanIcon className="w-3.5 h-3.5" />
+                            <Ban className="w-3.5 h-3.5" />
                           </button>
                         )}
 
@@ -505,7 +350,7 @@ export default function ReportsManagement() {
                             title="Close Report"
                             className="p-2 bg-[#0a0a0f] hover:bg-emerald-500/10 border border-gray-800 hover:border-emerald-500/30 text-emerald-400 rounded-xl transition-all cursor-pointer"
                           >
-                            <CheckCircleIcon className="w-3.5 h-3.5" />
+                            <CheckCircle className="w-3.5 h-3.5" />
                           </button>
                         )}
                       </div>
@@ -528,7 +373,7 @@ export default function ReportsManagement() {
             <div className="flex items-center justify-between border-b border-gray-800 pb-4">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-xl">
-                  <ShieldAlertIcon className="w-5 h-5" />
+                  <ShieldAlert className="w-5 h-5" />
                 </div>
                 <div>
                   <h2 className="text-base font-bold text-white">
@@ -544,7 +389,7 @@ export default function ReportsManagement() {
                 onClick={() => setViewingReport(null)}
                 className="text-gray-400 hover:text-white cursor-pointer"
               >
-                <CloseIcon className="w-5 h-5" />
+                <X className="w-5 h-5" />
               </button>
             </div>
 
@@ -629,3 +474,14 @@ export default function ReportsManagement() {
     </div>
   );
 }
+
+
+
+
+
+
+
+
+
+
+

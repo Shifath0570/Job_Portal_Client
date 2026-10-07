@@ -1,179 +1,36 @@
+
 "use client";
 
 import React, { useState } from "react";
+import {
+  Bell,
+  UserPlus,
+  Building,
+  Flag,
+  ShieldAlert,
+  CheckCircle,
+  Trash,
+  Filter,
+} from "lucide-react";
 
-// ==========================================
-// Inline Custom SVG Icons
-// ==========================================
-
-const BellIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
-    <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
-  </svg>
-);
-
-const UserPlusIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-    <circle cx="9" cy="7" r="4" />
-    <line x1="19" x2="19" y1="8" y2="14" />
-    <line x1="16" x2="22" y1="11" y2="11" />
-  </svg>
-);
-
-const BuildingCheckIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z" />
-    <path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" />
-    <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2" />
-    <path d="m10 11 2 2 4-4" />
-  </svg>
-);
-
-const FlagIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
-    <line x1="4" x2="4" y1="22" y2="15" />
-  </svg>
-);
-
-const ShieldAlertIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
-    <line x1="12" x2="12" y1="8" y2="12" />
-    <line x1="12" x2="12.01" y1="16" y2="16" />
-  </svg>
-);
-
-const CheckCircleIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-    <polyline points="22 4 12 14.01 9 11.01" />
-  </svg>
-);
-
-const TrashIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M3 6h18" />
-    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
-    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
-  </svg>
-);
-
-const FilterIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
-  </svg>
-);
-
-// ==========================================
-// Mock Notifications Data
-// ==========================================
 
 const INITIAL_NOTIFICATIONS = [
   {
     id: "notif-101",
     type: "Suspicious Activity Detected",
     title: "Multiple Failed Login Attempts",
-    message: "IP address 192.168.1.45 exceeded login rate limits for account admin@company.com.",
+    message:
+      "IP address 192.168.1.45 exceeded login rate limits for account admin@company.com.",
     timestamp: "10 mins ago",
     isRead: false,
-    severity: "high", // high | medium | normal
+    severity: "high",
   },
   {
     id: "notif-102",
     type: "New Report Submitted",
     title: "Flagged Job Listing #REP-901",
-    message: "Alex Rivera reported 'Data Entry Specialist' posted by Global Apex Solutions as a Fake Job.",
+    message:
+      "Alex Rivera reported 'Data Entry Specialist' posted by Global Apex Solutions as a Fake Job.",
     timestamp: "45 mins ago",
     isRead: false,
     severity: "high",
@@ -182,7 +39,8 @@ const INITIAL_NOTIFICATIONS = [
     id: "notif-103",
     type: "New Company Requests Verification",
     title: "Verification Request Pending",
-    message: "Starlight Design Studio submitted official business registration documents for review.",
+    message:
+      "Starlight Design Studio submitted official business registration documents for review.",
     timestamp: "2 hours ago",
     isRead: false,
     severity: "medium",
@@ -191,7 +49,8 @@ const INITIAL_NOTIFICATIONS = [
     id: "notif-104",
     type: "New Recruiter Registers",
     title: "New Recruiter Onboarded",
-    message: "Sarah Jenkins (Recruiter ID: REC-402) completed account setup for Acme Technologies.",
+    message:
+      "Sarah Jenkins (Recruiter ID: REC-402) completed account setup for Acme Technologies.",
     timestamp: "5 hours ago",
     isRead: true,
     severity: "normal",
@@ -200,7 +59,8 @@ const INITIAL_NOTIFICATIONS = [
     id: "notif-105",
     type: "Suspicious Activity Detected",
     title: "Mass Job Posting Triggered",
-    message: "User account 'fast-hire-bot' created 25 job postings within 3 minutes.",
+    message:
+      "User account 'fast-hire-bot' created 25 job postings within 3 minutes.",
     timestamp: "1 day ago",
     isRead: true,
     severity: "high",
@@ -208,7 +68,9 @@ const INITIAL_NOTIFICATIONS = [
 ];
 
 export default function Notifications() {
-  const [notificationsList, setNotificationsList] = useState(INITIAL_NOTIFICATIONS);
+  const [notificationsList, setNotificationsList] = useState(
+    INITIAL_NOTIFICATIONS
+  );
   const [selectedFilter, setSelectedFilter] = useState("ALL");
   const [showOnlyUnread, setShowOnlyUnread] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
@@ -246,15 +108,15 @@ export default function Notifications() {
   const getNotificationIcon = (type) => {
     switch (type) {
       case "New Recruiter Registers":
-        return <UserPlusIcon className="w-5 h-5 text-purple-400" />;
+        return <UserPlus className="w-5 h-5 text-purple-400" />;
       case "New Company Requests Verification":
-        return <BuildingCheckIcon className="w-5 h-5 text-indigo-400" />;
+        return <Building className="w-5 h-5 text-indigo-400" />;
       case "New Report Submitted":
-        return <FlagIcon className="w-5 h-5 text-amber-400" />;
+        return <Flag className="w-5 h-5 text-amber-400" />;
       case "Suspicious Activity Detected":
-        return <ShieldAlertIcon className="w-5 h-5 text-rose-400" />;
+        return <ShieldAlert className="w-5 h-5 text-rose-400" />;
       default:
-        return <BellIcon className="w-5 h-5 text-gray-400" />;
+        return <Bell className="w-5 h-5 text-gray-400" />;
     }
   };
 
@@ -294,7 +156,8 @@ export default function Notifications() {
             Notifications Center
           </h1>
           <p className="text-gray-400 text-sm pt-1">
-            Real-time system events, recruiter signups, verification requests, and security flags.
+            Real-time system events, recruiter signups, verification requests,
+            and security flags.
           </p>
         </div>
 
@@ -304,7 +167,7 @@ export default function Notifications() {
               onClick={handleMarkAllAsRead}
               className="px-3.5 py-2 bg-[#14141f] hover:bg-purple-500/10 border border-gray-800 hover:border-purple-500/30 text-purple-300 text-xs font-semibold rounded-xl cursor-pointer transition-all flex items-center gap-1.5"
             >
-              <CheckCircleIcon className="w-3.5 h-3.5" />
+              <CheckCircle className="w-3.5 h-3.5" />
               Mark All Read
             </button>
           )}
@@ -314,7 +177,7 @@ export default function Notifications() {
               onClick={handleClearAll}
               className="px-3.5 py-2 bg-[#14141f] hover:bg-rose-500/10 border border-gray-800 hover:border-rose-500/30 text-rose-400 text-xs font-semibold rounded-xl cursor-pointer transition-all flex items-center gap-1.5"
             >
-              <TrashIcon className="w-3.5 h-3.5" />
+              <Trash className="w-3.5 h-3.5" />
               Clear All
             </button>
           )}
@@ -324,7 +187,7 @@ export default function Notifications() {
       {/* Toast Notification Banner */}
       {toastMessage && (
         <div className="p-4 bg-purple-500/10 border border-purple-500/30 text-purple-300 text-xs font-semibold rounded-xl flex items-center gap-2">
-          <CheckCircleIcon className="w-4 h-4 text-purple-400 shrink-0" />
+          <CheckCircle className="w-4 h-4 text-purple-400 shrink-0" />
           {toastMessage}
         </div>
       )}
@@ -333,14 +196,16 @@ export default function Notifications() {
       <div className="bg-[#14141f] border border-gray-800 rounded-2xl p-4 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
         {/* Category Dropdown */}
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          <FilterIcon className="w-4 h-4 text-purple-400 shrink-0" />
+          <Filter className="w-4 h-4 text-purple-400 shrink-0" />
           <select
             value={selectedFilter}
             onChange={(e) => setSelectedFilter(e.target.value)}
             className="w-full sm:w-auto px-3.5 py-2 bg-[#0a0a0f] border border-gray-800 text-gray-300 rounded-xl text-xs outline-none focus:border-purple-500 cursor-pointer font-medium"
           >
             <option value="ALL">All System Event Types</option>
-            <option value="New Recruiter Registers">New Recruiter Registers</option>
+            <option value="New Recruiter Registers">
+              New Recruiter Registers
+            </option>
             <option value="New Company Requests Verification">
               New Company Requests Verification
             </option>
@@ -367,9 +232,13 @@ export default function Notifications() {
       <div className="space-y-3">
         {filteredNotifications.length === 0 ? (
           <div className="p-12 text-center bg-[#14141f] border border-gray-800 rounded-2xl space-y-2">
-            <BellIcon className="w-10 h-10 mx-auto text-gray-600 mb-2" />
-            <p className="text-sm font-semibold text-white">No notifications to display.</p>
-            <p className="text-xs text-gray-400">All caught up or try resetting your filter choices.</p>
+            <Bell className="w-10 h-10 mx-auto text-gray-600 mb-2" />
+            <p className="text-sm font-semibold text-white">
+              No notifications to display.
+            </p>
+            <p className="text-xs text-gray-400">
+              All caught up or try resetting your filter choices.
+            </p>
           </div>
         ) : (
           filteredNotifications.map((notif) => (
@@ -425,7 +294,7 @@ export default function Notifications() {
                     title="Mark as Read"
                     className="p-2 bg-[#0a0a0f] hover:bg-purple-500/10 border border-gray-800 hover:border-purple-500/30 text-gray-400 hover:text-purple-400 rounded-xl transition-all cursor-pointer text-xs"
                   >
-                    <CheckCircleIcon className="w-4 h-4" />
+                    <CheckCircle className="w-4 h-4" />
                   </button>
                 )}
 
@@ -434,7 +303,7 @@ export default function Notifications() {
                   title="Delete Notification"
                   className="p-2 bg-[#0a0a0f] hover:bg-rose-500/10 border border-gray-800 hover:border-rose-500/30 text-gray-500 hover:text-rose-400 rounded-xl transition-all cursor-pointer text-xs"
                 >
-                  <TrashIcon className="w-4 h-4" />
+                  <Trash className="w-4 h-4" />
                 </button>
               </div>
             </div>
@@ -444,3 +313,9 @@ export default function Notifications() {
     </div>
   );
 }
+
+
+
+
+
+

@@ -1,216 +1,20 @@
+
 "use client";
 
 import React, { useState } from "react";
-
-// ==========================================
-// Inline Custom SVG Icons
-// ==========================================
-
-const UsersIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-    <circle cx="9" cy="7" r="4" />
-    <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-  </svg>
-);
-
-const SearchIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <circle cx="11" cy="11" r="8" />
-    <path d="m21 21-4.3-4.3" />
-  </svg>
-);
-
-const FilterIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
-  </svg>
-);
-
-const EyeIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
-    <circle cx="12" cy="12" r="3" />
-  </svg>
-);
-
-const FileTextIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
-    <polyline points="14 2 14 8 20 8" />
-  </svg>
-);
-
-const ShieldAlertIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
-    <line x1="12" x2="12" y1="8" y2="12" />
-    <line x1="12" x2="12.01" y1="16" y2="16" />
-  </svg>
-);
-
-const TrashIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M3 6h18" />
-    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
-    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
-  </svg>
-);
-
-const CheckCircleIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-    <polyline points="22 4 12 14.01 9 11.01" />
-  </svg>
-);
-
-const CloseIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M18 6 6 18" />
-    <path d="m6 6 12 12" />
-  </svg>
-);
-
-const MapPinIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
-    <circle cx="12" cy="10" r="3" />
-  </svg>
-);
-
-const ExternalLinkIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-    <polyline points="15 3 21 3 21 9" />
-    <line x1="10" x2="21" y1="14" y2="3" />
-  </svg>
-);
-
-// ==========================================
-// Mock Candidates Data
-// ==========================================
+import {
+  Users,
+  Search,
+  Filter,
+  Eye,
+  FileText,
+  ShieldAlert,
+  Trash2,
+  CheckCircle2,
+  X,
+  MapPin,
+  ExternalLink,
+} from "lucide-react";
 
 const INITIAL_CANDIDATES = [
   {
@@ -345,7 +149,7 @@ export default function ManageCandidates() {
       {/* Toast Notification Banner */}
       {toastMessage && (
         <div className="p-4 bg-purple-500/10 border border-purple-500/30 text-purple-300 text-xs font-semibold rounded-xl flex items-center gap-2">
-          <CheckCircleIcon className="w-4 h-4 text-purple-400 shrink-0" />
+          <CheckCircle2 className="w-4 h-4 text-purple-400 shrink-0" />
           {toastMessage}
         </div>
       )}
@@ -354,7 +158,7 @@ export default function ManageCandidates() {
       <div className="bg-[#14141f] border border-gray-800 rounded-2xl p-4 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
         {/* Search Field */}
         <div className="relative w-full sm:flex-1">
-          <SearchIcon className="w-4 h-4 absolute left-4 top-3 text-gray-500" />
+          <Search className="w-4 h-4 absolute left-4 top-3 text-gray-500" />
           <input
             type="text"
             placeholder="Search candidates by name, email, or job title..."
@@ -366,7 +170,7 @@ export default function ManageCandidates() {
 
         {/* Status Filter */}
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          <FilterIcon className="w-4 h-4 text-purple-400 shrink-0" />
+          <Filter className="w-4 h-4 text-purple-400 shrink-0" />
           <select
             value={selectedStatusFilter}
             onChange={(e) => setSelectedStatusFilter(e.target.value)}
@@ -383,7 +187,7 @@ export default function ManageCandidates() {
       <div className="bg-[#14141f] border border-gray-800 rounded-2xl p-6 shadow-xl space-y-4">
         {filteredCandidates.length === 0 ? (
           <div className="p-12 text-center text-gray-500 space-y-2">
-            <UsersIcon className="w-10 h-10 mx-auto text-gray-600 mb-2" />
+            <Users className="w-10 h-10 mx-auto text-gray-600 mb-2" />
             <p className="text-sm font-semibold text-white">No candidates found.</p>
             <p className="text-xs text-gray-400">Try modifying your search criteria or filter options.</p>
           </div>
@@ -458,7 +262,7 @@ export default function ManageCandidates() {
                           title="View Candidate Profile"
                           className="p-2 bg-[#0a0a0f] hover:bg-gray-800 border border-gray-800 text-gray-300 hover:text-white rounded-xl transition-all cursor-pointer"
                         >
-                          <EyeIcon className="w-3.5 h-3.5" />
+                          <Eye className="w-3.5 h-3.5" />
                         </button>
 
                         {/* View Resume Button */}
@@ -467,7 +271,7 @@ export default function ManageCandidates() {
                           title="View Candidate Resume"
                           className="p-2 bg-[#0a0a0f] hover:bg-purple-500/10 border border-gray-800 hover:border-purple-500/30 text-gray-300 hover:text-purple-400 rounded-xl transition-all cursor-pointer"
                         >
-                          <FileTextIcon className="w-3.5 h-3.5" />
+                          <FileText className="w-3.5 h-3.5" />
                         </button>
 
                         {/* Suspend / Activate Button */}
@@ -480,7 +284,7 @@ export default function ManageCandidates() {
                               : "border-gray-800 text-emerald-400 hover:bg-emerald-500/10 hover:border-emerald-500/30"
                           }`}
                         >
-                          <ShieldAlertIcon className="w-3.5 h-3.5" />
+                          <ShieldAlert className="w-3.5 h-3.5" />
                         </button>
 
                         {/* Delete Candidate Button */}
@@ -489,7 +293,7 @@ export default function ManageCandidates() {
                           title="Delete Candidate Account"
                           className="p-2 bg-[#0a0a0f] hover:bg-rose-500/10 border border-gray-800 hover:border-rose-500/30 text-gray-400 hover:text-rose-400 rounded-xl transition-all cursor-pointer"
                         >
-                          <TrashIcon className="w-3.5 h-3.5" />
+                          <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </td>
@@ -529,7 +333,7 @@ export default function ManageCandidates() {
                 onClick={() => setSelectedCandidate(null)}
                 className="text-gray-400 hover:text-white cursor-pointer"
               >
-                <CloseIcon className="w-5 h-5" />
+                <X className="w-5 h-5" />
               </button>
             </div>
 
@@ -560,7 +364,7 @@ export default function ManageCandidates() {
 
                 <div className="p-3 bg-[#0a0a0f] border border-gray-800 rounded-xl space-y-1">
                   <span className="text-gray-500 text-[10px] uppercase font-semibold flex items-center gap-1">
-                    <MapPinIcon className="w-3 h-3 text-purple-400" />
+                    <MapPin className="w-3 h-3 text-purple-400" />
                     Location
                   </span>
                   <p className="font-bold text-white">{selectedCandidate.location}</p>
@@ -614,11 +418,11 @@ export default function ManageCandidates() {
             <div className="flex items-center justify-between border-b border-gray-800 pb-4">
               <div className="flex items-center gap-3">
                 <div className="p-2.5 bg-purple-500/10 border border-purple-500/20 text-purple-400 rounded-xl">
-                  <FileTextIcon className="w-6 h-6" />
+                  <FileText className="w-6 h-6" />
                 </div>
                 <div>
                   <h2 className="text-base font-bold text-white">
-                    {resumeCandidate.name}s Resume
+                    {resumeCandidate.name} Resume
                   </h2>
                   <p className="text-xs text-gray-400">{resumeCandidate.resumeName}</p>
                 </div>
@@ -628,13 +432,13 @@ export default function ManageCandidates() {
                 onClick={() => setResumeCandidate(null)}
                 className="text-gray-400 hover:text-white cursor-pointer"
               >
-                <CloseIcon className="w-5 h-5" />
+                <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* PDF Mock Viewer / Placeholder */}
             <div className="bg-[#0a0a0f] border border-gray-800 rounded-xl p-8 text-center space-y-4">
-              <FileTextIcon className="w-12 h-12 mx-auto text-purple-400" />
+              <FileText className="w-12 h-12 mx-auto text-purple-400" />
               <div className="space-y-1">
                 <p className="text-sm font-bold text-white">{resumeCandidate.resumeName}</p>
                 <p className="text-xs text-gray-400">PDF Document • 1.2 MB</p>
@@ -647,7 +451,7 @@ export default function ManageCandidates() {
                   rel="noopener noreferrer"
                   className="px-5 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-semibold rounded-xl shadow-md cursor-pointer transition-all inline-flex items-center gap-2"
                 >
-                  <ExternalLinkIcon className="w-4 h-4" />
+                  <ExternalLink className="w-4 h-4" />
                   Open Document in New Tab
                 </a>
               </div>
@@ -669,3 +473,7 @@ export default function ManageCandidates() {
     </div>
   );
 }
+
+
+
+

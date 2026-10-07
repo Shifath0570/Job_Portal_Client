@@ -1,161 +1,17 @@
+
 "use client";
 
 import React, { useState } from "react";
-
-// ==========================================
-// Inline Custom SVG Icons
-// ==========================================
-
-const UsersIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-    <circle cx="9" cy="7" r="4" />
-    <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-  </svg>
-);
-
-const SearchIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <circle cx="11" cy="11" r="8" />
-    <path d="m21 21-4.3-4.3" />
-  </svg>
-);
-
-const FilterIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
-  </svg>
-);
-
-const EditIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M12 20h9" />
-    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
-  </svg>
-);
-
-const TrashIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M3 6h18" />
-    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
-    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
-  </svg>
-);
-
-const ShieldAlertIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
-    <line x1="12" x2="12" y1="8" y2="12" />
-    <line x1="12" x2="12.01" y1="16" y2="16" />
-  </svg>
-);
-
-const CheckCircleIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-    <polyline points="22 4 12 14.01 9 11.01" />
-  </svg>
-);
-
-const CloseIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M18 6 6 18" />
-    <path d="m6 6 12 12" />
-  </svg>
-);
-
-// ==========================================
-// Mock Registered Users Data
-// ==========================================
+import {
+  Users,
+  Search,
+  Filter,
+  Edit,
+  Trash,
+  ShieldAlert,
+  CheckCircle,
+  X,
+} from "lucide-react";
 
 const INITIAL_USERS = [
   {
@@ -317,7 +173,7 @@ export default function ManageUsers() {
       {/* Toast Notification Banner */}
       {toastMessage && (
         <div className="p-4 bg-purple-500/10 border border-purple-500/30 text-purple-300 text-xs font-semibold rounded-xl flex items-center gap-2">
-          <CheckCircleIcon className="w-4 h-4 text-purple-400 shrink-0" />
+          <CheckCircle className="w-4 h-4 text-purple-400 shrink-0" />
           {toastMessage}
         </div>
       )}
@@ -326,7 +182,7 @@ export default function ManageUsers() {
       <div className="bg-[#14141f] border border-gray-800 rounded-2xl p-4 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
         {/* Search Field */}
         <div className="relative w-full sm:flex-1">
-          <SearchIcon className="w-4 h-4 absolute left-4 top-3 text-gray-500" />
+          <Search className="w-4 h-4 absolute left-4 top-3 text-gray-500" />
           <input
             type="text"
             placeholder="Search users by name or email address..."
@@ -338,7 +194,7 @@ export default function ManageUsers() {
 
         {/* Role Filter Dropdown */}
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          <FilterIcon className="w-4 h-4 text-purple-400 shrink-0" />
+          <Filter className="w-4 h-4 text-purple-400 shrink-0" />
           <select
             value={selectedRoleFilter}
             onChange={(e) => setSelectedRoleFilter(e.target.value)}
@@ -356,7 +212,7 @@ export default function ManageUsers() {
       <div className="bg-[#14141f] border border-gray-800 rounded-2xl p-6 shadow-xl space-y-4">
         {filteredUsers.length === 0 ? (
           <div className="p-12 text-center text-gray-500 space-y-2">
-            <UsersIcon className="w-10 h-10 mx-auto text-gray-600 mb-2" />
+            <Users className="w-10 h-10 mx-auto text-gray-600 mb-2" />
             <p className="text-sm font-semibold text-white">No users found.</p>
             <p className="text-xs text-gray-400">Try adjusting your search query or role filter.</p>
           </div>
@@ -435,7 +291,7 @@ export default function ManageUsers() {
                           title="Edit User Info / Role"
                           className="p-2 bg-[#0a0a0f] hover:bg-gray-800 border border-gray-800 text-gray-300 hover:text-white rounded-xl transition-all cursor-pointer"
                         >
-                          <EditIcon className="w-3.5 h-3.5" />
+                          <Edit className="w-3.5 h-3.5" />
                         </button>
 
                         {/* Suspend / Activate Button */}
@@ -448,7 +304,7 @@ export default function ManageUsers() {
                               : "border-gray-800 text-emerald-400 hover:bg-emerald-500/10 hover:border-emerald-500/30"
                           }`}
                         >
-                          <ShieldAlertIcon className="w-3.5 h-3.5" />
+                          <ShieldAlert className="w-3.5 h-3.5" />
                         </button>
 
                         {/* Delete User Button */}
@@ -457,7 +313,7 @@ export default function ManageUsers() {
                           title="Delete User Account"
                           className="p-2 bg-[#0a0a0f] hover:bg-rose-500/10 border border-gray-800 hover:border-rose-500/30 text-gray-400 hover:text-rose-400 rounded-xl transition-all cursor-pointer"
                         >
-                          <TrashIcon className="w-3.5 h-3.5" />
+                          <Trash className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </td>
@@ -470,7 +326,7 @@ export default function ManageUsers() {
       </div>
 
       {/* ========================================== */}
-      {/* EDIT USER & ROLE MODAL                     */}
+      {/* EDIT USER & ROLE MODAL                    */}
       {/* ========================================== */}
       {editingUser && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
@@ -488,7 +344,7 @@ export default function ManageUsers() {
                 onClick={() => setEditingUser(null)}
                 className="text-gray-400 hover:text-white cursor-pointer"
               >
-                <CloseIcon className="w-5 h-5" />
+                <X className="w-5 h-5" />
               </button>
             </div>
 
@@ -559,3 +415,13 @@ export default function ManageUsers() {
     </div>
   );
 }
+
+
+
+
+
+
+
+
+
+

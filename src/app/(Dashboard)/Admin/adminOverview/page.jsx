@@ -1,171 +1,21 @@
+
 "use client";
 
 import React, { useState } from "react";
+import {
+  Users,
+  UserCheck,
+  Briefcase,
+  CheckCircle,
+  FileText,
+  Building,
+  AlertTriangle,
+  TrendingUp,
+  Clock,
+  ShieldCheck,
+  FileCheck,
+} from "lucide-react";
 
-// ==========================================
-// Inline Custom SVG Icons
-// ==========================================
-
-const UsersIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-    <circle cx="9" cy="7" r="4" />
-    <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-  </svg>
-);
-
-const UserCheckIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-    <circle cx="9" cy="7" r="4" />
-    <polyline points="16 11 18 13 22 9" />
-  </svg>
-);
-
-const BriefcaseIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <rect width="20" height="14" x="2" y="7" rx="2" ry="2" />
-    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
-  </svg>
-);
-
-const CheckCircleIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-    <polyline points="22 4 12 14.01 9 11.01" />
-  </svg>
-);
-
-const FileTextIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
-    <polyline points="14 2 14 8 20 8" />
-  </svg>
-);
-
-const BuildingIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <rect width="16" height="20" x="4" y="2" rx="2" ry="2" />
-    <path d="M9 22v-4h6v4" />
-    <path d="M8 6h.01" />
-    <path d="M16 6h.01" />
-    <path d="M12 6h.01" />
-    <path d="M12 10h.01" />
-    <path d="M12 14h.01" />
-    <path d="M16 10h.01" />
-    <path d="M16 14h.01" />
-    <path d="M8 10h.01" />
-    <path d="M8 14h.01" />
-  </svg>
-);
-
-const AlertTriangleIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
-    <line x1="12" x2="12" y1="9" y2="13" />
-    <line x1="12" x2="12.01" y1="17" y2="17" />
-  </svg>
-);
-
-const TrendingUpIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
-    <polyline points="16 7 22 7 22 13" />
-  </svg>
-);
-
-// ==========================================
-// Dashboard Metrics Config
-// ==========================================
 
 const METRICS = [
   {
@@ -174,7 +24,7 @@ const METRICS = [
     value: "24,890",
     change: "+12.5%",
     isPositive: true,
-    icon: UsersIcon,
+    icon: Users,
     accent: "text-purple-400 bg-purple-500/10 border-purple-500/20",
   },
   {
@@ -183,7 +33,7 @@ const METRICS = [
     value: "19,420",
     change: "+14.2%",
     isPositive: true,
-    icon: UserCheckIcon,
+    icon: UserCheck,
     accent: "text-indigo-400 bg-indigo-500/10 border-indigo-500/20",
   },
   {
@@ -192,7 +42,7 @@ const METRICS = [
     value: "5,470",
     change: "+6.8%",
     isPositive: true,
-    icon: UsersIcon,
+    icon: Users,
     accent: "text-blue-400 bg-blue-500/10 border-blue-500/20",
   },
   {
@@ -201,7 +51,7 @@ const METRICS = [
     value: "8,350",
     change: "+18.4%",
     isPositive: true,
-    icon: BriefcaseIcon,
+    icon: Briefcase,
     accent: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
   },
   {
@@ -210,7 +60,7 @@ const METRICS = [
     value: "3,120",
     change: "+4.1%",
     isPositive: true,
-    icon: CheckCircleIcon,
+    icon: CheckCircle,
     accent: "text-teal-400 bg-teal-500/10 border-teal-500/20",
   },
   {
@@ -219,7 +69,7 @@ const METRICS = [
     value: "142,600",
     change: "+22.9%",
     isPositive: true,
-    icon: FileTextIcon,
+    icon: FileText,
     accent: "text-amber-400 bg-amber-500/10 border-amber-500/20",
   },
   {
@@ -228,7 +78,7 @@ const METRICS = [
     value: "1,280",
     change: "+8.3%",
     isPositive: true,
-    icon: BuildingIcon,
+    icon: Building,
     accent: "text-cyan-400 bg-cyan-500/10 border-cyan-500/20",
   },
   {
@@ -236,17 +86,45 @@ const METRICS = [
     title: "Total Reports",
     value: "42",
     change: "-15.0%",
-    isPositive: true, // Decreasing reports is positive
-    icon: AlertTriangleIcon,
+    isPositive: true,
+    icon: AlertTriangle,
     accent: "text-rose-400 bg-rose-500/10 border-rose-500/20",
   },
 ];
 
 const RECENT_LOGS = [
-  { id: "log-1", action: "New Company Verified", target: "Starlight Design Studio", time: "10 mins ago", type: "system" },
-  { id: "log-2", action: "Report Resolved", target: "Job #8821 Flagged for Spam", time: "45 mins ago", type: "report" },
-  { id: "log-3", action: "Recruiter Approved", target: "David Miller (Acme Tech)", time: "2 hours ago", type: "user" },
-  { id: "log-4", action: "Job Posting Archived", target: "Senior Node Developer", time: "5 hours ago", type: "system" },
+  {
+    id: "log-1",
+    action: "New Company Verified",
+    target: "Starlight Design Studio",
+    time: "10 mins ago",
+    type: "system",
+    icon: ShieldCheck,
+  },
+  {
+    id: "log-2",
+    action: "Report Resolved",
+    target: "Job #8821 Flagged for Spam",
+    time: "45 mins ago",
+    type: "report",
+    icon: FileCheck,
+  },
+  {
+    id: "log-3",
+    action: "Recruiter Approved",
+    target: "David Miller (Acme Tech)",
+    time: "2 hours ago",
+    type: "user",
+    icon: UserCheck,
+  },
+  {
+    id: "log-4",
+    action: "Job Posting Archived",
+    target: "Senior Node Developer",
+    time: "5 hours ago",
+    type: "system",
+    icon: Briefcase,
+  },
 ];
 
 export default function AdminOverview() {
@@ -306,7 +184,7 @@ export default function AdminOverview() {
                   {metric.value}
                 </h2>
                 <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-400">
-                  <TrendingUpIcon className="w-3.5 h-3.5" />
+                  <TrendingUp className="w-3.5 h-3.5" />
                   <span>{metric.change}</span>
                   <span className="text-gray-500 text-[10px] font-normal pl-0.5">
                     vs previous {timeRange}
@@ -324,8 +202,12 @@ export default function AdminOverview() {
         <div className="lg:col-span-2 bg-[#14141f] border border-gray-800 rounded-2xl p-6 space-y-6 shadow-xl">
           <div className="flex items-center justify-between border-b border-gray-800/80 pb-4">
             <div>
-              <h3 className="text-base font-bold text-white">Platform Activity Overview</h3>
-              <p className="text-xs text-gray-400 pt-0.5">Application submissions vs new candidate registrations</p>
+              <h3 className="text-base font-bold text-white">
+                Platform Activity Overview
+              </h3>
+              <p className="text-xs text-gray-400 pt-0.5">
+                Application submissions vs new candidate registrations
+              </p>
             </div>
             <span className="px-2.5 py-1 bg-purple-500/10 border border-purple-500/20 text-purple-300 text-[11px] font-semibold rounded-lg">
               Live Feed
@@ -334,21 +216,26 @@ export default function AdminOverview() {
 
           {/* Bar Chart Simulation */}
           <div className="h-48 flex items-end justify-between gap-2 pt-6 px-2">
-            {[40, 65, 55, 80, 95, 70, 85, 100, 60, 75, 90, 85].map((height, idx) => (
-              <div key={idx} className="flex-1 flex flex-col items-center gap-2 h-full justify-end group">
+            {[40, 65, 55, 80, 95, 70, 85, 100, 60, 75, 90, 85].map(
+              (height, idx) => (
                 <div
-                  style={{ height: `${height}%` }}
-                  className="w-full bg-gradient-to-t from-purple-600/40 to-indigo-500 rounded-t-md group-hover:from-purple-500 group-hover:to-indigo-400 transition-all relative"
+                  key={idx}
+                  className="flex-1 flex flex-col items-center gap-2 h-full justify-end group"
                 >
-                  <span className="opacity-0 group-hover:opacity-100 absolute -top-7 left-1/2 -translate-x-1/2 bg-[#0a0a0f] border border-gray-700 text-white text-[9px] px-1.5 py-0.5 rounded shadow">
-                    {height * 120}
+                  <div
+                    style={{ height: `${height}%` }}
+                    className="w-full bg-gradient-to-t from-purple-600/40 to-indigo-500 rounded-t-md group-hover:from-purple-500 group-hover:to-indigo-400 transition-all relative"
+                  >
+                    <span className="opacity-0 group-hover:opacity-100 absolute -top-7 left-1/2 -translate-x-1/2 bg-[#0a0a0f] border border-gray-700 text-white text-[9px] px-1.5 py-0.5 rounded shadow">
+                      {height * 120}
+                    </span>
+                  </div>
+                  <span className="text-[10px] text-gray-500 font-medium">
+                    M{idx + 1}
                   </span>
                 </div>
-                <span className="text-[10px] text-gray-500 font-medium">
-                  M{idx + 1}
-                </span>
-              </div>
-            ))}
+              )
+            )}
           </div>
         </div>
 
@@ -356,20 +243,38 @@ export default function AdminOverview() {
         <div className="bg-[#14141f] border border-gray-800 rounded-2xl p-6 space-y-5 shadow-xl flex flex-col justify-between">
           <div className="space-y-4">
             <div className="border-b border-gray-800/80 pb-3">
-              <h3 className="text-base font-bold text-white">Recent System Audit</h3>
-              <p className="text-xs text-gray-400 pt-0.5">Automated flags & admin actions</p>
+              <h3 className="text-base font-bold text-white">
+                Recent System Audit
+              </h3>
+              <p className="text-xs text-gray-400 pt-0.5">
+                Automated flags & admin actions
+              </p>
             </div>
 
             <div className="space-y-3.5">
-              {RECENT_LOGS.map((log) => (
-                <div key={log.id} className="p-3 bg-[#0a0a0f] border border-gray-800/80 rounded-xl space-y-1">
-                  <div className="flex items-center justify-between text-xs font-semibold">
-                    <span className="text-purple-400">{log.action}</span>
-                    <span className="text-[10px] text-gray-500">{log.time}</span>
+              {RECENT_LOGS.map((log) => {
+                const LogIcon = log.icon;
+                return (
+                  <div
+                    key={log.id}
+                    className="p-3 bg-[#0a0a0f] border border-gray-800/80 rounded-xl space-y-1"
+                  >
+                    <div className="flex items-center justify-between text-xs font-semibold">
+                      <span className="text-purple-400 flex items-center gap-1.5">
+                        <LogIcon className="w-3.5 h-3.5" />
+                        {log.action}
+                      </span>
+                      <span className="text-[10px] text-gray-500 flex items-center gap-1">
+                        <Clock className="w-3 h-3" />
+                        {log.time}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-300 font-medium truncate">
+                      {log.target}
+                    </p>
                   </div>
-                  <p className="text-xs text-gray-300 font-medium truncate">{log.target}</p>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
@@ -381,5 +286,9 @@ export default function AdminOverview() {
     </div>
   );
 }
+
+
+
+
 
 

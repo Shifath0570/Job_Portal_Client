@@ -1,206 +1,20 @@
+
+
 "use client";
 
 import React, { useState } from "react";
-
-// ==========================================
-// Inline Custom SVG Icons
-// ==========================================
-
-const BuildingIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <rect width="16" height="20" x="4" y="2" rx="2" ry="2" />
-    <path d="M9 22v-4h6v4" />
-    <path d="M8 6h.01" />
-    <path d="M16 6h.01" />
-    <path d="M12 6h.01" />
-    <path d="M12 10h.01" />
-    <path d="M12 14h.01" />
-    <path d="M16 10h.01" />
-    <path d="M16 14h.01" />
-    <path d="M8 10h.01" />
-    <path d="M8 14h.01" />
-  </svg>
-);
-
-const SearchIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <circle cx="11" cy="11" r="8" />
-    <path d="m21 21-4.3-4.3" />
-  </svg>
-);
-
-const FilterIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
-  </svg>
-);
-
-const CheckCircleIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-    <polyline points="22 4 12 14.01 9 11.01" />
-  </svg>
-);
-
-const XCircleIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <circle cx="12" cy="12" r="10" />
-    <path d="m15 9-6 6" />
-    <path d="m9 9 6 6" />
-  </svg>
-);
-
-const ShieldAlertIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10" />
-    <line x1="12" x2="12" y1="8" y2="12" />
-    <line x1="12" x2="12.01" y1="16" y2="16" />
-  </svg>
-);
-
-const TrashIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M3 6h18" />
-    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
-    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
-  </svg>
-);
-
-const EyeIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
-    <circle cx="12" cy="12" r="3" />
-  </svg>
-);
-
-const CloseIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M18 6 6 18" />
-    <path d="m6 6 12 12" />
-  </svg>
-);
-
-const ExternalLinkIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-    <polyline points="15 3 21 3 21 9" />
-    <line x1="10" x2="21" y1="14" y2="3" />
-  </svg>
-);
-
-// ==========================================
-// Mock Recruiters Data
-// ==========================================
+import {
+  Search,
+  Filter,
+  CheckCircle,
+  XCircle,
+  ShieldAlert,
+  Trash2,
+  Eye,
+  Building,
+  X,
+  ExternalLink,
+} from "lucide-react";
 
 const INITIAL_RECRUITERS = [
   {
@@ -368,7 +182,7 @@ export default function ManageRecruiters() {
       {/* Toast Banner */}
       {toastMessage && (
         <div className="p-4 bg-purple-500/10 border border-purple-500/30 text-purple-300 text-xs font-semibold rounded-xl flex items-center gap-2">
-          <CheckCircleIcon className="w-4 h-4 text-purple-400 shrink-0" />
+          <CheckCircle className="w-4 h-4 text-purple-400 shrink-0" />
           {toastMessage}
         </div>
       )}
@@ -377,7 +191,7 @@ export default function ManageRecruiters() {
       <div className="bg-[#14141f] border border-gray-800 rounded-2xl p-4 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
         {/* Search Field */}
         <div className="relative w-full sm:flex-1">
-          <SearchIcon className="w-4 h-4 absolute left-4 top-3 text-gray-500" />
+          <Search className="w-4 h-4 absolute left-4 top-3 text-gray-500" />
           <input
             type="text"
             placeholder="Search by recruiter name, email, or company..."
@@ -389,7 +203,7 @@ export default function ManageRecruiters() {
 
         {/* Status Filter Dropdown */}
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          <FilterIcon className="w-4 h-4 text-purple-400 shrink-0" />
+          <Filter className="w-4 h-4 text-purple-400 shrink-0" />
           <select
             value={selectedStatusFilter}
             onChange={(e) => setSelectedStatusFilter(e.target.value)}
@@ -408,7 +222,7 @@ export default function ManageRecruiters() {
       <div className="bg-[#14141f] border border-gray-800 rounded-2xl p-6 shadow-xl space-y-4">
         {filteredRecruiters.length === 0 ? (
           <div className="p-12 text-center text-gray-500 space-y-2">
-            <BuildingIcon className="w-10 h-10 mx-auto text-gray-600 mb-2" />
+            <Building className="w-10 h-10 mx-auto text-gray-600 mb-2" />
             <p className="text-sm font-semibold text-white">No recruiters found.</p>
             <p className="text-xs text-gray-400">Try modifying your query or filter criteria.</p>
           </div>
@@ -445,6 +259,7 @@ export default function ManageRecruiters() {
                     {/* Company Info Trigger */}
                     <td className="py-4 px-4">
                       <button
+                        type="button"
                         onClick={() => setActiveCompanyModal(rec.company)}
                         className="flex items-center gap-2.5 text-left group/comp cursor-pointer"
                       >
@@ -456,7 +271,7 @@ export default function ManageRecruiters() {
                         <div>
                           <p className="font-semibold text-gray-200 group-hover/comp:text-purple-400 transition-colors inline-flex items-center gap-1">
                             {rec.company.name}
-                            <EyeIcon className="w-3 h-3 text-purple-400 opacity-0 group-hover/comp:opacity-100 transition-opacity" />
+                            <Eye className="w-3 h-3 text-purple-400 opacity-0 group-hover/comp:opacity-100 transition-opacity" />
                           </p>
                           <p className="text-gray-500 text-[10px]">
                             {rec.company.industry}
@@ -487,27 +302,30 @@ export default function ManageRecruiters() {
                         {/* Verify Button (if not verified) */}
                         {rec.status !== "Verified" && (
                           <button
+                            type="button"
                             onClick={() => handleVerify(rec.id, rec.name)}
                             title="Verify Recruiter"
                             className="p-2 bg-[#0a0a0f] hover:bg-emerald-500/10 border border-gray-800 hover:border-emerald-500/30 text-gray-400 hover:text-emerald-400 rounded-xl transition-all cursor-pointer"
                           >
-                            <CheckCircleIcon className="w-3.5 h-3.5" />
+                            <CheckCircle className="w-3.5 h-3.5" />
                           </button>
                         )}
 
                         {/* Reject Button (if pending) */}
                         {rec.status === "Pending" && (
                           <button
+                            type="button"
                             onClick={() => handleReject(rec.id, rec.name)}
                             title="Reject Recruiter"
                             className="p-2 bg-[#0a0a0f] hover:bg-rose-500/10 border border-gray-800 hover:border-rose-500/30 text-gray-400 hover:text-rose-400 rounded-xl transition-all cursor-pointer"
                           >
-                            <XCircleIcon className="w-3.5 h-3.5" />
+                            <XCircle className="w-3.5 h-3.5" />
                           </button>
                         )}
 
                         {/* Suspend / Unsuspend Button */}
                         <button
+                          type="button"
                           onClick={() => handleToggleSuspend(rec.id, rec.name, rec.status)}
                           title={rec.status === "Suspended" ? "Activate Recruiter" : "Suspend Recruiter"}
                           className={`p-2 bg-[#0a0a0f] border rounded-xl transition-all cursor-pointer ${
@@ -516,16 +334,17 @@ export default function ManageRecruiters() {
                               : "border-gray-800 text-amber-400 hover:bg-amber-500/10 hover:border-amber-500/30"
                           }`}
                         >
-                          <ShieldAlertIcon className="w-3.5 h-3.5" />
+                          <ShieldAlert className="w-3.5 h-3.5" />
                         </button>
 
                         {/* Delete Button */}
                         <button
+                          type="button"
                           onClick={() => handleDelete(rec.id, rec.name)}
                           title="Delete Recruiter Account"
                           className="p-2 bg-[#0a0a0f] hover:bg-rose-500/10 border border-gray-800 hover:border-rose-500/30 text-gray-400 hover:text-rose-400 rounded-xl transition-all cursor-pointer"
                         >
-                          <TrashIcon className="w-3.5 h-3.5" />
+                          <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </td>
@@ -562,10 +381,11 @@ export default function ManageRecruiters() {
               </div>
 
               <button
+                type="button"
                 onClick={() => setActiveCompanyModal(null)}
                 className="text-gray-400 hover:text-white cursor-pointer"
               >
-                <CloseIcon className="w-5 h-5" />
+                <X className="w-5 h-5" />
               </button>
             </div>
 
@@ -603,7 +423,7 @@ export default function ManageRecruiters() {
                   className="text-purple-400 hover:text-purple-300 font-bold inline-flex items-center gap-1"
                 >
                   {activeCompanyModal.website.replace("https://", "")}
-                  <ExternalLinkIcon className="w-3.5 h-3.5" />
+                  <ExternalLink className="w-3.5 h-3.5" />
                 </a>
               </div>
             </div>
@@ -624,3 +444,13 @@ export default function ManageRecruiters() {
     </div>
   );
 }
+
+
+
+
+
+
+
+
+
+

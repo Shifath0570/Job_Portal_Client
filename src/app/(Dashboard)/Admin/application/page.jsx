@@ -1,213 +1,86 @@
+
 "use client";
 
 import React, { useState } from "react";
-
-// ==========================================
-// Inline Custom SVG Icons
-// ==========================================
-
-const FileCheckIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" />
-    <path d="M14 2v4a1 1 0 0 0 1 1h4" />
-    <path d="m9 15 2 2 4-4" />
-  </svg>
-);
-
-const SearchIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <circle cx="11" cy="11" r="8" />
-    <path d="m21 21-4.3-4.3" />
-  </svg>
-);
-
-const FilterIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
-  </svg>
-);
-
-const EyeIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
-    <circle cx="12" cy="12" r="3" />
-  </svg>
-);
-
-const CheckCircleIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-    <polyline points="22 4 12 14.01 9 11.01" />
-  </svg>
-);
-
-const TrashIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M3 6h18" />
-    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
-    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
-  </svg>
-);
-
-const CloseIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M18 6 6 18" />
-    <path d="m6 6 12 12" />
-  </svg>
-);
-
-const ExternalLinkIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-    <polyline points="15 3 21 3 21 9" />
-    <line x1="10" x2="21" y1="14" y2="3" />
-  </svg>
-);
-
-// ==========================================
-// Mock Job Applications Data
-// ==========================================
+import {
+  FileCheck,
+  Search,
+  Filter,
+  Eye,
+  CheckCircle2,
+  Trash2,
+  X,
+  ExternalLink,
+} from "lucide-react";
 
 const INITIAL_APPLICATIONS = [
   {
     id: "app-301",
     candidateName: "Alex Rivera",
     candidateEmail: "alex.rivera@example.com",
-    candidateAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80",
+    candidateAvatar:
+      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80",
     jobTitle: "Senior Full Stack Developer",
     company: "Starlight Design Studio",
-    companyLogo: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=100&auto=format&fit=crop&q=80",
+    companyLogo:
+      "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=100&auto=format&fit=crop&q=80",
     applicationDate: "Aug 05, 2026",
     status: "Interview",
-    coverNote: "With 6+ years building React/Node microservices, I am very eager to help Starlight build world-class design tools.",
-    resumeUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+    coverNote:
+      "With 6+ years building React/Node microservices, I am very eager to help Starlight build world-class design tools.",
+    resumeUrl:
+      "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
   },
   {
     id: "app-302",
     candidateName: "Marcus Vance",
     candidateEmail: "m.vance@devmail.org",
-    candidateAvatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=80",
+    candidateAvatar:
+      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=80",
     jobTitle: "Lead Product Designer",
     company: "Acme Technologies",
-    companyLogo: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100&auto=format&fit=crop&q=80",
+    companyLogo:
+      "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100&auto=format&fit=crop&q=80",
     applicationDate: "Aug 06, 2026",
     status: "Pending",
-    coverNote: "I have spearheaded Figma component design systems for major SaaS enterprises and look forward to discussing Acme's vision.",
-    resumeUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+    coverNote:
+      "I have spearheaded Figma component design systems for major SaaS enterprises and look forward to discussing Acme's vision.",
+    resumeUrl:
+      "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
   },
   {
     id: "app-303",
     candidateName: "Sophia Chen",
     candidateEmail: "sophia.chen@cloudlab.io",
-    candidateAvatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&auto=format&fit=crop&q=80",
+    candidateAvatar:
+      "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&auto=format&fit=crop&q=80",
     jobTitle: "DevOps & Cloud Engineer",
     company: "CyberPulse Labs",
-    companyLogo: "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=100&auto=format&fit=crop&q=80",
+    companyLogo:
+      "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=100&auto=format&fit=crop&q=80",
     applicationDate: "Jul 28, 2026",
     status: "Accepted",
-    coverNote: "Specialized in zero-downtime Kubernetes cluster deployments with Terraform and automated CI/CD.",
-    resumeUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+    coverNote:
+      "Specialized in zero-downtime Kubernetes cluster deployments with Terraform and automated CI/CD.",
+    resumeUrl:
+      "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
   },
   {
     id: "app-304",
     candidateName: "Jordan Lee",
     candidateEmail: "j.lee@datascience.net",
-    candidateAvatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80",
+    candidateAvatar:
+      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80",
     jobTitle: "AI Specialist & Machine Learning Researcher",
     company: "CloudVibe Tech",
-    companyLogo: "https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=100&auto=format&fit=crop&q=80",
+    companyLogo:
+      "https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=100&auto=format&fit=crop&q=80",
     applicationDate: "Aug 02, 2026",
     status: "Rejected",
-    coverNote: "Focused on fine-tuning LLMs and NLP analytics pipelines in Python and PyTorch.",
-    resumeUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+    coverNote:
+      "Focused on fine-tuning LLMs and NLP analytics pipelines in Python and PyTorch.",
+    resumeUrl:
+      "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
   },
 ];
 
@@ -292,7 +165,7 @@ export default function Application() {
       {/* Toast Notification Banner */}
       {toastMessage && (
         <div className="p-4 bg-purple-500/10 border border-purple-500/30 text-purple-300 text-xs font-semibold rounded-xl flex items-center gap-2">
-          <CheckCircleIcon className="w-4 h-4 text-purple-400 shrink-0" />
+          <CheckCircle2 className="w-4 h-4 text-purple-400 shrink-0" />
           {toastMessage}
         </div>
       )}
@@ -301,7 +174,7 @@ export default function Application() {
       <div className="bg-[#14141f] border border-gray-800 rounded-2xl p-4 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
         {/* Search Field */}
         <div className="relative w-full sm:flex-1">
-          <SearchIcon className="w-4 h-4 absolute left-4 top-3 text-gray-500" />
+          <Search className="w-4 h-4 absolute left-4 top-3 text-gray-500" />
           <input
             type="text"
             placeholder="Search by candidate name, job title, or company..."
@@ -313,7 +186,7 @@ export default function Application() {
 
         {/* Status Filter */}
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          <FilterIcon className="w-4 h-4 text-purple-400 shrink-0" />
+          <Filter className="w-4 h-4 text-purple-400 shrink-0" />
           <select
             value={selectedStatusFilter}
             onChange={(e) => setSelectedStatusFilter(e.target.value)}
@@ -332,7 +205,7 @@ export default function Application() {
       <div className="bg-[#14141f] border border-gray-800 rounded-2xl p-6 shadow-xl space-y-4">
         {filteredApplications.length === 0 ? (
           <div className="p-12 text-center text-gray-500 space-y-2">
-            <FileCheckIcon className="w-10 h-10 mx-auto text-gray-600 mb-2" />
+            <FileCheck className="w-10 h-10 mx-auto text-gray-600 mb-2" />
             <p className="text-sm font-semibold text-white">No applications found.</p>
             <p className="text-xs text-gray-400">Try modifying your search or filter settings.</p>
           </div>
@@ -431,7 +304,7 @@ export default function Application() {
                           title="View Application Details"
                           className="p-2 bg-[#0a0a0f] hover:bg-purple-500/10 border border-gray-800 hover:border-purple-500/30 text-gray-300 hover:text-purple-400 rounded-xl transition-all cursor-pointer"
                         >
-                          <EyeIcon className="w-3.5 h-3.5" />
+                          <Eye className="w-3.5 h-3.5" />
                         </button>
 
                         {/* Delete Button */}
@@ -440,7 +313,7 @@ export default function Application() {
                           title="Delete Application Record"
                           className="p-2 bg-[#0a0a0f] hover:bg-rose-500/10 border border-gray-800 hover:border-rose-500/30 text-gray-400 hover:text-rose-400 rounded-xl transition-all cursor-pointer"
                         >
-                          <TrashIcon className="w-3.5 h-3.5" />
+                          <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </td>
@@ -480,7 +353,7 @@ export default function Application() {
                 onClick={() => setViewingApp(null)}
                 className="text-gray-400 hover:text-white cursor-pointer"
               >
-                <CloseIcon className="w-5 h-5" />
+                <X className="w-5 h-5" />
               </button>
             </div>
 
@@ -520,7 +393,7 @@ export default function Application() {
                   className="text-purple-400 hover:text-purple-300 font-bold inline-flex items-center gap-1"
                 >
                   View Submitted Resume
-                  <ExternalLinkIcon className="w-3.5 h-3.5" />
+                  <ExternalLink className="w-3.5 h-3.5" />
                 </a>
               </div>
             </div>
@@ -541,5 +414,11 @@ export default function Application() {
     </div>
   );
 }
+
+
+
+
+
+
 
 
