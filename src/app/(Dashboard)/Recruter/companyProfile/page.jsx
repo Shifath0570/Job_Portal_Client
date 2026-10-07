@@ -3,91 +3,7 @@
 
 import { authClient } from "@/app/lib/auth-client";
 import React, { useState } from "react";
-
-const UploadIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-    <polyline points="17 8 12 3 7 8" />
-    <line x1="12" x2="12" y1="3" y2="15" />
-  </svg>
-);
-
-const SaveIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-    <polyline points="17 21 17 13 7 13 7 21" />
-    <polyline points="7 3 7 8 15 8" />
-  </svg>
-);
-
-const RefreshIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-    <path d="M3 3v5h5" />
-    <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
-    <path d="M16 16h5v5" />
-  </svg>
-);
-
-const BuildingIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <rect width="16" height="20" x="4" y="2" rx="2" ry="2" />
-    <path d="M9 22v-4h6v4" />
-    <path d="M8 6h.01" />
-    <path d="M16 6h.01" />
-    <path d="M12 6h.01" />
-    <path d="M12 10h.01" />
-    <path d="M12 14h.01" />
-    <path d="M16 10h.01" />
-    <path d="M16 14h.01" />
-    <path d="M8 10h.01" />
-    <path d="M8 14h.01" />
-  </svg>
-);
+import { Upload, Save, RefreshCw, Building2 } from "lucide-react";
 
 const INITIAL_PROFILE = {
   companyLogo: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=150&auto=format&fit=crop&q=80",
@@ -235,7 +151,7 @@ export default function CompanyProfile() {
             disabled={isFetching}
             className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#14141f] hover:bg-gray-800 border border-gray-800 text-gray-300 hover:text-white text-sm font-medium rounded-xl transition-all disabled:opacity-50"
           >
-            <RefreshIcon className={`w-4 h-4 ${isFetching ? "animate-spin" : ""}`} />
+            <RefreshCw className={`w-4 h-4 ${isFetching ? "animate-spin" : ""}`} />
             {isFetching ? "Syncing..." : "Reload Data"}
           </button>
         </div>
@@ -263,12 +179,12 @@ export default function CompanyProfile() {
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <BuildingIcon className="w-10 h-10 text-gray-500" />
+                <Building2 className="w-10 h-10 text-gray-500" />
               )}
             </div>
             <div className="space-y-2 text-center sm:text-left">
               <label className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white text-sm font-medium rounded-xl cursor-pointer transition-all shadow-md">
-                <UploadIcon className="w-4 h-4" />
+                <Upload className="w-4 h-4" />
                 Upload New Logo
                 <input
                   type="file"
@@ -492,7 +408,7 @@ export default function CompanyProfile() {
             disabled={isSaving}
             className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold text-sm rounded-xl transition-all shadow-lg cursor-pointer disabled:opacity-50"
           >
-            <SaveIcon className="w-4 h-4" />
+            <Save className="w-4 h-4" />
             {isSaving ? "Saving Changes..." : "Save Profile"}
           </button>
         </div>
@@ -500,3 +416,9 @@ export default function CompanyProfile() {
     </div>
   );
 }
+
+
+
+
+
+

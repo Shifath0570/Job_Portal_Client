@@ -1,142 +1,15 @@
 "use client";
 
 import React, { useState } from "react";
-
-// ==========================================
-// Inline Custom SVG Icons
-// ==========================================
-
-const SearchIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <circle cx="11" cy="11" r="8" />
-    <path d="m21 21-4.3-4.3" />
-  </svg>
-);
-
-const DownloadIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-    <polyline points="7 10 12 15 17 10" />
-    <line x1="12" x2="12" y1="15" y2="3" />
-  </svg>
-);
-
-const EyeIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z" />
-    <circle cx="12" cy="12" r="3" />
-  </svg>
-);
-
-const CalendarIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
-    <line x1="16" x2="16" y1="2" y2="6" />
-    <line x1="8" x2="8" y1="2" y2="6" />
-    <line x1="3" x2="21" y1="10" y2="10" />
-  </svg>
-);
-
-const MailIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <rect width="20" height="16" x="2" y="4" rx="2" />
-    <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
-  </svg>
-);
-
-const PhoneIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
-  </svg>
-);
-
-const CloseIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M18 6 6 18" />
-    <path d="m6 6 12 12" />
-  </svg>
-);
-
-// ==========================================
-// Baseline Mock Data
-// ==========================================
+import {
+  Search as SearchIcon,
+  Mail as MailIcon,
+  Phone as PhoneIcon,
+  Calendar as CalendarIcon,
+  Eye as EyeIcon,
+  Download as DownloadIcon,
+  X as CloseIcon,
+} from "lucide-react";
 
 const STATUS_OPTIONS = [
   "Pending",
@@ -150,7 +23,8 @@ const STATUS_OPTIONS = [
 const INITIAL_APPLICANTS = [
   {
     id: "app-101",
-    profilePicture: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80",
+    profilePicture:
+      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80",
     name: "Eleanor Pena",
     email: "eleanor.pena@example.com",
     phone: "+1 (555) 345-6789",
@@ -159,14 +33,16 @@ const INITIAL_APPLICANTS = [
     experienceLevel: "Senior Level (5+ yrs)",
     experience: "5 Years at Tech Corp as Lead Frontend Dev",
     education: "B.Sc. in Computer Science, Stanford University",
-    coverLetter: "I have over 5 years of experience building modern web architectures. Excited to bring my Next.js and frontend skillsets to your engineering team.",
+    coverLetter:
+      "I have over 5 years of experience building modern web architectures. Excited to bring my Next.js and frontend skillsets to your engineering team.",
     applicationDate: "Aug 05, 2026",
     status: "Shortlisted",
     resumeUrl: "/resumes/eleanor-pena.pdf",
   },
   {
     id: "app-102",
-    profilePicture: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
+    profilePicture:
+      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
     name: "Jerome Bell",
     email: "jerome.bell@example.com",
     phone: "+1 (555) 876-5432",
@@ -175,14 +51,16 @@ const INITIAL_APPLICANTS = [
     experienceLevel: "Mid Level (3-5 yrs)",
     experience: "3 Years at Design Studio as UI Designer",
     education: "B.A. in Graphic Design, NYU",
-    coverLetter: "Crafting intuitive digital experiences is my passion. I have designed product systems for over 10 scalable web applications.",
+    coverLetter:
+      "Crafting intuitive digital experiences is my passion. I have designed product systems for over 10 scalable web applications.",
     applicationDate: "Aug 02, 2026",
     status: "Interview Scheduled",
     resumeUrl: "/resumes/jerome-bell.pdf",
   },
   {
     id: "app-103",
-    profilePicture: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80",
+    profilePicture:
+      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80",
     name: "Devon Lane",
     email: "devon.lane@example.com",
     phone: "+1 (555) 234-9876",
@@ -191,7 +69,8 @@ const INITIAL_APPLICANTS = [
     experienceLevel: "Senior Level (5+ yrs)",
     experience: "6 Years as Senior Backend Developer",
     education: "M.Sc. in Software Engineering, MIT",
-    coverLetter: "Specialized in microservices design, RESTful APIs, and database optimization. Looking forward to discussing this opportunity.",
+    coverLetter:
+      "Specialized in microservices design, RESTful APIs, and database optimization. Looking forward to discussing this opportunity.",
     applicationDate: "Jul 29, 2026",
     status: "Pending",
     resumeUrl: "/resumes/devon-lane.pdf",
@@ -646,3 +525,8 @@ export default function ViewApplicants() {
     </div>
   );
 }
+
+
+
+
+
