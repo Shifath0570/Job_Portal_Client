@@ -193,7 +193,6 @@ export default function CompanyProfile() {
     // Ensure session defaults are sent if not manually edited
     const payload = {
       ...formData,
-      user: user.id,
       companyName: companyNameValue,
       email: emailValue,
     };

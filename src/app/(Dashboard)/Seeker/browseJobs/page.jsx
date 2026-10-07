@@ -1,213 +1,20 @@
+
 "use client";
 
 import React, { useState } from "react";
-
-// ==========================================
-// Inline Custom SVG Icons
-// ==========================================
-
-const SearchIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <circle cx="11" cy="11" r="8" />
-    <path d="m21 21-4.3-4.3" />
-  </svg>
-);
-
-const FilterIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
-  </svg>
-);
-
-const BookmarkIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" />
-  </svg>
-);
-
-const BookmarkCheckIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" />
-    <polyline points="9 10 11 12 15 8" />
-  </svg>
-);
-
-const ShareIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <circle cx="18" cy="5" r="3" />
-    <circle cx="6" cy="12" r="3" />
-    <circle cx="18" cy="19" r="3" />
-    <line x1="8.59" x2="15.42" y1="13.51" y2="17.49" />
-    <line x1="15.41" x2="8.59" y1="6.51" y2="10.49" />
-  </svg>
-);
-
-const CloseIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M18 6 6 18" />
-    <path d="m6 6 12 12" />
-  </svg>
-);
-
-const CheckCircleIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-    <polyline points="22 4 12 14.01 9 11.01" />
-  </svg>
-);
-
-const MapPinIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
-    <circle cx="12" cy="10" r="3" />
-  </svg>
-);
-
-const DollarSignIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <line x1="12" x2="12" y1="2" y2="22" />
-    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-  </svg>
-);
-
-const ClockIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <circle cx="12" cy="12" r="10" />
-    <polyline points="12 6 12 12 16 14" />
-  </svg>
-);
-
-const FileTextIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
-    <polyline points="14 2 14 8 20 8" />
-  </svg>
-);
-
-// ==========================================
-// Mock Jobs Dataset
-// ==========================================
+import {
+  Search,
+  CheckCircle2,
+  Bookmark,
+  BookmarkCheck,
+  MapPin,
+  DollarSign,
+  Clock,
+  Filter,
+  X,
+  Share2,
+  FileText,
+} from "lucide-react";
 
 const INITIAL_JOBS = [
   {
@@ -332,7 +139,7 @@ export default function BrowseJobs() {
   const [jobs] = useState(INITIAL_JOBS);
   const [savedJobIds, setSavedJobIds] = useState([]);
   const [appliedJobIds, setAppliedJobIds] = useState([]);
-  
+
   // Search state
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -347,7 +154,7 @@ export default function BrowseJobs() {
   const [selectedJob, setSelectedJob] = useState(null);
   const [applyingJob, setApplyingJob] = useState(null);
   const [coverLetter, setCoverLetter] = useState("");
-  const [selectedResume, setSelectedResume] = useState("Alex_Rivera_Resume_2026.pdf");
+  const [selectedResume] = useState("Alex_Rivera_Resume_2026.pdf");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [notification, setNotification] = useState("");
 
@@ -389,7 +196,6 @@ export default function BrowseJobs() {
 
   // Filtered Jobs Logic
   const filteredJobs = jobs.filter((job) => {
-    // Search Query Match (Title, Company, or Keywords)
     const matchesSearch =
       searchQuery === "" ||
       job.jobTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -398,19 +204,10 @@ export default function BrowseJobs() {
         skill.toLowerCase().includes(searchQuery.toLowerCase())
       );
 
-    // Category Filter
     const matchesCategory = selectedCategory === "ALL" || job.category === selectedCategory;
-
-    // Job Type Filter
     const matchesJobType = selectedJobType === "ALL" || job.jobType === selectedJobType;
-
-    // Workplace Type Filter
     const matchesWorkplace = selectedWorkplace === "ALL" || job.workplaceType === selectedWorkplace;
-
-    // Experience Level Filter
     const matchesExperience = selectedExperience === "ALL" || job.experienceLevel === selectedExperience;
-
-    // Salary Range Filter
     const matchesSalary = job.salaryMin >= minSalary;
 
     return (
@@ -440,7 +237,7 @@ export default function BrowseJobs() {
       {/* Toast Notification Banner */}
       {notification && (
         <div className="p-4 bg-purple-500/10 border border-purple-500/30 text-purple-300 text-xs font-semibold rounded-xl flex items-center gap-2">
-          <CheckCircleIcon className="w-4 h-4 text-purple-400 shrink-0" />
+          <CheckCircle2 className="w-4 h-4 text-purple-400 shrink-0" />
           {notification}
         </div>
       )}
@@ -449,7 +246,7 @@ export default function BrowseJobs() {
       <div className="bg-[#14141f] border border-gray-800 rounded-2xl p-5 space-y-4 shadow-xl">
         {/* Search Bar */}
         <div className="relative">
-          <SearchIcon className="w-5 h-5 absolute left-4 top-3.5 text-gray-500" />
+          <Search className="w-5 h-5 absolute left-4 top-3.5 text-gray-500" />
           <input
             type="text"
             placeholder="Search by Job Title, Company Name, or Skills (e.g. React, Node)..."
@@ -461,7 +258,6 @@ export default function BrowseJobs() {
 
         {/* Filter Controls Row */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 text-xs">
-          {/* Category */}
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
@@ -473,7 +269,6 @@ export default function BrowseJobs() {
             <option value="DevOps">DevOps</option>
           </select>
 
-          {/* Job Type */}
           <select
             value={selectedJobType}
             onChange={(e) => setSelectedJobType(e.target.value)}
@@ -485,7 +280,6 @@ export default function BrowseJobs() {
             <option value="Part-Time">Part-Time</option>
           </select>
 
-          {/* Workplace / Remote */}
           <select
             value={selectedWorkplace}
             onChange={(e) => setSelectedWorkplace(e.target.value)}
@@ -497,7 +291,6 @@ export default function BrowseJobs() {
             <option value="On-site">On-site</option>
           </select>
 
-          {/* Experience Level */}
           <select
             value={selectedExperience}
             onChange={(e) => setSelectedExperience(e.target.value)}
@@ -508,7 +301,6 @@ export default function BrowseJobs() {
             <option value="Senior Level">Senior Level</option>
           </select>
 
-          {/* Min Salary Range */}
           <select
             value={minSalary}
             onChange={(e) => setMinSalary(Number(e.target.value))}
@@ -530,7 +322,7 @@ export default function BrowseJobs() {
 
         {filteredJobs.length === 0 ? (
           <div className="p-12 text-center bg-[#14141f] border border-gray-800 rounded-2xl text-gray-500 space-y-2">
-            <FilterIcon className="w-8 h-8 mx-auto text-gray-600 mb-2" />
+            <Filter className="w-8 h-8 mx-auto text-gray-600 mb-2" />
             <p className="text-sm">No job postings match your search filters.</p>
           </div>
         ) : (
@@ -544,7 +336,6 @@ export default function BrowseJobs() {
                   key={job.id}
                   className="bg-[#14141f] border border-gray-800 hover:border-purple-500/40 rounded-2xl p-6 space-y-5 transition-all shadow-xl flex flex-col justify-between"
                 >
-                  {/* Card Header: Logo, Company & Title */}
                   <div className="space-y-4">
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex items-center gap-3.5">
@@ -566,7 +357,6 @@ export default function BrowseJobs() {
                         </div>
                       </div>
 
-                      {/* Bookmark Icon */}
                       <button
                         onClick={() => handleToggleSave(job.id)}
                         className={`p-2 rounded-xl border transition-all cursor-pointer ${
@@ -576,32 +366,30 @@ export default function BrowseJobs() {
                         }`}
                       >
                         {isSaved ? (
-                          <BookmarkCheckIcon className="w-4 h-4" />
+                          <BookmarkCheck className="w-4 h-4" />
                         ) : (
-                          <BookmarkIcon className="w-4 h-4" />
+                          <Bookmark className="w-4 h-4" />
                         )}
                       </button>
                     </div>
 
-                    {/* Metadata Pills */}
                     <div className="flex flex-wrap items-center gap-2 text-xs text-gray-300">
                       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[#0a0a0f] border border-gray-800 rounded-lg text-[11px]">
-                        <MapPinIcon className="w-3.5 h-3.5 text-purple-400" />
+                        <MapPin className="w-3.5 h-3.5 text-purple-400" />
                         {job.location} ({job.workplaceType})
                       </span>
 
                       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[#0a0a0f] border border-gray-800 rounded-lg text-[11px]">
-                        <DollarSignIcon className="w-3.5 h-3.5 text-emerald-400" />
+                        <DollarSign className="w-3.5 h-3.5 text-emerald-400" />
                         {job.salary}
                       </span>
 
                       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[#0a0a0f] border border-gray-800 rounded-lg text-[11px]">
-                        <ClockIcon className="w-3.5 h-3.5 text-blue-400" />
+                        <Clock className="w-3.5 h-3.5 text-blue-400" />
                         {job.jobType}
                       </span>
                     </div>
 
-                    {/* Skills Tags */}
                     <div className="flex flex-wrap gap-1.5 pt-1">
                       {job.requiredSkills.map((skill) => (
                         <span
@@ -614,7 +402,6 @@ export default function BrowseJobs() {
                     </div>
                   </div>
 
-                  {/* Card Footer Actions */}
                   <div className="flex items-center justify-between pt-4 border-t border-gray-800 text-xs">
                     <span className="text-gray-500 text-[11px]">
                       Posted {job.postedDate}
@@ -649,13 +436,10 @@ export default function BrowseJobs() {
         )}
       </div>
 
-      {/* ========================================== */}
-      {/* JOB DETAILS MODAL                          */}
-      {/* ========================================== */}
+      {/* JOB DETAILS MODAL */}
       {selectedJob && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-[#14141f] border border-gray-800 rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto p-6 sm:p-8 space-y-6 shadow-2xl relative">
-            {/* Modal Header */}
             <div className="flex items-start justify-between border-b border-gray-800 pb-5">
               <div className="flex items-center gap-4">
                 <img
@@ -677,11 +461,10 @@ export default function BrowseJobs() {
                 onClick={() => setSelectedJob(null)}
                 className="text-gray-400 hover:text-white cursor-pointer"
               >
-                <CloseIcon className="w-6 h-6" />
+                <X className="w-6 h-6" />
               </button>
             </div>
 
-            {/* Modal Action Bar */}
             <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-[#0a0a0f] border border-gray-800 rounded-xl">
               <div className="text-xs space-y-0.5">
                 <p className="text-gray-400">Salary Range</p>
@@ -693,7 +476,7 @@ export default function BrowseJobs() {
                   onClick={() => handleToggleSave(selectedJob.id)}
                   className="inline-flex items-center gap-2 px-3.5 py-2 bg-[#14141f] border border-gray-800 text-gray-300 hover:text-white text-xs font-semibold rounded-xl cursor-pointer"
                 >
-                  <BookmarkIcon className="w-4 h-4 text-purple-400" />
+                  <Bookmark className="w-4 h-4 text-purple-400" />
                   {savedJobIds.includes(selectedJob.id) ? "Saved" : "Save Job"}
                 </button>
 
@@ -701,7 +484,7 @@ export default function BrowseJobs() {
                   onClick={() => handleShareJob(selectedJob.jobTitle)}
                   className="inline-flex items-center gap-2 px-3.5 py-2 bg-[#14141f] border border-gray-800 text-gray-300 hover:text-white text-xs font-semibold rounded-xl cursor-pointer"
                 >
-                  <ShareIcon className="w-4 h-4 text-blue-400" />
+                  <Share2 className="w-4 h-4 text-blue-400" />
                   Share Job
                 </button>
 
@@ -723,7 +506,6 @@ export default function BrowseJobs() {
               </div>
             </div>
 
-            {/* Main Information Breakdown */}
             <div className="space-y-6 text-xs text-gray-300 leading-relaxed">
               <div>
                 <h3 className="text-sm font-bold text-white mb-2">
@@ -764,7 +546,7 @@ export default function BrowseJobs() {
                       key={i}
                       className="p-2.5 bg-[#0a0a0f] border border-gray-800 rounded-lg text-gray-300 flex items-center gap-2"
                     >
-                      <CheckCircleIcon className="w-4 h-4 text-emerald-400 shrink-0" />
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
                       <span>{benefit}</span>
                     </div>
                   ))}
@@ -785,9 +567,7 @@ export default function BrowseJobs() {
         </div>
       )}
 
-      {/* ========================================== */}
-      {/* APPLY FOR JOB MODAL                        */}
-      {/* ========================================== */}
+      {/* APPLY FOR JOB MODAL */}
       {applyingJob && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-[#14141f] border border-gray-800 rounded-2xl w-full max-w-lg p-6 space-y-6 shadow-2xl relative">
@@ -803,19 +583,18 @@ export default function BrowseJobs() {
                 onClick={() => setApplyingJob(null)}
                 className="text-gray-400 hover:text-white cursor-pointer"
               >
-                <CloseIcon className="w-5 h-5" />
+                <X className="w-5 h-5" />
               </button>
             </div>
 
             <form onSubmit={handleSubmitApplication} className="space-y-4 text-xs">
-              {/* Select Resume */}
               <div className="space-y-2">
                 <label className="text-gray-300 font-semibold block">
                   Select Resume Document *
                 </label>
                 <div className="p-3 bg-[#0a0a0f] border border-purple-500/30 rounded-xl flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <FileTextIcon className="w-5 h-5 text-purple-400" />
+                    <FileText className="w-5 h-5 text-purple-400" />
                     <div>
                       <p className="font-bold text-white">{selectedResume}</p>
                       <p className="text-[10px] text-gray-500">PDF Document • 1.8 MB</p>
@@ -827,7 +606,6 @@ export default function BrowseJobs() {
                 </div>
               </div>
 
-              {/* Cover Letter (Optional) */}
               <div className="space-y-1.5">
                 <label className="text-gray-300 font-semibold block">
                   Cover Letter <span className="text-gray-500">(Optional)</span>
@@ -841,7 +619,6 @@ export default function BrowseJobs() {
                 />
               </div>
 
-              {/* Submission Footer */}
               <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-800">
                 <button
                   type="button"
@@ -866,3 +643,6 @@ export default function BrowseJobs() {
     </div>
   );
 }
+
+
+

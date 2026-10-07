@@ -1,171 +1,30 @@
+
 "use client";
 
 import React, { useState } from "react";
-
-// ==========================================
-// Inline Custom SVG Icons
-// ==========================================
-
-const BriefcaseIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <rect width="20" height="14" x="2" y="7" rx="2" ry="2" />
-    <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
-  </svg>
-);
-
-const SearchIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <circle cx="11" cy="11" r="8" />
-    <path d="m21 21-4.3-4.3" />
-  </svg>
-);
-
-const FilterIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
-  </svg>
-);
-
-const CalendarIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
-    <line x1="16" x2="16" y1="2" y2="6" />
-    <line x1="8" x2="8" y1="2" y2="6" />
-    <line x1="3" x2="21" y1="10" y2="10" />
-  </svg>
-);
-
-const CloseIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M18 6 6 18" />
-    <path d="m6 6 12 12" />
-  </svg>
-);
-
-const MapPinIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
-    <circle cx="12" cy="10" r="3" />
-  </svg>
-);
-
-const FileTextIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
-    <polyline points="14 2 14 8 20 8" />
-  </svg>
-);
-
-const ExternalLinkIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-    <polyline points="15 3 21 3 21 9" />
-    <line x1="10" x2="21" y1="14" y2="3" />
-  </svg>
-);
-
-// ==========================================
-// Initial Applications Mock Data
-// ==========================================
+import {
+  Briefcase,
+  Search,
+  Filter,
+  Calendar,
+  X as CloseIcon,
+  MapPin,
+  FileText,
+  ExternalLink,
+} from "lucide-react";
 
 const INITIAL_APPLICATIONS = [
   {
     id: "app-101",
     jobTitle: "Senior React Developer",
     company: "Acme Technologies",
-    companyLogo: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100&auto=format&fit=crop&q=80",
+    companyLogo:
+      "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100&auto=format&fit=crop&q=80",
     location: "San Francisco, CA (Remote)",
     appliedDate: "Aug 06, 2026",
     status: "Hired",
-    statusNote: "Official offer letter accepted. Onboarding begins September 1st.",
+    statusNote:
+      "Official offer letter accepted. Onboarding begins September 1st.",
     resumeUsed: "Alex_Rivera_Resume_2026.pdf",
     salary: "$145,000 / year",
   },
@@ -173,11 +32,13 @@ const INITIAL_APPLICATIONS = [
     id: "app-102",
     jobTitle: "UI/UX Product Designer",
     company: "Starlight Design Studio",
-    companyLogo: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=100&auto=format&fit=crop&q=80",
+    companyLogo:
+      "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=100&auto=format&fit=crop&q=80",
     location: "New York, NY (Hybrid)",
     appliedDate: "Aug 04, 2026",
     status: "Interview Scheduled",
-    statusNote: "Technical round scheduled via Google Meet on Aug 12, 2:00 PM.",
+    statusNote:
+      "Technical round scheduled via Google Meet on Aug 12, 2:00 PM.",
     resumeUsed: "Alex_Rivera_Resume_2026.pdf",
     salary: "$120,000 / year",
   },
@@ -185,11 +46,13 @@ const INITIAL_APPLICATIONS = [
     id: "app-103",
     jobTitle: "Frontend Architect",
     company: "Nexus Systems",
-    companyLogo: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=100&auto=format&fit=crop&q=80",
+    companyLogo:
+      "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=100&auto=format&fit=crop&q=80",
     location: "Remote",
     appliedDate: "Jul 28, 2026",
     status: "Shortlisted",
-    statusNote: "Application moved to candidate shortlist. Hiring manager review in progress.",
+    statusNote:
+      "Application moved to candidate shortlist. Hiring manager review in progress.",
     resumeUsed: "Alex_Rivera_Resume_2026.pdf",
     salary: "$150,000 / year",
   },
@@ -197,7 +60,8 @@ const INITIAL_APPLICATIONS = [
     id: "app-104",
     jobTitle: "Full Stack JavaScript Developer",
     company: "CyberPulse Labs",
-    companyLogo: "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=100&auto=format&fit=crop&q=80",
+    companyLogo:
+      "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=100&auto=format&fit=crop&q=80",
     location: "Austin, TX",
     appliedDate: "Jul 22, 2026",
     status: "Reviewed",
@@ -209,7 +73,8 @@ const INITIAL_APPLICATIONS = [
     id: "app-105",
     jobTitle: "Junior Software Engineer",
     company: "CloudVibe Tech",
-    companyLogo: "https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=100&auto=format&fit=crop&q=80",
+    companyLogo:
+      "https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=100&auto=format&fit=crop&q=80",
     location: "Remote",
     appliedDate: "Jul 18, 2026",
     status: "Pending",
@@ -221,11 +86,13 @@ const INITIAL_APPLICATIONS = [
     id: "app-106",
     jobTitle: "DevOps & Cloud Engineer",
     company: "Apex Innovations",
-    companyLogo: "https://images.unsplash.com/photo-1572021335469-31706a17aaef?w=100&auto=format&fit=crop&q=80",
+    companyLogo:
+      "https://images.unsplash.com/photo-1572021335469-31706a17aaef?w=100&auto=format&fit=crop&q=80",
     location: "Seattle, WA",
     appliedDate: "Jul 10, 2026",
     status: "Rejected",
-    statusNote: "Position filled by an internal candidate. Submission archived.",
+    statusNote:
+      "Position filled by an internal candidate. Submission archived.",
     resumeUsed: "Alex_Rivera_Resume_2026.pdf",
     salary: "$140,000 / year",
   },
@@ -293,12 +160,36 @@ export default function MyApplications() {
       {/* Summary Counter Bar */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         {[
-          { label: "Pending", count: applications.filter((a) => a.status === "Pending").length, color: "text-amber-400" },
-          { label: "Reviewed", count: applications.filter((a) => a.status === "Reviewed").length, color: "text-blue-400" },
-          { label: "Shortlisted", count: applications.filter((a) => a.status === "Shortlisted").length, color: "text-purple-400" },
-          { label: "Interview", count: applications.filter((a) => a.status === "Interview Scheduled").length, color: "text-indigo-400" },
-          { label: "Hired", count: applications.filter((a) => a.status === "Hired").length, color: "text-emerald-400" },
-          { label: "Rejected", count: applications.filter((a) => a.status === "Rejected").length, color: "text-rose-400" },
+          {
+            label: "Pending",
+            count: applications.filter((a) => a.status === "Pending").length,
+            color: "text-amber-400",
+          },
+          {
+            label: "Reviewed",
+            count: applications.filter((a) => a.status === "Reviewed").length,
+            color: "text-blue-400",
+          },
+          {
+            label: "Shortlisted",
+            count: applications.filter((a) => a.status === "Shortlisted").length,
+            color: "text-purple-400",
+          },
+          {
+            label: "Interview",
+            count: applications.filter((a) => a.status === "Interview Scheduled").length,
+            color: "text-indigo-400",
+          },
+          {
+            label: "Hired",
+            count: applications.filter((a) => a.status === "Hired").length,
+            color: "text-emerald-400",
+          },
+          {
+            label: "Rejected",
+            count: applications.filter((a) => a.status === "Rejected").length,
+            color: "text-rose-400",
+          },
         ].map((item, idx) => (
           <div
             key={idx}
@@ -307,7 +198,9 @@ export default function MyApplications() {
             <span className="text-[10px] uppercase font-bold text-gray-400 tracking-wider">
               {item.label}
             </span>
-            <span className={`text-xl font-black ${item.color}`}>{item.count}</span>
+            <span className={`text-xl font-black ${item.color}`}>
+              {item.count}
+            </span>
           </div>
         ))}
       </div>
@@ -316,7 +209,7 @@ export default function MyApplications() {
       <div className="bg-[#14141f] border border-gray-800 rounded-2xl p-4 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
         {/* Search Field */}
         <div className="relative w-full sm:flex-1">
-          <SearchIcon className="w-4 h-4 absolute left-4 top-3 text-gray-500" />
+          <Search className="w-4 h-4 absolute left-4 top-3 text-gray-500" />
           <input
             type="text"
             placeholder="Search applications by Job Title or Company..."
@@ -328,7 +221,7 @@ export default function MyApplications() {
 
         {/* Filter Dropdown */}
         <div className="flex items-center gap-2 w-full sm:w-auto">
-          <FilterIcon className="w-4 h-4 text-purple-400 shrink-0" />
+          <Filter className="w-4 h-4 text-purple-400 shrink-0" />
           <select
             value={selectedStatusFilter}
             onChange={(e) => setSelectedStatusFilter(e.target.value)}
@@ -349,9 +242,13 @@ export default function MyApplications() {
       <div className="bg-[#14141f] border border-gray-800 rounded-2xl p-6 shadow-xl space-y-4">
         {filteredApplications.length === 0 ? (
           <div className="p-12 text-center text-gray-500 space-y-2">
-            <BriefcaseIcon className="w-10 h-10 mx-auto text-gray-600 mb-2" />
-            <p className="text-sm font-semibold text-white">No applications match your query.</p>
-            <p className="text-xs text-gray-400">Try adjusting your filter status or search term.</p>
+            <Briefcase className="w-10 h-10 mx-auto text-gray-600 mb-2" />
+            <p className="text-sm font-semibold text-white">
+              No applications match your query.
+            </p>
+            <p className="text-xs text-gray-400">
+              Try adjusting your filter status or search term.
+            </p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -392,7 +289,7 @@ export default function MyApplications() {
                     {/* Applied Date */}
                     <td className="py-4 px-4 text-gray-300 font-medium">
                       <span className="inline-flex items-center gap-1.5">
-                        <CalendarIcon className="w-3.5 h-3.5 text-purple-400" />
+                        <Calendar className="w-3.5 h-3.5 text-purple-400" />
                         {app.appliedDate}
                       </span>
                     </td>
@@ -417,7 +314,7 @@ export default function MyApplications() {
                         onClick={() => setActiveApplicationModal(app)}
                         className="px-3 py-1.5 bg-[#0a0a0f] hover:bg-gray-800 border border-gray-800 text-gray-300 hover:text-white rounded-xl transition-all cursor-pointer font-medium text-xs inline-flex items-center gap-1"
                       >
-                        <ExternalLinkIcon className="w-3.5 h-3.5 text-purple-400" />
+                        <ExternalLink className="w-3.5 h-3.5 text-purple-400" />
                         View
                       </button>
                     </td>
@@ -430,7 +327,7 @@ export default function MyApplications() {
       </div>
 
       {/* ========================================== */}
-      {/* APPLICATION DETAILS MODAL                   */}
+      {/* APPLICATION DETAILS MODAL                  */}
       {/* ========================================== */}
       {activeApplicationModal && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
@@ -476,7 +373,9 @@ export default function MyApplications() {
                 </div>
 
                 <div className="pt-2 border-t border-gray-800/80 space-y-1">
-                  <span className="text-gray-400 block font-semibold">Status Note:</span>
+                  <span className="text-gray-400 block font-semibold">
+                    Status Note:
+                  </span>
                   <p className="text-gray-200 leading-relaxed">
                     {activeApplicationModal.statusNote}
                   </p>
@@ -488,7 +387,9 @@ export default function MyApplications() {
                   <span className="text-gray-500 text-[10px] font-semibold block uppercase">
                     Applied Date
                   </span>
-                  <p className="font-bold text-white">{activeApplicationModal.appliedDate}</p>
+                  <p className="font-bold text-white">
+                    {activeApplicationModal.appliedDate}
+                  </p>
                 </div>
 
                 <div className="p-3 bg-[#0a0a0f] border border-gray-800 rounded-xl space-y-1">
@@ -503,7 +404,7 @@ export default function MyApplications() {
 
               <div className="p-3 bg-[#0a0a0f] border border-gray-800 rounded-xl flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <FileTextIcon className="w-4 h-4 text-purple-400" />
+                  <FileText className="w-4 h-4 text-purple-400" />
                   <span className="text-gray-300">Resume Submitted:</span>
                 </div>
                 <span className="font-bold text-white">
@@ -528,3 +429,11 @@ export default function MyApplications() {
     </div>
   );
 }
+
+
+
+
+
+
+
+

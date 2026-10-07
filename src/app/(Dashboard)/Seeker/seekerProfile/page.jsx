@@ -1,195 +1,34 @@
+
 "use client";
 
 import React, { useState } from "react";
-
-// ==========================================
-// Inline Custom SVG Icons
-// ==========================================
-
-const UserIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-    <circle cx="12" cy="7" r="4" />
-  </svg>
-);
-
-const FileTextIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
-    <polyline points="14 2 14 8 20 8" />
-    <line x1="16" x2="8" y1="13" y2="13" />
-    <line x1="16" x2="8" y1="17" y2="17" />
-    <line x1="10" x2="8" y1="9" y2="9" />
-  </svg>
-);
-
-const UploadIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-    <polyline points="17 8 12 3 7 8" />
-    <line x1="12" x2="12" y1="3" y2="15" />
-  </svg>
-);
-
-const EyeIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z" />
-    <circle cx="12" cy="12" r="3" />
-  </svg>
-);
-
-const DownloadIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-    <polyline points="7 10 12 15 17 10" />
-    <line x1="12" x2="12" y1="15" y2="3" />
-  </svg>
-);
-
-const RefreshIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-    <path d="M3 3v5h5" />
-    <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
-    <path d="M16 16h5v5" />
-  </svg>
-);
-
-const PlusIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M5 12h14" />
-    <path d="M12 5v14" />
-  </svg>
-);
-
-const CloseIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M18 6 6 18" />
-    <path d="m6 6 12 12" />
-  </svg>
-);
-
-const CheckIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <polyline points="20 6 9 17 4 12" />
-  </svg>
-);
-
-// ==========================================
-// Initial Mock Profile State
-// ==========================================
+import {
+  Check,
+  Upload,
+  FileText,
+  Eye,
+  Download,
+  RotateCw,
+  X,
+  Plus,
+} from "lucide-react";
 
 const INITIAL_PROFILE = {
-  profilePhoto: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80",
+  profilePhoto:
+    "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80",
   fullName: "Alex Rivera",
   email: "alex.rivera@example.com",
   phone: "+1 (555) 019-2834",
   dateOfBirth: "1997-04-12",
   gender: "Non-binary",
   address: "742 Evergreen Terrace, San Francisco, CA",
-  aboutMe: "Driven Full-Stack Engineer with over 4 years of experience delivering pixel-perfect Web Apps using React, Node.js, and TypeScript.",
+  aboutMe:
+    "Driven Full-Stack Engineer with over 4 years of experience delivering pixel-perfect Web Apps using React, Node.js, and TypeScript.",
   skills: ["React", "TypeScript", "Next.js", "Node.js", "Tailwind CSS", "GraphQL"],
-  experience: "Senior Frontend Engineer at Apex Labs (2023 - Present)\nFull Stack Developer at Bright Web Studio (2021 - 2023)",
-  education: "B.Sc. in Computer Science — University of California, Berkeley (2017 - 2021)",
+  experience:
+    "Senior Frontend Engineer at Apex Labs (2023 - Present)\nFull Stack Developer at Bright Web Studio (2021 - 2023)",
+  education:
+    "B.Sc. in Computer Science — University of California, Berkeley (2017 - 2021)",
   languages: "English (Native), Spanish (Intermediate)",
   portfolioWebsite: "https://alexrivera.dev",
   gitHub: "https://github.com/alexrivera-dev",
@@ -305,7 +144,7 @@ export default function SeekerProfile() {
             disabled={isSaving}
             className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-semibold rounded-xl transition-all shadow-md cursor-pointer disabled:opacity-50"
           >
-            <CheckIcon className="w-4 h-4" />
+            <Check className="w-4 h-4" />
             {isSaving ? "Saving..." : "Save Changes"}
           </button>
         </div>
@@ -314,7 +153,7 @@ export default function SeekerProfile() {
       {/* Success Notification Banner */}
       {saveMessage && (
         <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-semibold rounded-xl flex items-center gap-2">
-          <CheckIcon className="w-4 h-4 shrink-0" />
+          <Check className="w-4 h-4 shrink-0" />
           {saveMessage}
         </div>
       )}
@@ -335,7 +174,7 @@ export default function SeekerProfile() {
                 htmlFor="photoUploadInput"
                 className="absolute inset-0 bg-black/60 rounded-2xl opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center text-xs text-white cursor-pointer transition-opacity"
               >
-                <UploadIcon className="w-5 h-5 mb-1" />
+                <Upload className="w-5 h-5 mb-1" />
                 <span>Change Photo</span>
               </label>
               <input
@@ -357,7 +196,7 @@ export default function SeekerProfile() {
           <div className="bg-[#14141f] border border-gray-800 rounded-2xl p-6 shadow-xl space-y-5">
             <div className="flex items-center justify-between pb-3 border-b border-gray-800">
               <div className="flex items-center gap-2">
-                <FileTextIcon className="w-5 h-5 text-purple-400" />
+                <FileText className="w-5 h-5 text-purple-400" />
                 <h2 className="text-base font-bold text-white">Resume Document</h2>
               </div>
               <span className="text-[10px] text-gray-500">PDF, DOCX supported</span>
@@ -387,7 +226,7 @@ export default function SeekerProfile() {
                     onClick={() => setShowResumeModal(true)}
                     className="inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-[#0a0a0f] hover:bg-gray-800 border border-gray-800 text-gray-300 hover:text-white rounded-xl transition-all cursor-pointer"
                   >
-                    <EyeIcon className="w-3.5 h-3.5 text-purple-400" />
+                    <Eye className="w-3.5 h-3.5 text-purple-400" />
                     View
                   </button>
 
@@ -396,7 +235,7 @@ export default function SeekerProfile() {
                     download={resume.fileName}
                     className="inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-[#0a0a0f] hover:bg-gray-800 border border-gray-800 text-gray-300 hover:text-white rounded-xl transition-all cursor-pointer"
                   >
-                    <DownloadIcon className="w-3.5 h-3.5 text-emerald-400" />
+                    <Download className="w-3.5 h-3.5 text-emerald-400" />
                     Download
                   </a>
                 </div>
@@ -406,7 +245,7 @@ export default function SeekerProfile() {
                   htmlFor="resumeReplaceInput"
                   className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[#0a0a0f] hover:bg-purple-600/10 border border-gray-800 hover:border-purple-500/40 text-purple-400 text-xs font-semibold rounded-xl cursor-pointer transition-all"
                 >
-                  <RefreshIcon className="w-4 h-4" />
+                  <RotateCw className="w-4 h-4" />
                   Replace Resume
                 </label>
                 <input
@@ -423,7 +262,7 @@ export default function SeekerProfile() {
                   htmlFor="resumeUploadInput"
                   className="w-full p-6 border-2 border-dashed border-gray-800 hover:border-purple-500/50 rounded-xl flex flex-col items-center justify-center text-center cursor-pointer transition-all bg-[#0a0a0f]"
                 >
-                  <UploadIcon className="w-8 h-8 text-purple-400 mb-2" />
+                  <Upload className="w-8 h-8 text-purple-400 mb-2" />
                   <span className="text-xs font-semibold text-white">Upload Resume</span>
                   <span className="text-[10px] text-gray-500 mt-1">
                     Drag and drop or browse (.PDF, .DOCX)
@@ -579,7 +418,7 @@ export default function SeekerProfile() {
                         onClick={() => handleRemoveSkill(skill)}
                         className="hover:text-rose-400 cursor-pointer"
                       >
-                        <CloseIcon className="w-3 h-3" />
+                        <X className="w-3 h-3" />
                       </button>
                     </span>
                   ))}
@@ -598,7 +437,7 @@ export default function SeekerProfile() {
                     onClick={handleAddSkill}
                     className="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white font-semibold rounded-xl inline-flex items-center gap-1 cursor-pointer"
                   >
-                    <PlusIcon className="w-4 h-4" /> Add
+                    <Plus className="w-4 h-4" /> Add
                   </button>
                 </div>
               </div>
@@ -703,12 +542,12 @@ export default function SeekerProfile() {
                 onClick={() => setShowResumeModal(false)}
                 className="text-gray-400 hover:text-white cursor-pointer"
               >
-                <CloseIcon className="w-5 h-5" />
+                <X className="w-5 h-5" />
               </button>
             </div>
 
             <div className="p-8 bg-[#0a0a0f] border border-gray-800 rounded-xl text-center space-y-4">
-              <FileTextIcon className="w-12 h-12 text-purple-400 mx-auto" />
+              <FileText className="w-12 h-12 text-purple-400 mx-auto" />
               <p className="text-xs text-gray-300">
                 Document standard preview canvas for <strong>{profile.fullName}</strong>.
               </p>
@@ -720,7 +559,7 @@ export default function SeekerProfile() {
                 download={resume.fileName}
                 className="inline-flex items-center gap-2 px-5 py-2.5 bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold rounded-xl shadow-md cursor-pointer transition-all"
               >
-                <DownloadIcon className="w-4 h-4" /> Download File ({resume.fileSize})
+                <Download className="w-4 h-4" /> Download File ({resume.fileSize})
               </a>
             </div>
           </div>
@@ -729,3 +568,11 @@ export default function SeekerProfile() {
     </div>
   );
 }
+
+
+
+
+
+
+
+

@@ -1,176 +1,18 @@
+
 "use client";
 
 import React, { useState } from "react";
-
-// ==========================================
-// Inline Custom SVG Icons
-// ==========================================
-
-const BookmarkIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z" />
-  </svg>
-);
-
-const TrashIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M3 6h18" />
-    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
-    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
-  </svg>
-);
-
-const SearchIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <circle cx="11" cy="11" r="8" />
-    <path d="m21 21-4.3-4.3" />
-  </svg>
-);
-
-const MapPinIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
-    <circle cx="12" cy="10" r="3" />
-  </svg>
-);
-
-const DollarSignIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <line x1="12" x2="12" y1="2" y2="22" />
-    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-  </svg>
-);
-
-const ClockIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <circle cx="12" cy="12" r="10" />
-    <polyline points="12 6 12 12 16 14" />
-  </svg>
-);
-
-const CloseIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M18 6 6 18" />
-    <path d="m6 6 12 12" />
-  </svg>
-);
-
-const CheckCircleIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-    <polyline points="22 4 12 14.01 9 11.01" />
-  </svg>
-);
-
-const FileTextIcon = (props) => (
-  <svg
-    {...props}
-    xmlns="http://www.w3.org/2000/svg"
-    width="24"
-    height="24"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-  >
-    <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
-    <polyline points="14 2 14 8 20 8" />
-  </svg>
-);
-
-// ==========================================
-// Initial Mock Bookmarked Jobs
-// ==========================================
+import {
+  Bookmark,
+  Trash2,
+  Search,
+  MapPin,
+  DollarSign,
+  Clock,
+  X,
+  CheckCircle,
+  FileText,
+} from "lucide-react";
 
 const INITIAL_SAVED_JOBS = [
   {
@@ -284,7 +126,7 @@ export default function SavedJobs() {
       {/* Notification Toast */}
       {notification && (
         <div className="p-4 bg-purple-500/10 border border-purple-500/30 text-purple-300 text-xs font-semibold rounded-xl flex items-center gap-2">
-          <CheckCircleIcon className="w-4 h-4 text-purple-400 shrink-0" />
+          <CheckCircle className="w-4 h-4 text-purple-400 shrink-0" />
           {notification}
         </div>
       )}
@@ -292,7 +134,7 @@ export default function SavedJobs() {
       {/* Search Bar */}
       <div className="bg-[#14141f] border border-gray-800 rounded-2xl p-4 shadow-xl">
         <div className="relative">
-          <SearchIcon className="w-5 h-5 absolute left-4 top-3.5 text-gray-500" />
+          <Search className="w-5 h-5 absolute left-4 top-3.5 text-gray-500" />
           <input
             type="text"
             placeholder="Search saved jobs by title, company, or skills..."
@@ -306,7 +148,7 @@ export default function SavedJobs() {
       {/* Saved Jobs List Grid */}
       {filteredJobs.length === 0 ? (
         <div className="p-12 text-center bg-[#14141f] border border-gray-800 rounded-2xl text-gray-500 space-y-3 shadow-xl">
-          <BookmarkIcon className="w-10 h-10 mx-auto text-gray-600 mb-1" />
+          <Bookmark className="w-10 h-10 mx-auto text-gray-600 mb-1" />
           <h3 className="text-base font-bold text-white">No saved jobs found</h3>
           <p className="text-xs text-gray-400 max-w-sm mx-auto">
             {searchQuery
@@ -349,24 +191,24 @@ export default function SavedJobs() {
                       title="Remove Saved Job"
                       className="p-2 bg-[#0a0a0f] hover:bg-rose-500/10 border border-gray-800 hover:border-rose-500/30 text-gray-400 hover:text-rose-400 rounded-xl transition-all cursor-pointer shrink-0"
                     >
-                      <TrashIcon className="w-4 h-4" />
+                      <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
 
                   {/* Metadata Chips */}
                   <div className="flex flex-wrap items-center gap-2 text-xs text-gray-300">
                     <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[#0a0a0f] border border-gray-800 rounded-lg text-[11px]">
-                      <MapPinIcon className="w-3.5 h-3.5 text-purple-400" />
+                      <MapPin className="w-3.5 h-3.5 text-purple-400" />
                       {job.location} ({job.workplaceType})
                     </span>
 
                     <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[#0a0a0f] border border-gray-800 rounded-lg text-[11px]">
-                      <DollarSignIcon className="w-3.5 h-3.5 text-emerald-400" />
+                      <DollarSign className="w-3.5 h-3.5 text-emerald-400" />
                       {job.salary}
                     </span>
 
                     <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[#0a0a0f] border border-gray-800 rounded-lg text-[11px]">
-                      <ClockIcon className="w-3.5 h-3.5 text-blue-400" />
+                      <Clock className="w-3.5 h-3.5 text-blue-400" />
                       {job.jobType}
                     </span>
                   </div>
@@ -427,7 +269,7 @@ export default function SavedJobs() {
                 onClick={() => setApplyingJob(null)}
                 className="text-gray-400 hover:text-white cursor-pointer"
               >
-                <CloseIcon className="w-5 h-5" />
+                <X className="w-5 h-5" />
               </button>
             </div>
 
@@ -439,7 +281,7 @@ export default function SavedJobs() {
                 </label>
                 <div className="p-3 bg-[#0a0a0f] border border-purple-500/30 rounded-xl flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <FileTextIcon className="w-5 h-5 text-purple-400" />
+                    <FileText className="w-5 h-5 text-purple-400" />
                     <div>
                       <p className="font-bold text-white">{selectedResume}</p>
                       <p className="text-[10px] text-gray-500">PDF Document • 1.8 MB</p>
@@ -490,3 +332,10 @@ export default function SavedJobs() {
     </div>
   );
 }
+
+
+
+
+
+
+
