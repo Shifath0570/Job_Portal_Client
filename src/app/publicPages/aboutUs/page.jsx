@@ -13,11 +13,6 @@ import {
   Briefcase,
 } from "lucide-react";
 
-// ==========================================
-// Custom Brand SVGs
-// (Prevents missing export errors in lucide-react)
-// ==========================================
-
 const LinkedinIcon = (props) => (
   <svg
     {...props}
@@ -389,3 +384,10 @@ export default function AboutUsPage() {
     </div>
   );
 }
+
+
+
+
+
+
+

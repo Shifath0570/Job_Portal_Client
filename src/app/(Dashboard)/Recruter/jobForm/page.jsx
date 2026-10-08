@@ -38,6 +38,7 @@ export function JobForm() {
     employmentType: "Full Time",
     remoteOption: "Hybrid",
     benefits: "",
+    status: "Active",
   });
 
   const handleChange = (e) => {
@@ -77,6 +78,7 @@ export function JobForm() {
         },
         body: JSON.stringify({
           ...formData,
+          status: "Active",
           vacancies: Number(formData.vacancies),
           createdAt: new Date().toISOString(),
         }),
@@ -110,6 +112,7 @@ export function JobForm() {
           employmentType: "Full Time",
           remoteOption: "Hybrid",
           benefits: "",
+          status: "Active",
         });
       } else {
         alert(`Error posting job: ${data.message || "Failed to submit"}`);
@@ -505,3 +508,12 @@ export function JobForm() {
 }
 
 export default JobForm;
+
+
+
+
+
+
+
+
+

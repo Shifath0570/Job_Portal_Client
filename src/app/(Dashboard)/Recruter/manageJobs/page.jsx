@@ -1,8 +1,7 @@
 
-
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Eye as EyeIcon,
   SquarePen as EditIcon,
@@ -13,63 +12,53 @@ import {
   X as CloseIcon,
 } from "lucide-react";
 
-const INITIAL_JOBS = [
-  {
-    id: "job-101",
-    title: "Senior Frontend Engineer",
-    department: "Engineering",
-    location: "Remote / San Francisco",
-    type: "Full-Time",
-    applicationsCount: 42,
-    status: "Active",
-    postedDate: "Aug 01, 2026",
-    description: "Looking for a React and Next.js expert to build responsive dashboards.",
-  },
-  {
-    id: "job-102",
-    title: "UI/UX Product Designer",
-    department: "Design",
-    location: "New York, NY",
-    type: "Full-Time",
-    applicationsCount: 28,
-    status: "Active",
-    postedDate: "Jul 28, 2026",
-    description: "Lead end-to-end user research and high-fidelity Figma designs.",
-  },
-  {
-    id: "job-103",
-    title: "Backend Node.js Architect",
-    department: "Engineering",
-    location: "Remote",
-    type: "Contract",
-    applicationsCount: 65,
-    status: "Closed",
-    postedDate: "Jun 15, 2026",
-    description: "Build microservices and GraphQL API endpoints for scalability.",
-  },
-];
-
 export default function ManageJobs() {
-  const [jobs, setJobs] = useState(INITIAL_JOBS);
+  const [jobs, setJobs] = useState([]);
   const [isFetching, setIsFetching] = useState(false);
+  const [error, setError] = useState(null);
   const [selectedJob, setSelectedJob] = useState(null);
   const [editingJob, setEditingJob] = useState(null);
   const [filterStatus, setFilterStatus] = useState("All");
 
-  // Fetch updated jobs list from backend without useEffect
+  // Fetch jobs list from backend endpoint GET /api/jobs
   const handleFetchJobs = async () => {
     setIsFetching(true);
+    setError(null);
     try {
-      const response = await fetch("/api/recruiter/jobs");
-      if (!response.ok) throw new Error("Failed to fetch jobs");
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000";
+      const response = await fetch(`${baseUrl}/api/jobs`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch jobs: ${response.statusText}`);
+      }
+
       const data = await response.json();
-      if (Array.isArray(data)) setJobs(data);
-    } catch (error) {
-      console.warn("Using current job listings:", error);
+
+      // Handle array payload or nested object payloads (e.g. { jobs: [...] })
+      if (Array.isArray(data)) {
+        setJobs(data);
+      } else if (data && Array.isArray(data.jobs)) {
+        setJobs(data.jobs);
+      } else {
+        setJobs([]);
+      }
+    } catch (err) {
+      console.error("Error fetching jobs:", err);
+      setError("Unable to load job listings. Please try again.");
     } finally {
       setIsFetching(false);
     }
   };
+
+  // Automatically fetch jobs on initial mount
+  useEffect(() => {
+    handleFetchJobs();
+  }, []);
 
   // Toggle Job Status (Close / Reopen)
   const handleToggleStatus = (jobId) => {
@@ -122,11 +111,20 @@ export default function ManageJobs() {
             disabled={isFetching}
             className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#14141f] hover:bg-gray-800 border border-gray-800 text-gray-300 hover:text-white text-sm font-medium rounded-xl transition-all disabled:opacity-50 cursor-pointer"
           >
-            <RefreshIcon className={`w-4 h-4 ${isFetching ? "animate-spin" : ""}`} />
+            <RefreshIcon
+              className={`w-4 h-4 ${isFetching ? "animate-spin" : ""}`}
+            />
             {isFetching ? "Syncing..." : "Reload Jobs"}
           </button>
         </div>
       </div>
+
+      {/* Error Message */}
+      {error && (
+        <div className="p-4 bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-xl text-sm">
+          {error}
+        </div>
+      )}
 
       {/* Filter Tabs */}
       <div className="flex items-center gap-2 border-b border-gray-800/80 pb-4">
@@ -134,11 +132,10 @@ export default function ManageJobs() {
           <button
             key={status}
             onClick={() => setFilterStatus(status)}
-            className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-              filterStatus === status
+            className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${filterStatus === status
                 ? "bg-purple-600/20 text-purple-400 border border-purple-500/30"
                 : "bg-[#14141f] text-gray-400 border border-gray-800 hover:text-white"
-            }`}
+              }`}
           >
             {status} Jobs
           </button>
@@ -159,7 +156,13 @@ export default function ManageJobs() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-800/80">
-              {filteredJobs.length === 0 ? (
+              {isFetching && jobs.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="py-8 text-center text-gray-500">
+                    Loading job listings...
+                  </td>
+                </tr>
+              ) : filteredJobs.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="py-8 text-center text-gray-500">
                     No job listings found for this filter.
@@ -174,20 +177,21 @@ export default function ManageJobs() {
                     <td className="py-4 px-6">
                       <div className="font-semibold text-white">{job.title}</div>
                       <div className="text-xs text-gray-400">
-                        {job.location} • {job.type}
+                        {job.location} • {job.employmentType}
                       </div>
                     </td>
-                    <td className="py-4 px-6 text-gray-300">{job.department}</td>
+                    <td className="py-4 px-6 text-gray-300">
+                      {job.category}
+                    </td>
                     <td className="py-4 px-6 font-medium text-purple-400">
-                      {job.applicationsCount} applicants
+                      {job.applicationsCount} 0
                     </td>
                     <td className="py-4 px-6">
                       <span
-                        className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${
-                          job.status === "Active"
+                        className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${job.status === "Active"
                             ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
                             : "bg-gray-500/10 text-gray-400 border-gray-500/20"
-                        }`}
+                          }`}
                       >
                         {job.status}
                       </span>
@@ -214,12 +218,13 @@ export default function ManageJobs() {
                       {/* Action: Close / Reopen Job */}
                       <button
                         onClick={() => handleToggleStatus(job.id)}
-                        title={job.status === "Active" ? "Close Job" : "Reopen Job"}
-                        className={`p-2 bg-[#0a0a0f] border border-gray-800 rounded-lg transition-all cursor-pointer inline-flex items-center justify-center ${
-                          job.status === "Active"
+                        title={
+                          job.status === "Active" ? "Close Job" : "Reopen Job"
+                        }
+                        className={`p-2 bg-[#0a0a0f] border border-gray-800 rounded-lg transition-all cursor-pointer inline-flex items-center justify-center ${job.status === "Active"
                             ? "hover:border-amber-500/40 text-amber-400"
                             : "hover:border-emerald-500/40 text-emerald-400"
-                        }`}
+                          }`}
                       >
                         {job.status === "Active" ? (
                           <LockIcon className="w-4 h-4" />
@@ -250,7 +255,9 @@ export default function ManageJobs() {
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-[#14141f] border border-gray-800 rounded-2xl w-full max-w-lg p-6 space-y-4 shadow-2xl relative">
             <div className="flex items-center justify-between pb-3 border-b border-gray-800">
-              <h3 className="text-lg font-bold text-white">{selectedJob.title}</h3>
+              <h3 className="text-lg font-bold text-white">
+                {selectedJob.title}
+              </h3>
               <button
                 onClick={() => setSelectedJob(null)}
                 className="text-gray-400 hover:text-white cursor-pointer"
@@ -259,12 +266,29 @@ export default function ManageJobs() {
               </button>
             </div>
             <div className="space-y-2 text-sm text-gray-300">
-              <p><strong className="text-gray-400">Department:</strong> {selectedJob.department}</p>
-              <p><strong className="text-gray-400">Location:</strong> {selectedJob.location}</p>
-              <p><strong className="text-gray-400">Type:</strong> {selectedJob.type}</p>
-              <p><strong className="text-gray-400">Applications:</strong> {selectedJob.applicationsCount}</p>
-              <p><strong className="text-gray-400">Posted On:</strong> {selectedJob.postedDate}</p>
-              <p className="pt-2"><strong className="text-gray-400">Description:</strong></p>
+              <p>
+                <strong className="text-gray-400">Department:</strong>{" "}
+                {selectedJob.department}
+              </p>
+              <p>
+                <strong className="text-gray-400">Location:</strong>{" "}
+                {selectedJob.location}
+              </p>
+              <p>
+                <strong className="text-gray-400">Type:</strong>{" "}
+                {selectedJob.type}
+              </p>
+              <p>
+                <strong className="text-gray-400">Applications:</strong>{" "}
+                {selectedJob.applicationsCount}
+              </p>
+              <p>
+                <strong className="text-gray-400">Posted On:</strong>{" "}
+                {selectedJob.postedDate}
+              </p>
+              <p className="pt-2">
+                <strong className="text-gray-400">Description:</strong>
+              </p>
               <p className="bg-[#0a0a0f] p-3 rounded-xl border border-gray-800 text-xs text-gray-400 leading-relaxed">
                 {selectedJob.description}
               </p>
@@ -281,7 +305,9 @@ export default function ManageJobs() {
             className="bg-[#14141f] border border-gray-800 rounded-2xl w-full max-w-lg p-6 space-y-4 shadow-2xl relative"
           >
             <div className="flex items-center justify-between pb-3 border-b border-gray-800">
-              <h3 className="text-lg font-bold text-white">Edit Job Details</h3>
+              <h3 className="text-lg font-bold text-white">
+                Edit Job Details
+              </h3>
               <button
                 type="button"
                 onClick={() => setEditingJob(null)}
@@ -293,7 +319,9 @@ export default function ManageJobs() {
 
             <div className="space-y-3">
               <div>
-                <label className="text-xs font-semibold text-gray-400">Job Title</label>
+                <label className="text-xs font-semibold text-gray-400">
+                  Job Title
+                </label>
                 <input
                   type="text"
                   value={editingJob.title}
@@ -306,12 +334,17 @@ export default function ManageJobs() {
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-gray-400">Department</label>
+                <label className="text-xs font-semibold text-gray-400">
+                  Department
+                </label>
                 <input
                   type="text"
                   value={editingJob.department}
                   onChange={(e) =>
-                    setEditingJob({ ...editingJob, department: e.target.value })
+                    setEditingJob({
+                      ...editingJob,
+                      department: e.target.value,
+                    })
                   }
                   className="w-full mt-1 px-3 py-2 bg-[#0a0a0f] border border-gray-800 text-white text-sm rounded-xl outline-none focus:border-purple-500"
                   required
@@ -319,7 +352,9 @@ export default function ManageJobs() {
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-gray-400">Location</label>
+                <label className="text-xs font-semibold text-gray-400">
+                  Location
+                </label>
                 <input
                   type="text"
                   value={editingJob.location}
@@ -353,6 +388,8 @@ export default function ManageJobs() {
     </div>
   );
 }
+
+
 
 
 
