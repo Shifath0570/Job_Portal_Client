@@ -1,6 +1,8 @@
+
 "use client";
 
-import React, { useState } from "react";
+import { authClient } from "@/app/lib/auth-client";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Briefcase,
   Layers,
@@ -17,12 +19,22 @@ import {
   X,
   Send,
   Loader2,
+  Building2,
 } from "lucide-react";
 
 export function JobForm() {
+  const { data: session } = authClient.useSession();
+  const user = session?.user;
+
   const [skillInput, setSkillInput] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isFetchingProfile, setIsFetchingProfile] = useState(false);
+
+  // Form state enriched with company profile metadata
   const [formData, setFormData] = useState({
+    companyName: "",
+    companyEmail: "",
+    companyLogo: "",
     title: "",
     category: "Development",
     description: "",
@@ -40,6 +52,43 @@ export function JobForm() {
     benefits: "",
     status: "Active",
   });
+
+  const userEmail = user?.email || "";
+
+  const fetchCompanyProfile = useCallback(async () => {
+    if (!userEmail) return;
+
+    setIsFetchingProfile(true);
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000";
+      const response = await fetch(
+        `${baseUrl}/api/company/profile/${encodeURIComponent(userEmail)}`
+      );
+
+      if (!response.ok) return;
+
+      const profile = await response.json();
+
+      if (profile) {
+        setFormData((prev) => ({
+          ...prev,
+          companyName: profile.companyName || user?.name || prev.companyName,
+          companyEmail: profile.email || userEmail,
+          companyLogo: profile.companyLogo || prev.companyLogo,
+        }));
+      }
+    } catch (error) {
+      console.warn("Could not fetch company profile for job posting:", error);
+    } finally {
+      setIsFetchingProfile(false);
+    }
+  }, [userEmail, user?.name]);
+
+  useEffect(() => {
+    if (userEmail) {
+      fetchCompanyProfile();
+    }
+  }, [userEmail, fetchCompanyProfile]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -64,10 +113,22 @@ export function JobForm() {
     }));
   };
 
-  // POST method to submit data to MongoDB via API endpoint
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
+
+    // FIXED: Access company details from formData state instead of undeclared variable 'profile'
+    const payload = {
+      ...formData,
+      companyName: formData.companyName || user?.name || "Anonymous Company",
+      companyEmail: formData.companyEmail || userEmail,
+      companyLogo: formData.companyLogo || "",
+      status: "Active",
+      vacancies: Number(formData.vacancies),
+      createdAt: new Date().toISOString(),
+    };
+
+    console.log("Submitting Payload:", payload);
 
     try {
       const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000";
@@ -76,15 +137,9 @@ export function JobForm() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          ...formData,
-          status: "Active",
-          vacancies: Number(formData.vacancies),
-          createdAt: new Date().toISOString(),
-        }),
+        body: JSON.stringify(payload),
       });
 
-      // Check content-type to avoid JSON syntax errors if HTML is returned
       const contentType = response.headers.get("content-type");
       if (!contentType || !contentType.includes("application/json")) {
         throw new Error(`Server returned non-JSON response (${response.status})`);
@@ -92,11 +147,10 @@ export function JobForm() {
 
       const data = await response.json();
 
-      console.log(data)
-
       if (response.ok) {
         alert("Job posted successfully to MongoDB!");
-        setFormData({
+        setFormData((prev) => ({
+          ...prev,
           title: "",
           category: "Development",
           description: "",
@@ -113,7 +167,7 @@ export function JobForm() {
           remoteOption: "Hybrid",
           benefits: "",
           status: "Active",
-        });
+        }));
       } else {
         alert(`Error posting job: ${data.message || "Failed to submit"}`);
       }
@@ -127,9 +181,7 @@ export function JobForm() {
 
   return (
     <section className="w-full min-h-screen bg-[#0a0a0f] py-16 text-white">
-      {/* Container aligned to 75% width */}
       <div className="w-full lg:w-[75%] mx-auto px-4">
-
         {/* Header Title */}
         <div className="mb-10 text-center lg:text-left">
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mb-2">
@@ -145,6 +197,39 @@ export function JobForm() {
 
         {/* Main Form Container */}
         <form onSubmit={handleSubmit} className="space-y-8">
+          {/* SECTION 0: Company Identity Preview */}
+          <div className="bg-[#12121a]/80 border border-gray-800/80 rounded-2xl p-6 sm:p-8 shadow-xl">
+            <h2 className="text-base font-semibold text-indigo-300 flex items-center gap-2 border-b border-gray-800/80 pb-3 mb-6">
+              <Building2 className="w-4 h-4 text-indigo-400" /> Posting Company Details
+            </h2>
+
+            <div className="flex items-center gap-4">
+              <div className="w-16 h-16 rounded-xl border border-gray-700 bg-[#0a0a0f] overflow-hidden flex items-center justify-center shrink-0">
+                {formData.companyLogo ? (
+                  <img
+                    src={formData.companyLogo}
+                    alt="Company Logo"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <Building2 className="w-8 h-8 text-gray-500" />
+                )}
+              </div>
+              <div>
+                <p className="text-sm font-bold text-white">
+                  {formData.companyName || user?.name || "Loading company name..."}
+                </p>
+                <p className="text-xs text-gray-400">
+                  {formData.companyEmail || userEmail || "Loading email..."}
+                </p>
+                {isFetchingProfile && (
+                  <p className="text-xs text-indigo-400 flex items-center gap-1 mt-1">
+                    <Loader2 className="w-3 h-3 animate-spin" /> Syncing profile data...
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
 
           {/* SECTION 1: Basic Job Overview */}
           <div className="bg-[#12121a]/80 border border-gray-800/80 rounded-2xl p-6 sm:p-8 space-y-6 shadow-xl">
@@ -499,18 +584,13 @@ export function JobForm() {
               )}
             </button>
           </div>
-
         </form>
-
       </div>
     </section>
   );
 }
 
 export default JobForm;
-
-
-
 
 
 
