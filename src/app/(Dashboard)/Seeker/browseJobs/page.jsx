@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Search,
   CheckCircle2,
@@ -14,129 +14,12 @@ import {
   X,
   Share2,
   FileText,
+  Loader2,
 } from "lucide-react";
 
-const INITIAL_JOBS = [
-  {
-    id: "job-101",
-    companyLogo: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100&auto=format&fit=crop&q=80",
-    jobTitle: "Senior React Developer",
-    companyName: "Acme Technologies",
-    location: "San Francisco, CA",
-    salary: "$130,000 - $160,000",
-    salaryMin: 130000,
-    jobType: "Full-Time",
-    workplaceType: "Remote",
-    category: "Software Engineering",
-    experienceLevel: "Senior Level",
-    postedDate: "2 days ago",
-    deadline: "Aug 28, 2026",
-    description: "We are seeking a seasoned Senior React Developer to architect and build performant web applications using React, Next.js, and TypeScript.",
-    responsibilities: [
-      "Architect and maintain scalable Frontend design systems.",
-      "Collaborate with Product and UI/UX designers on feature rollouts.",
-      "Optimize web page render speed and core web vitals.",
-    ],
-    requirements: [
-      "5+ years experience in modern JavaScript ecosystem.",
-      "Expertise with React 18+, Next.js, and Tailwind CSS.",
-      "Proven experience in state management and web optimization.",
-    ],
-    requiredSkills: ["React", "TypeScript", "Next.js", "Tailwind CSS", "REST API"],
-    benefits: ["Health, Dental & Vision Insurance", "Flexible Remote Work", "401(k) Matching", "$2,000 Annual Learning Stipend"],
-    companyInfo: "Acme Technologies is an industry-leading SaaS company building next-generation productivity tools for remote software teams.",
-  },
-  {
-    id: "job-102",
-    companyLogo: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=100&auto=format&fit=crop&q=80",
-    jobTitle: "UI/UX Product Designer",
-    companyName: "Starlight Design Studio",
-    location: "New York, NY",
-    salary: "$110,000 - $135,000",
-    salaryMin: 110000,
-    jobType: "Full-Time",
-    workplaceType: "Hybrid",
-    category: "Design",
-    experienceLevel: "Mid Level",
-    postedDate: "1 day ago",
-    deadline: "Sep 05, 2026",
-    description: "Join Starlight Studio to design elegant design systems, high-fidelity interactive wireframes, and intuitive mobile app interfaces.",
-    responsibilities: [
-      "Create interactive prototypes and user journey maps.",
-      "Conduct user research and usability testing.",
-      "Maintain design libraries in Figma.",
-    ],
-    requirements: [
-      "3+ years experience in UI/UX Product Design.",
-      "Strong portfolio showcasing responsive web and mobile designs.",
-      "Expert-level mastery of Figma and Prototyping tools.",
-    ],
-    requiredSkills: ["Figma", "User Research", "Prototyping", "Design Systems", "Wireframing"],
-    benefits: ["Unlimited PTO", "Hybrid Flexibility", "Wellness Allowance", "Latest MacBook Pro"],
-    companyInfo: "Starlight Studio designs world-class digital products for venture-backed startups and Fortune 500 enterprises.",
-  },
-  {
-    id: "job-103",
-    companyLogo: "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=100&auto=format&fit=crop&q=80",
-    jobTitle: "DevOps & Cloud Engineer",
-    companyName: "Apex Cloud Innovations",
-    location: "Austin, TX",
-    salary: "$140,000 - $175,000",
-    salaryMin: 140000,
-    jobType: "Full-Time",
-    workplaceType: "On-site",
-    category: "DevOps",
-    experienceLevel: "Senior Level",
-    postedDate: "3 days ago",
-    deadline: "Aug 30, 2026",
-    description: "Looking for a DevOps Engineer to manage Kubernetes infrastructure, automated CI/CD deployment pipelines, and cloud security compliance.",
-    responsibilities: [
-      "Manage AWS cloud infrastructure using Terraform.",
-      "Maintain Docker & Kubernetes clusters.",
-      "Build automated CI/CD pipelines in GitHub Actions.",
-    ],
-    requirements: [
-      "4+ years experience in DevOps or SRE roles.",
-      "Hands-on expertise with AWS, Terraform, and Kubernetes.",
-      "Deep understanding of CI/CD and container security.",
-    ],
-    requiredSkills: ["AWS", "Docker", "Kubernetes", "Terraform", "CI/CD"],
-    benefits: ["Onsite Gym & Cafeteria", "Health Coverage", "Performance Bonuses", "Relocation Assistance"],
-    companyInfo: "Apex Cloud Innovations powers scalable cloud architecture for enterprise high-traffic applications.",
-  },
-  {
-    id: "job-104",
-    companyLogo: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=100&auto=format&fit=crop&q=80",
-    jobTitle: "Backend Node.js Developer",
-    companyName: "Nexus Systems",
-    location: "Remote",
-    salary: "$95,000 - $120,000",
-    salaryMin: 95000,
-    jobType: "Contract",
-    workplaceType: "Remote",
-    category: "Software Engineering",
-    experienceLevel: "Mid Level",
-    postedDate: "4 days ago",
-    deadline: "Aug 25, 2026",
-    description: "Develop high-throughput RESTful and GraphQL APIs using Node.js, Express, and PostgreSQL database systems.",
-    responsibilities: [
-      "Build secure API endpoints and microservices.",
-      "Optimize SQL query performance and database indexing.",
-      "Write comprehensive unit and integration tests.",
-    ],
-    requirements: [
-      "3+ years building backend systems with Node.js.",
-      "Strong knowledge of PostgreSQL and Redis caching.",
-      "Experience with API rate-limiting and JWT authentication.",
-    ],
-    requiredSkills: ["Node.js", "Express", "PostgreSQL", "GraphQL", "Redis"],
-    benefits: ["100% Remote Schedule", "Flexible Hours", "Project Completion Bonuses"],
-    companyInfo: "Nexus Systems builds decentralized API engines for Fintech applications.",
-  },
-];
-
 export default function BrowseJobs() {
-  const [jobs] = useState(INITIAL_JOBS);
+  const [jobs, setJobs] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [savedJobIds, setSavedJobIds] = useState([]);
   const [appliedJobIds, setAppliedJobIds] = useState([]);
 
@@ -157,6 +40,31 @@ export default function BrowseJobs() {
   const [selectedResume] = useState("Alex_Rivera_Resume_2026.pdf");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [notification, setNotification] = useState("");
+
+  // Fetch active jobs from backend API on mount
+  useEffect(() => {
+    const fetchActiveJobs = async () => {
+      setIsLoading(true);
+      try {
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000";
+        const response = await fetch(`${baseUrl}/api/jobs/active`);
+
+        if (response.ok) {
+          const data = await response.json();
+          const fetchedJobs = Array.isArray(data) ? data : data.jobs || [];
+          setJobs(fetchedJobs);
+        } else {
+          console.error("Failed to fetch job listings");
+        }
+      } catch (error) {
+        console.error("Error connecting to job server:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchActiveJobs();
+  }, []);
 
   // Toggle Save Job
   const handleToggleSave = (jobId) => {
@@ -183,11 +91,14 @@ export default function BrowseJobs() {
     e.preventDefault();
     if (!applyingJob) return;
 
+    const jobId = applyingJob._id || applyingJob.id;
+    const jobTitle = applyingJob.title || applyingJob.jobTitle;
+
     setIsSubmitting(true);
     setTimeout(() => {
-      setAppliedJobIds((prev) => [...prev, applyingJob.id]);
+      setAppliedJobIds((prev) => [...prev, jobId]);
       setIsSubmitting(false);
-      setNotification(`Application submitted successfully for ${applyingJob.jobTitle}!`);
+      setNotification(`Application submitted successfully for ${jobTitle}!`);
       setTimeout(() => setNotification(""), 4000);
       setApplyingJob(null);
       setCoverLetter("");
@@ -196,19 +107,21 @@ export default function BrowseJobs() {
 
   // Filtered Jobs Logic
   const filteredJobs = jobs.filter((job) => {
+    const jobTitle = job.title || job.jobTitle || "";
+    const companyName = job.companyName || "";
+    const jobSkills = job.skills || job.requiredSkills || [];
+
     const matchesSearch =
       searchQuery === "" ||
-      job.jobTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      job.companyName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      job.requiredSkills.some((skill) =>
-        skill.toLowerCase().includes(searchQuery.toLowerCase())
-      );
+      jobTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      companyName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      jobSkills.some((skill) => skill.toLowerCase().includes(searchQuery.toLowerCase()));
 
     const matchesCategory = selectedCategory === "ALL" || job.category === selectedCategory;
-    const matchesJobType = selectedJobType === "ALL" || job.jobType === selectedJobType;
-    const matchesWorkplace = selectedWorkplace === "ALL" || job.workplaceType === selectedWorkplace;
+    const matchesJobType = selectedJobType === "ALL" || (job.jobType || job.employmentType) === selectedJobType;
+    const matchesWorkplace = selectedWorkplace === "ALL" || (job.workplaceType || job.remoteOption) === selectedWorkplace;
     const matchesExperience = selectedExperience === "ALL" || job.experienceLevel === selectedExperience;
-    const matchesSalary = job.salaryMin >= minSalary;
+    const matchesSalary = (job.salaryMin || 0) >= minSalary;
 
     return (
       matchesSearch &&
@@ -244,7 +157,6 @@ export default function BrowseJobs() {
 
       {/* Search Bar & Multi-Criteria Filters */}
       <div className="bg-[#14141f] border border-gray-800 rounded-2xl p-5 space-y-4 shadow-xl">
-        {/* Search Bar */}
         <div className="relative">
           <Search className="w-5 h-5 absolute left-4 top-3.5 text-gray-500" />
           <input
@@ -256,7 +168,6 @@ export default function BrowseJobs() {
           />
         </div>
 
-        {/* Filter Controls Row */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 text-xs">
           <select
             value={selectedCategory}
@@ -320,27 +231,39 @@ export default function BrowseJobs() {
           <span>Showing {filteredJobs.length} available openings</span>
         </div>
 
-        {filteredJobs.length === 0 ? (
+        {isLoading ? (
+          <div className="p-16 text-center bg-[#14141f] border border-gray-800 rounded-2xl flex flex-col items-center justify-center space-y-3">
+            <Loader2 className="w-8 h-8 animate-spin text-purple-400" />
+            <p className="text-xs text-gray-400">Loading active job listings...</p>
+          </div>
+        ) : filteredJobs.length === 0 ? (
           <div className="p-12 text-center bg-[#14141f] border border-gray-800 rounded-2xl text-gray-500 space-y-2">
             <Filter className="w-8 h-8 mx-auto text-gray-600 mb-2" />
-            <p className="text-sm">No job postings match your search filters.</p>
+            <p className="text-sm">No active job postings found.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {filteredJobs.map((job) => {
-              const isSaved = savedJobIds.includes(job.id);
-              const isApplied = appliedJobIds.includes(job.id);
+              const jobId = job._id || job.id;
+              const isSaved = savedJobIds.includes(jobId);
+              const isApplied = appliedJobIds.includes(jobId);
+
+              const jobTitle = job.title || job.jobTitle;
+              const workplace = job.workplaceType || job.remoteOption || "Remote";
+              const salary = job.salary || job.salaryRange;
+              const jobType = job.jobType || job.employmentType;
+              const skillsList = job.skills || job.requiredSkills || [];
 
               return (
                 <div
-                  key={job.id}
+                  key={jobId}
                   className="bg-[#14141f] border border-gray-800 hover:border-purple-500/40 rounded-2xl p-6 space-y-5 transition-all shadow-xl flex flex-col justify-between"
                 >
                   <div className="space-y-4">
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex items-center gap-3.5">
                         <img
-                          src={job.companyLogo}
+                          src={job.companyLogo || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100"}
                           alt={job.companyName}
                           className="w-12 h-12 rounded-xl object-cover border border-gray-800 shrink-0"
                         />
@@ -349,7 +272,7 @@ export default function BrowseJobs() {
                             onClick={() => setSelectedJob(job)}
                             className="text-base font-bold text-white hover:text-purple-400 transition-colors cursor-pointer"
                           >
-                            {job.jobTitle}
+                            {jobTitle}
                           </h2>
                           <p className="text-xs text-gray-400 font-medium">
                             {job.companyName}
@@ -358,40 +281,36 @@ export default function BrowseJobs() {
                       </div>
 
                       <button
-                        onClick={() => handleToggleSave(job.id)}
+                        onClick={() => handleToggleSave(jobId)}
                         className={`p-2 rounded-xl border transition-all cursor-pointer ${
                           isSaved
                             ? "bg-purple-500/10 border-purple-500/30 text-purple-400"
                             : "bg-[#0a0a0f] border-gray-800 text-gray-400 hover:text-white"
                         }`}
                       >
-                        {isSaved ? (
-                          <BookmarkCheck className="w-4 h-4" />
-                        ) : (
-                          <Bookmark className="w-4 h-4" />
-                        )}
+                        {isSaved ? <BookmarkCheck className="w-4 h-4" /> : <Bookmark className="w-4 h-4" />}
                       </button>
                     </div>
 
                     <div className="flex flex-wrap items-center gap-2 text-xs text-gray-300">
                       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[#0a0a0f] border border-gray-800 rounded-lg text-[11px]">
                         <MapPin className="w-3.5 h-3.5 text-purple-400" />
-                        {job.location} ({job.workplaceType})
+                        {job.location} ({workplace})
                       </span>
 
                       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[#0a0a0f] border border-gray-800 rounded-lg text-[11px]">
                         <DollarSign className="w-3.5 h-3.5 text-emerald-400" />
-                        {job.salary}
+                        {salary}
                       </span>
 
                       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[#0a0a0f] border border-gray-800 rounded-lg text-[11px]">
                         <Clock className="w-3.5 h-3.5 text-blue-400" />
-                        {job.jobType}
+                        {jobType}
                       </span>
                     </div>
 
                     <div className="flex flex-wrap gap-1.5 pt-1">
-                      {job.requiredSkills.map((skill) => (
+                      {skillsList.map((skill) => (
                         <span
                           key={skill}
                           className="px-2 py-0.5 bg-purple-500/10 text-purple-300 border border-purple-500/20 text-[10px] font-semibold rounded-md"
@@ -404,7 +323,7 @@ export default function BrowseJobs() {
 
                   <div className="flex items-center justify-between pt-4 border-t border-gray-800 text-xs">
                     <span className="text-gray-500 text-[11px]">
-                      Posted {job.postedDate}
+                      Posted {job.postedDate || "Recently"}
                     </span>
 
                     <div className="flex items-center gap-2">
@@ -443,13 +362,13 @@ export default function BrowseJobs() {
             <div className="flex items-start justify-between border-b border-gray-800 pb-5">
               <div className="flex items-center gap-4">
                 <img
-                  src={selectedJob.companyLogo}
+                  src={selectedJob.companyLogo || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100"}
                   alt={selectedJob.companyName}
                   className="w-14 h-14 rounded-2xl object-cover border border-gray-800"
                 />
                 <div>
                   <h2 className="text-xl font-bold text-white">
-                    {selectedJob.jobTitle}
+                    {selectedJob.title || selectedJob.jobTitle}
                   </h2>
                   <p className="text-xs text-purple-400 font-semibold">
                     {selectedJob.companyName} • {selectedJob.location}
@@ -468,27 +387,27 @@ export default function BrowseJobs() {
             <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-[#0a0a0f] border border-gray-800 rounded-xl">
               <div className="text-xs space-y-0.5">
                 <p className="text-gray-400">Salary Range</p>
-                <p className="text-emerald-400 font-bold">{selectedJob.salary}</p>
+                <p className="text-emerald-400 font-bold">{selectedJob.salary || selectedJob.salaryRange}</p>
               </div>
 
               <div className="flex items-center gap-3">
                 <button
-                  onClick={() => handleToggleSave(selectedJob.id)}
+                  onClick={() => handleToggleSave(selectedJob._id || selectedJob.id)}
                   className="inline-flex items-center gap-2 px-3.5 py-2 bg-[#14141f] border border-gray-800 text-gray-300 hover:text-white text-xs font-semibold rounded-xl cursor-pointer"
                 >
                   <Bookmark className="w-4 h-4 text-purple-400" />
-                  {savedJobIds.includes(selectedJob.id) ? "Saved" : "Save Job"}
+                  {savedJobIds.includes(selectedJob._id || selectedJob.id) ? "Saved" : "Save Job"}
                 </button>
 
                 <button
-                  onClick={() => handleShareJob(selectedJob.jobTitle)}
+                  onClick={() => handleShareJob(selectedJob.title || selectedJob.jobTitle)}
                   className="inline-flex items-center gap-2 px-3.5 py-2 bg-[#14141f] border border-gray-800 text-gray-300 hover:text-white text-xs font-semibold rounded-xl cursor-pointer"
                 >
                   <Share2 className="w-4 h-4 text-blue-400" />
                   Share Job
                 </button>
 
-                {appliedJobIds.includes(selectedJob.id) ? (
+                {appliedJobIds.includes(selectedJob._id || selectedJob.id) ? (
                   <span className="px-4 py-2 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-semibold rounded-xl text-xs">
                     Applied
                   </span>
@@ -508,58 +427,54 @@ export default function BrowseJobs() {
 
             <div className="space-y-6 text-xs text-gray-300 leading-relaxed">
               <div>
-                <h3 className="text-sm font-bold text-white mb-2">
-                  Job Description
-                </h3>
+                <h3 className="text-sm font-bold text-white mb-2">Job Description</h3>
                 <p>{selectedJob.description}</p>
               </div>
 
-              <div>
-                <h3 className="text-sm font-bold text-white mb-2">
-                  Key Responsibilities
-                </h3>
-                <ul className="list-disc pl-5 space-y-1 text-gray-400">
-                  {selectedJob.responsibilities.map((resp, i) => (
-                    <li key={i}>{resp}</li>
-                  ))}
-                </ul>
-              </div>
-
-              <div>
-                <h3 className="text-sm font-bold text-white mb-2">
-                  Requirements
-                </h3>
-                <ul className="list-disc pl-5 space-y-1 text-gray-400">
-                  {selectedJob.requirements.map((req, i) => (
-                    <li key={i}>{req}</li>
-                  ))}
-                </ul>
-              </div>
-
-              <div>
-                <h3 className="text-sm font-bold text-white mb-2">
-                  Perks & Benefits
-                </h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {selectedJob.benefits.map((benefit, i) => (
-                    <div
-                      key={i}
-                      className="p-2.5 bg-[#0a0a0f] border border-gray-800 rounded-lg text-gray-300 flex items-center gap-2"
-                    >
-                      <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                      <span>{benefit}</span>
-                    </div>
-                  ))}
+              {selectedJob.responsibilities?.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-bold text-white mb-2">Key Responsibilities</h3>
+                  <ul className="list-disc pl-5 space-y-1 text-gray-400">
+                    {selectedJob.responsibilities.map((resp, i) => (
+                      <li key={i}>{resp}</li>
+                    ))}
+                  </ul>
                 </div>
-              </div>
+              )}
+
+              {selectedJob.requirements?.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-bold text-white mb-2">Requirements</h3>
+                  <ul className="list-disc pl-5 space-y-1 text-gray-400">
+                    {selectedJob.requirements.map((req, i) => (
+                      <li key={i}>{req}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {selectedJob.benefits?.length > 0 && (
+                <div>
+                  <h3 className="text-sm font-bold text-white mb-2">Perks & Benefits</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {selectedJob.benefits.map((benefit, i) => (
+                      <div
+                        key={i}
+                        className="p-2.5 bg-[#0a0a0f] border border-gray-800 rounded-lg text-gray-300 flex items-center gap-2"
+                      >
+                        <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                        <span>{benefit}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               <div className="p-4 bg-[#0a0a0f] border border-gray-800 rounded-xl space-y-1">
-                <h3 className="text-xs font-bold text-white">
-                  About {selectedJob.companyName}
-                </h3>
+                <h3 className="text-xs font-bold text-white">About {selectedJob.companyName}</h3>
                 <p className="text-gray-400">{selectedJob.companyInfo}</p>
                 <p className="text-[11px] text-gray-500 pt-2">
-                  Application Deadline: <strong>{selectedJob.deadline}</strong>
+                  Application Deadline: <strong>{selectedJob.deadline || "Open"}</strong>
                 </p>
               </div>
             </div>
@@ -574,7 +489,7 @@ export default function BrowseJobs() {
             <div className="flex items-center justify-between border-b border-gray-800 pb-4">
               <div>
                 <h2 className="text-lg font-bold text-white">
-                  Apply for {applyingJob.jobTitle}
+                  Apply for {applyingJob.title || applyingJob.jobTitle}
                 </h2>
                 <p className="text-xs text-purple-400">{applyingJob.companyName}</p>
               </div>
@@ -643,6 +558,8 @@ export default function BrowseJobs() {
     </div>
   );
 }
+
+
 
 
 
