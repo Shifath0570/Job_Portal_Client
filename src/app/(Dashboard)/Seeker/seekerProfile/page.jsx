@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Check,
   Upload,
@@ -45,6 +45,9 @@ const INITIAL_RESUME = {
 };
 
 export default function SeekerProfile() {
+  const { data: session } = authClient.useSession();
+  const user = session?.user;
+
   const [profile, setProfile] = useState(INITIAL_PROFILE);
   const [resume, setResume] = useState(INITIAL_RESUME);
   const [newSkill, setNewSkill] = useState("");
@@ -53,8 +56,17 @@ export default function SeekerProfile() {
   const [saveMessage, setSaveMessage] = useState("");
   const [showResumeModal, setShowResumeModal] = useState(false);
 
-  const { data: session } = authClient.useSession();
-  const user = session?.user;
+  // Sync session user name and email when session resolves
+  useEffect(() => {
+    if (user) {
+      setProfile((prev) => ({
+        ...prev,
+        fullName: user.name || prev.fullName,
+        email: user.email || prev.email,
+        profilePhoto: user.image || prev.profilePhoto,
+      }));
+    }
+  }, [user]);
 
   // General Field Updates
   const handleChange = (field, value) => {
@@ -147,15 +159,49 @@ export default function SeekerProfile() {
     }
   };
 
-  // Save Entire Profile
-  const handleSubmitProfile = (e) => {
+  // Save Entire Profile to Backend API
+  const handleSubmitProfile = async (e) => {
     e.preventDefault();
+
+    if (!profile.email) {
+      setSaveMessage("User email is required to update profile.");
+      return;
+    }
+
     setIsSaving(true);
-    setTimeout(() => {
-      setIsSaving(false);
-      setSaveMessage("Profile updated successfully!");
+    setSaveMessage("");
+
+    const payload = {
+      ...profile,
+      SeekerName: profile.fullName,
+      email: profile.email,
+    };
+
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000";
+      const response = await fetch(
+        `${baseUrl}/api/seeker/profile/${encodeURIComponent(profile.email)}`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok || (data && data.success === false)) {
+        throw new Error(data?.message || "Failed to update profile");
+      }
+
+      setSaveMessage("Seeker profile saved successfully!");
       setTimeout(() => setSaveMessage(""), 4000);
-    }, 800);
+    } catch (error) {
+      console.error("Server update failed:", error);
+      setSaveMessage(`Error saving profile: ${error.message}`);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -612,6 +658,11 @@ export default function SeekerProfile() {
     </div>
   );
 }
+
+
+
+
+
 
 
 
