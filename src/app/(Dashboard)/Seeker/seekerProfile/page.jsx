@@ -11,7 +11,9 @@ import {
   RotateCw,
   X,
   Plus,
+  Loader2,
 } from "lucide-react";
+import { authClient } from "@/app/lib/auth-client";
 
 const INITIAL_PROFILE = {
   profilePhoto:
@@ -47,8 +49,12 @@ export default function SeekerProfile() {
   const [resume, setResume] = useState(INITIAL_RESUME);
   const [newSkill, setNewSkill] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
   const [showResumeModal, setShowResumeModal] = useState(false);
+
+  const { data: session } = authClient.useSession();
+  const user = session?.user;
 
   // General Field Updates
   const handleChange = (field, value) => {
@@ -76,12 +82,40 @@ export default function SeekerProfile() {
     }));
   };
 
-  // Handle Photo Change Simulation
-  const handlePhotoUpload = (e) => {
+  // Handle ImgBB Photo Upload
+  const handlePhotoUpload = async (e) => {
     const file = e.target.files?.[0];
-    if (file) {
-      const fakeUrl = URL.createObjectURL(file);
-      handleChange("profilePhoto", fakeUrl);
+    if (!file) return;
+
+    setIsUploadingPhoto(true);
+    try {
+      const apiKey = process.env.NEXT_PUBLIC_IMGBB_API_KEY;
+      if (!apiKey) {
+        throw new Error("ImgBB API key is missing in environment variables.");
+      }
+
+      const formData = new FormData();
+      formData.append("image", file);
+
+      const response = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (data.success && data.data?.url) {
+        handleChange("profilePhoto", data.data.url);
+        setSaveMessage("Profile picture uploaded successfully to ImgBB!");
+        setTimeout(() => setSaveMessage(""), 4000);
+      } else {
+        throw new Error(data.error?.message || "Failed to upload image to ImgBB");
+      }
+    } catch (error) {
+      console.error("Image Upload Error:", error);
+      alert(`Error uploading photo: ${error.message}`);
+    } finally {
+      setIsUploadingPhoto(false);
     }
   };
 
@@ -174,14 +208,24 @@ export default function SeekerProfile() {
                 htmlFor="photoUploadInput"
                 className="absolute inset-0 bg-black/60 rounded-2xl opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center text-xs text-white cursor-pointer transition-opacity"
               >
-                <Upload className="w-5 h-5 mb-1" />
-                <span>Change Photo</span>
+                {isUploadingPhoto ? (
+                  <>
+                    <Loader2 className="w-5 h-5 mb-1 animate-spin text-purple-400" />
+                    <span>Uploading...</span>
+                  </>
+                ) : (
+                  <>
+                    <Upload className="w-5 h-5 mb-1" />
+                    <span>Change Photo</span>
+                  </>
+                )}
               </label>
               <input
                 id="photoUploadInput"
                 type="file"
                 accept="image/*"
                 onChange={handlePhotoUpload}
+                disabled={isUploadingPhoto}
                 className="hidden"
               />
             </div>
@@ -568,9 +612,6 @@ export default function SeekerProfile() {
     </div>
   );
 }
-
-
-
 
 
 
