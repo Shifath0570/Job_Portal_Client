@@ -16,6 +16,7 @@ import {
   FileText,
   Loader2,
 } from "lucide-react";
+import { authClient } from "@/app/lib/auth-client";
 
 export default function BrowseJobs() {
   const [jobs, setJobs] = useState([]);
@@ -40,6 +41,9 @@ export default function BrowseJobs() {
   const [selectedResume] = useState("Alex_Rivera_Resume_2026.pdf");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [notification, setNotification] = useState("");
+
+  const { data: session } = authClient.useSession();
+  const user = session?.user;
 
   // Fetch active jobs from backend API on mount
   useEffect(() => {
@@ -66,15 +70,80 @@ export default function BrowseJobs() {
     fetchActiveJobs();
   }, []);
 
-  // Toggle Save Job
-  const handleToggleSave = (jobId) => {
-    setSavedJobIds((prev) => {
-      const exists = prev.includes(jobId);
-      const updated = exists ? prev.filter((id) => id !== jobId) : [...prev, jobId];
-      setNotification(exists ? "Job removed from saved list" : "Job saved to your dashboard!");
+  // Fetch already saved jobs for the logged-in user on mount / user change
+  useEffect(() => {
+    const fetchSavedJobs = async () => {
+      if (!user?.email) return;
+      try {
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000";
+        const response = await fetch(`${baseUrl}/api/savejob?email=${encodeURIComponent(user.email)}`);
+
+        if (response.ok) {
+          const data = await response.json();
+          const savedJobsList = data.jobs || [];
+          
+          // Map all possible ID variants returned by the save collection
+          const ids = savedJobsList.map((item) => String(item.id || item.originalJobId || item._id));
+          setSavedJobIds(ids);
+        }
+      } catch (error) {
+        console.error("Error fetching saved jobs:", error);
+      }
+    };
+
+    fetchSavedJobs();
+  }, [user?.email]);
+
+  // Toggle Save Job (Post-only / Non-deletable)
+  const handleToggleSave = async (job) => {
+    const jobId = String(job._id || job.id);
+    const isAlreadySaved = savedJobIds.includes(jobId);
+
+    if (isAlreadySaved) {
+      setNotification("This job is already saved in your dashboard!");
       setTimeout(() => setNotification(""), 3000);
-      return updated;
-    });
+      return;
+    }
+
+    if (!user?.email) {
+      setNotification("Please log in to save jobs.");
+      setTimeout(() => setNotification(""), 3000);
+      return;
+    }
+
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000";
+
+    const payload = {
+      ...job,
+      userEmail: user.email,
+      id: jobId,
+      savedAt: new Date().toISOString(),
+    };
+
+    try {
+      const response = await fetch(`${baseUrl}/api/savejob`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        console.error("Failed to save job to server");
+        setNotification("Failed to save job. Please try again.");
+        setTimeout(() => setNotification(""), 3000);
+        return;
+      }
+
+      setSavedJobIds((prev) => [...prev, jobId]);
+      setNotification("Job saved to your dashboard!");
+      setTimeout(() => setNotification(""), 3000);
+    } catch (error) {
+      console.error("Error saving job:", error);
+      setNotification("Network error processing request.");
+      setTimeout(() => setNotification(""), 3000);
+    }
   };
 
   // Share Link Action
@@ -178,6 +247,7 @@ export default function BrowseJobs() {
             <option value="Software Engineering">Software Engineering</option>
             <option value="Design">Design</option>
             <option value="DevOps">DevOps</option>
+            <option value="Marketing">Marketing</option>
           </select>
 
           <select
@@ -187,8 +257,8 @@ export default function BrowseJobs() {
           >
             <option value="ALL">All Job Types</option>
             <option value="Full-Time">Full-Time</option>
-            <option value="Contract">Contract</option>
             <option value="Part-Time">Part-Time</option>
+            <option value="Contract">Contract</option>
           </select>
 
           <select
@@ -210,6 +280,7 @@ export default function BrowseJobs() {
             <option value="ALL">All Experience Levels</option>
             <option value="Mid Level">Mid Level</option>
             <option value="Senior Level">Senior Level</option>
+            <option value="5-8">5-8 Years</option>
           </select>
 
           <select
@@ -244,7 +315,7 @@ export default function BrowseJobs() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {filteredJobs.map((job) => {
-              const jobId = job._id || job.id;
+              const jobId = String(job._id || job.id);
               const isSaved = savedJobIds.includes(jobId);
               const isApplied = appliedJobIds.includes(jobId);
 
@@ -281,7 +352,7 @@ export default function BrowseJobs() {
                       </div>
 
                       <button
-                        onClick={() => handleToggleSave(jobId)}
+                        onClick={() => handleToggleSave(job)}
                         className={`p-2 rounded-xl border transition-all cursor-pointer ${
                           isSaved
                             ? "bg-purple-500/10 border-purple-500/30 text-purple-400"
@@ -392,11 +463,11 @@ export default function BrowseJobs() {
 
               <div className="flex items-center gap-3">
                 <button
-                  onClick={() => handleToggleSave(selectedJob._id || selectedJob.id)}
+                  onClick={() => handleToggleSave(selectedJob)}
                   className="inline-flex items-center gap-2 px-3.5 py-2 bg-[#14141f] border border-gray-800 text-gray-300 hover:text-white text-xs font-semibold rounded-xl cursor-pointer"
                 >
                   <Bookmark className="w-4 h-4 text-purple-400" />
-                  {savedJobIds.includes(selectedJob._id || selectedJob.id) ? "Saved" : "Save Job"}
+                  {savedJobIds.includes(String(selectedJob._id || selectedJob.id)) ? "Saved" : "Save Job"}
                 </button>
 
                 <button
@@ -431,48 +502,30 @@ export default function BrowseJobs() {
                 <p>{selectedJob.description}</p>
               </div>
 
-              {selectedJob.responsibilities?.length > 0 && (
+              {selectedJob.responsibilities && (
                 <div>
                   <h3 className="text-sm font-bold text-white mb-2">Key Responsibilities</h3>
-                  <ul className="list-disc pl-5 space-y-1 text-gray-400">
-                    {selectedJob.responsibilities.map((resp, i) => (
-                      <li key={i}>{resp}</li>
-                    ))}
-                  </ul>
+                  <p className="text-gray-400">{selectedJob.responsibilities}</p>
                 </div>
               )}
 
-              {selectedJob.requirements?.length > 0 && (
+              {selectedJob.requirements && (
                 <div>
                   <h3 className="text-sm font-bold text-white mb-2">Requirements</h3>
-                  <ul className="list-disc pl-5 space-y-1 text-gray-400">
-                    {selectedJob.requirements.map((req, i) => (
-                      <li key={i}>{req}</li>
-                    ))}
-                  </ul>
+                  <p className="text-gray-400">{selectedJob.requirements}</p>
                 </div>
               )}
 
-              {selectedJob.benefits?.length > 0 && (
+              {selectedJob.benefits && (
                 <div>
                   <h3 className="text-sm font-bold text-white mb-2">Perks & Benefits</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {selectedJob.benefits.map((benefit, i) => (
-                      <div
-                        key={i}
-                        className="p-2.5 bg-[#0a0a0f] border border-gray-800 rounded-lg text-gray-300 flex items-center gap-2"
-                      >
-                        <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                        <span>{benefit}</span>
-                      </div>
-                    ))}
-                  </div>
+                  <p className="text-gray-400">{selectedJob.benefits}</p>
                 </div>
               )}
 
               <div className="p-4 bg-[#0a0a0f] border border-gray-800 rounded-xl space-y-1">
                 <h3 className="text-xs font-bold text-white">About {selectedJob.companyName}</h3>
-                <p className="text-gray-400">{selectedJob.companyInfo}</p>
+                <p className="text-gray-400">Contact: {selectedJob.companyEmail}</p>
                 <p className="text-[11px] text-gray-500 pt-2">
                   Application Deadline: <strong>{selectedJob.deadline || "Open"}</strong>
                 </p>
@@ -558,6 +611,7 @@ export default function BrowseJobs() {
     </div>
   );
 }
+
 
 
 
