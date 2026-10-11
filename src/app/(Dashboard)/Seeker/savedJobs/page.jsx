@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Bookmark,
   Trash2,
@@ -12,66 +12,60 @@ import {
   X,
   CheckCircle,
   FileText,
+  Loader2,
 } from "lucide-react";
-
-const INITIAL_SAVED_JOBS = [
-  {
-    id: "saved-101",
-    companyLogo: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100&auto=format&fit=crop&q=80",
-    jobTitle: "Senior React Developer",
-    companyName: "Acme Technologies",
-    location: "San Francisco, CA",
-    salary: "$130,000 - $160,000",
-    jobType: "Full-Time",
-    workplaceType: "Remote",
-    savedOn: "Aug 05, 2026",
-    deadline: "Aug 28, 2026",
-    requiredSkills: ["React", "TypeScript", "Next.js", "Tailwind CSS"],
-  },
-  {
-    id: "saved-102",
-    companyLogo: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=100&auto=format&fit=crop&q=80",
-    jobTitle: "UI/UX Product Designer",
-    companyName: "Starlight Design Studio",
-    location: "New York, NY",
-    salary: "$110,000 - $135,000",
-    jobType: "Full-Time",
-    workplaceType: "Hybrid",
-    savedOn: "Aug 02, 2026",
-    deadline: "Sep 05, 2026",
-    requiredSkills: ["Figma", "User Research", "Prototyping", "Design Systems"],
-  },
-  {
-    id: "saved-103",
-    companyLogo: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=100&auto=format&fit=crop&q=80",
-    jobTitle: "Backend Node.js Architect",
-    companyName: "Nexus Systems",
-    location: "Remote",
-    salary: "$140,000 - $170,000",
-    jobType: "Contract",
-    workplaceType: "Remote",
-    savedOn: "Jul 29, 2026",
-    deadline: "Aug 20, 2026",
-    requiredSkills: ["Node.js", "Express", "PostgreSQL", "Redis"],
-  },
-];
+import { authClient } from "@/app/lib/auth-client";
 
 export default function SavedJobs() {
-  const [savedJobs, setSavedJobs] = useState(INITIAL_SAVED_JOBS);
+  const [savedJobs, setSavedJobs] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [appliedJobIds, setAppliedJobIds] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [notification, setNotification] = useState("");
 
-  // Modal State for "Apply Later / Apply Now"
+  // Modal State for "Apply Now"
   const [applyingJob, setApplyingJob] = useState(null);
   const [coverLetter, setCoverLetter] = useState("");
   const [selectedResume] = useState("Alex_Rivera_Resume_2026.pdf");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Remove Job from Saved List
+  const { data: session } = authClient.useSession();
+  const user = session?.user;
+
+  // Fetch saved jobs from backend API by user email on mount or user change
+  useEffect(() => {
+    const fetchSavedJobs = async () => {
+      if (!user?.email) {
+        setIsLoading(false);
+        return;
+      }
+
+      setIsLoading(true);
+      try {
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000";
+        const response = await fetch(`${baseUrl}/api/savejob?email=${encodeURIComponent(user.email)}`);
+
+        if (response.ok) {
+          const data = await response.json();
+          const fetchedJobs = Array.isArray(data) ? data : data.jobs || [];
+          setSavedJobs(fetchedJobs);
+        } else {
+          console.error("Failed to fetch saved jobs");
+        }
+      } catch (error) {
+        console.error("Error connecting to server:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchSavedJobs();
+  }, [user?.email]);
+
+  // Remove Job from Saved List (Local UI filter)
   const handleRemoveSavedJob = (jobId, jobTitle) => {
-    setSavedJobs((prev) => prev.filter((job) => job.id !== jobId));
-    setNotification(`"${jobTitle}" removed from your saved bookmarks.`);
+    setSavedJobs((prev) => prev.filter((job) => (job._id || job.id) !== jobId));
+    setNotification(`"${jobTitle || "Job"}" removed from your saved bookmarks.`);
     setTimeout(() => setNotification(""), 3000);
   };
 
@@ -80,11 +74,14 @@ export default function SavedJobs() {
     e.preventDefault();
     if (!applyingJob) return;
 
+    const jobId = applyingJob._id || applyingJob.id;
+    const jobTitle = applyingJob.title || applyingJob.jobTitle;
+
     setIsSubmitting(true);
     setTimeout(() => {
-      setAppliedJobIds((prev) => [...prev, applyingJob.id]);
+      setAppliedJobIds((prev) => [...prev, jobId]);
       setIsSubmitting(false);
-      setNotification(`Successfully submitted application for ${applyingJob.jobTitle}!`);
+      setNotification(`Successfully submitted application for ${jobTitle}!`);
       setTimeout(() => setNotification(""), 4000);
       setApplyingJob(null);
       setCoverLetter("");
@@ -93,13 +90,15 @@ export default function SavedJobs() {
 
   // Search Filtered Bookmarks
   const filteredJobs = savedJobs.filter((job) => {
+    const jobTitle = job.title || job.jobTitle || "";
+    const companyName = job.companyName || "";
+    const skills = job.skills || job.requiredSkills || [];
+
     if (!searchQuery) return true;
     return (
-      job.jobTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      job.companyName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      job.requiredSkills.some((skill) =>
-        skill.toLowerCase().includes(searchQuery.toLowerCase())
-      )
+      jobTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      companyName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      skills.some((skill) => skill.toLowerCase().includes(searchQuery.toLowerCase()))
     );
   });
 
@@ -146,7 +145,20 @@ export default function SavedJobs() {
       </div>
 
       {/* Saved Jobs List Grid */}
-      {filteredJobs.length === 0 ? (
+      {isLoading ? (
+        <div className="p-16 text-center bg-[#14141f] border border-gray-800 rounded-2xl flex flex-col items-center justify-center space-y-3">
+          <Loader2 className="w-8 h-8 animate-spin text-purple-400" />
+          <p className="text-xs text-gray-400">Loading your saved jobs...</p>
+        </div>
+      ) : !user?.email ? (
+        <div className="p-12 text-center bg-[#14141f] border border-gray-800 rounded-2xl text-gray-500 space-y-3 shadow-xl">
+          <Bookmark className="w-10 h-10 mx-auto text-gray-600 mb-1" />
+          <h3 className="text-base font-bold text-white">Please log in</h3>
+          <p className="text-xs text-gray-400 max-w-sm mx-auto">
+            Log in to view and manage your bookmarked job opportunities.
+          </p>
+        </div>
+      ) : filteredJobs.length === 0 ? (
         <div className="p-12 text-center bg-[#14141f] border border-gray-800 rounded-2xl text-gray-500 space-y-3 shadow-xl">
           <Bookmark className="w-10 h-10 mx-auto text-gray-600 mb-1" />
           <h3 className="text-base font-bold text-white">No saved jobs found</h3>
@@ -159,11 +171,18 @@ export default function SavedJobs() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {filteredJobs.map((job) => {
-            const isApplied = appliedJobIds.includes(job.id);
+            const jobId = job._id || job.id;
+            const isApplied = appliedJobIds.includes(jobId);
+
+            const jobTitle = job.title || job.jobTitle;
+            const workplace = job.workplaceType || job.remoteOption || "Remote";
+            const salary = job.salary || job.salaryRange;
+            const jobType = job.jobType || job.employmentType;
+            const skillsList = job.skills || job.requiredSkills || [];
 
             return (
               <div
-                key={job.id}
+                key={jobId}
                 className="bg-[#14141f] border border-gray-800 hover:border-purple-500/40 rounded-2xl p-6 space-y-5 transition-all shadow-xl flex flex-col justify-between"
               >
                 {/* Header: Company Logo & Action Buttons */}
@@ -171,13 +190,13 @@ export default function SavedJobs() {
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3.5">
                       <img
-                        src={job.companyLogo}
+                        src={job.companyLogo || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100"}
                         alt={job.companyName}
                         className="w-12 h-12 rounded-xl object-cover border border-gray-800 shrink-0"
                       />
                       <div>
                         <h2 className="text-base font-bold text-white">
-                          {job.jobTitle}
+                          {jobTitle}
                         </h2>
                         <p className="text-xs text-gray-400 font-medium">
                           {job.companyName}
@@ -187,7 +206,7 @@ export default function SavedJobs() {
 
                     {/* Remove Bookmark Button */}
                     <button
-                      onClick={() => handleRemoveSavedJob(job.id, job.jobTitle)}
+                      onClick={() => handleRemoveSavedJob(jobId, jobTitle)}
                       title="Remove Saved Job"
                       className="p-2 bg-[#0a0a0f] hover:bg-rose-500/10 border border-gray-800 hover:border-rose-500/30 text-gray-400 hover:text-rose-400 rounded-xl transition-all cursor-pointer shrink-0"
                     >
@@ -199,23 +218,23 @@ export default function SavedJobs() {
                   <div className="flex flex-wrap items-center gap-2 text-xs text-gray-300">
                     <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[#0a0a0f] border border-gray-800 rounded-lg text-[11px]">
                       <MapPin className="w-3.5 h-3.5 text-purple-400" />
-                      {job.location} ({job.workplaceType})
+                      {job.location} ({workplace})
                     </span>
 
                     <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[#0a0a0f] border border-gray-800 rounded-lg text-[11px]">
                       <DollarSign className="w-3.5 h-3.5 text-emerald-400" />
-                      {job.salary}
+                      {salary}
                     </span>
 
                     <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[#0a0a0f] border border-gray-800 rounded-lg text-[11px]">
                       <Clock className="w-3.5 h-3.5 text-blue-400" />
-                      {job.jobType}
+                      {jobType}
                     </span>
                   </div>
 
                   {/* Skills Tags */}
                   <div className="flex flex-wrap gap-1.5 pt-1">
-                    {job.requiredSkills.map((skill) => (
+                    {skillsList.map((skill) => (
                       <span
                         key={skill}
                         className="px-2 py-0.5 bg-purple-500/10 text-purple-300 border border-purple-500/20 text-[10px] font-semibold rounded-md"
@@ -229,7 +248,7 @@ export default function SavedJobs() {
                 {/* Footer with Saved Date & Apply Action */}
                 <div className="flex items-center justify-between pt-4 border-t border-gray-800 text-xs">
                   <span className="text-gray-500 text-[11px]">
-                    Saved on {job.savedOn}
+                    Saved on {job.savedAt ? new Date(job.savedAt).toLocaleDateString() : "Recently"}
                   </span>
 
                   {isApplied ? (
@@ -252,7 +271,7 @@ export default function SavedJobs() {
       )}
 
       {/* ========================================== */}
-      {/* APPLY NOW MODAL                            */}
+      {/* APPLY NOW MODAL                           */}
       {/* ========================================== */}
       {applyingJob && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
@@ -260,7 +279,7 @@ export default function SavedJobs() {
             <div className="flex items-center justify-between border-b border-gray-800 pb-4">
               <div>
                 <h2 className="text-lg font-bold text-white">
-                  Apply for {applyingJob.jobTitle}
+                  Apply for {applyingJob.title || applyingJob.jobTitle}
                 </h2>
                 <p className="text-xs text-purple-400">{applyingJob.companyName}</p>
               </div>
@@ -332,6 +351,8 @@ export default function SavedJobs() {
     </div>
   );
 }
+
+
 
 
 
