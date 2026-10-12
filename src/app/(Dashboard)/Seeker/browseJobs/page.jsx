@@ -24,6 +24,10 @@ export default function BrowseJobs() {
   const [savedJobIds, setSavedJobIds] = useState([]);
   const [appliedJobIds, setAppliedJobIds] = useState([]);
 
+  // Seeker Profile State
+  const [seekerProfile, setSeekerProfile] = useState(null);
+  const [selectedResume, setSelectedResume] = useState("");
+
   // Search state
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -38,7 +42,6 @@ export default function BrowseJobs() {
   const [selectedJob, setSelectedJob] = useState(null);
   const [applyingJob, setApplyingJob] = useState(null);
   const [coverLetter, setCoverLetter] = useState("");
-  const [selectedResume] = useState("Alex_Rivera_Resume_2026.pdf");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [notification, setNotification] = useState("");
 
@@ -70,6 +73,36 @@ export default function BrowseJobs() {
     fetchActiveJobs();
   }, []);
 
+  // Fetch seeker profile including resume object by email
+  useEffect(() => {
+    const fetchSeekerProfile = async () => {
+      if (!user?.email) return;
+      try {
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000";
+        const response = await fetch(`${baseUrl}/api/seeker/profile/${encodeURIComponent(user.email)}`);
+
+        if (response.ok) {
+          const data = await response.json();
+          setSeekerProfile(data);
+
+          // Handle single resume object or fallback array if applicable
+          if (data.resume) {
+            const resumeName = typeof data.resume === "string" ? data.resume : data.resume.fileName || data.resume.filename || "";
+            setSelectedResume(resumeName);
+          } else if (data.resumes && data.resumes.length > 0) {
+            const firstRes = data.resumes[0];
+            const firstName = typeof firstRes === "string" ? firstRes : firstRes.fileName || firstRes.filename || "Resume 1";
+            setSelectedResume(firstName);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching seeker profile:", error);
+      }
+    };
+
+    fetchSeekerProfile();
+  }, [user?.email]);
+
   // Fetch already saved jobs for the logged-in user on mount / user change
   useEffect(() => {
     const fetchSavedJobs = async () => {
@@ -82,7 +115,6 @@ export default function BrowseJobs() {
           const data = await response.json();
           const savedJobsList = data.jobs || [];
           
-          // Map all possible ID variants returned by the save collection
           const ids = savedJobsList.map((item) => String(item.id || item.originalJobId || item._id));
           setSavedJobIds(ids);
         }
@@ -156,22 +188,48 @@ export default function BrowseJobs() {
   };
 
   // Handle Submit Application
-  const handleSubmitApplication = (e) => {
+  const handleSubmitApplication = async (e) => {
     e.preventDefault();
-    if (!applyingJob) return;
+    if (!applyingJob || !user?.email) return;
 
     const jobId = applyingJob._id || applyingJob.id;
     const jobTitle = applyingJob.title || applyingJob.jobTitle;
 
     setIsSubmitting(true);
-    setTimeout(() => {
-      setAppliedJobIds((prev) => [...prev, jobId]);
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000";
+      const payload = {
+        jobId,
+        jobTitle,
+        companyName: applyingJob.companyName,
+        applicantEmail: user.email,
+        applicantName: user.name || seekerProfile?.fullName || seekerProfile?.SeekerName || "",
+        coverLetter,
+        resume: selectedResume,
+        appliedAt: new Date().toISOString(),
+      };
+
+      const response = await fetch(`${baseUrl}/api/applications`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (response.ok) {
+        setAppliedJobIds((prev) => [...prev, jobId]);
+        setNotification(`Application submitted successfully for ${jobTitle}!`);
+        setApplyingJob(null);
+        setCoverLetter("");
+      } else {
+        setNotification("Failed to submit application. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error submitting application:", error);
+      setNotification("Network error processing application.");
+    } finally {
       setIsSubmitting(false);
-      setNotification(`Application submitted successfully for ${jobTitle}!`);
       setTimeout(() => setNotification(""), 4000);
-      setApplyingJob(null);
-      setCoverLetter("");
-    }, 1000);
+    }
   };
 
   // Filtered Jobs Logic
@@ -560,16 +618,21 @@ export default function BrowseJobs() {
                 <label className="text-gray-300 font-semibold block">
                   Select Resume Document *
                 </label>
+                
                 <div className="p-3 bg-[#0a0a0f] border border-purple-500/30 rounded-xl flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <FileText className="w-5 h-5 text-purple-400" />
                     <div>
-                      <p className="font-bold text-white">{selectedResume}</p>
-                      <p className="text-[10px] text-gray-500">PDF Document • 1.8 MB</p>
+                      <p className="font-bold text-white">
+                        {seekerProfile?.resume?.fileName || selectedResume || "No resume uploaded yet"}
+                      </p>
+                      <p className="text-[10px] text-gray-500">
+                        {seekerProfile?.resume?.fileSize ? `${seekerProfile.resume.fileSize} • ` : ""}Linked from Profile
+                      </p>
                     </div>
                   </div>
                   <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
-                    Ready
+                    Active
                   </span>
                 </div>
               </div>
@@ -611,8 +674,6 @@ export default function BrowseJobs() {
     </div>
   );
 }
-
-
 
 
 
