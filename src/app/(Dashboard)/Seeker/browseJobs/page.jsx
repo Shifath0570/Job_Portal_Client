@@ -125,6 +125,29 @@ export default function BrowseJobs() {
     fetchSavedJobs();
   }, [user?.email]);
 
+  // Fetch already submitted applications for the logged-in user to mark buttons as "Applied"
+  useEffect(() => {
+    const fetchAppliedJobs = async () => {
+      if (!user?.email) return;
+      try {
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000";
+        const response = await fetch(`${baseUrl}/api/applications/${encodeURIComponent(user.email)}`);
+
+        if (response.ok) {
+          const data = await response.json();
+          const applicationsList = data.applications || [];
+          
+          const appliedIds = applicationsList.map((app) => String(app.jobId));
+          setAppliedJobIds(appliedIds);
+        }
+      } catch (error) {
+        console.error("Error fetching user applications:", error);
+      }
+    };
+
+    fetchAppliedJobs();
+  }, [user?.email]);
+
   // Toggle Save Job
   const handleToggleSave = async (job) => {
     const jobId = String(job._id || job.id);
@@ -187,7 +210,7 @@ export default function BrowseJobs() {
     e.preventDefault();
     if (!applyingJob || !user?.email) return;
 
-    const jobId = applyingJob._id || applyingJob.id;
+    const jobId = String(applyingJob._id || applyingJob.id);
     const jobTitle = applyingJob.title || applyingJob.jobTitle;
 
     setIsSubmitting(true);
@@ -534,7 +557,7 @@ export default function BrowseJobs() {
                   Share Job
                 </button>
 
-                {appliedJobIds.includes(selectedJob._id || selectedJob.id) ? (
+                {appliedJobIds.includes(String(selectedJob._id || selectedJob.id)) ? (
                   <span className="px-4 py-2 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-semibold rounded-xl text-xs">
                     Applied
                   </span>
@@ -672,6 +695,7 @@ export default function BrowseJobs() {
     </div>
   );
 }
+
 
 
 
