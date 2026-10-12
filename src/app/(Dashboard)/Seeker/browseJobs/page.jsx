@@ -85,7 +85,6 @@ export default function BrowseJobs() {
           const data = await response.json();
           setSeekerProfile(data);
 
-          // Handle single resume object or fallback array if applicable
           if (data.resume) {
             const resumeName = typeof data.resume === "string" ? data.resume : data.resume.fileName || data.resume.filename || "";
             setSelectedResume(resumeName);
@@ -126,7 +125,7 @@ export default function BrowseJobs() {
     fetchSavedJobs();
   }, [user?.email]);
 
-  // Toggle Save Job (Post-only / Non-deletable)
+  // Toggle Save Job
   const handleToggleSave = async (job) => {
     const jobId = String(job._id || job.id);
     const isAlreadySaved = savedJobIds.includes(jobId);
@@ -144,7 +143,6 @@ export default function BrowseJobs() {
     }
 
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000";
-
     const payload = {
       ...job,
       userEmail: user.email,
@@ -155,14 +153,11 @@ export default function BrowseJobs() {
     try {
       const response = await fetch(`${baseUrl}/api/savejob`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
-        console.error("Failed to save job to server");
         setNotification("Failed to save job. Please try again.");
         setTimeout(() => setNotification(""), 3000);
         return;
@@ -202,10 +197,11 @@ export default function BrowseJobs() {
         jobId,
         jobTitle,
         companyName: applyingJob.companyName,
+        applicantId: user.id,
         applicantEmail: user.email,
         applicantName: user.name || seekerProfile?.fullName || seekerProfile?.SeekerName || "",
         coverLetter,
-        resume: selectedResume,
+        resume: seekerProfile?.resume || selectedResume,
         appliedAt: new Date().toISOString(),
       };
 
@@ -215,13 +211,15 @@ export default function BrowseJobs() {
         body: JSON.stringify(payload),
       });
 
+      const data = await response.json();
+
       if (response.ok) {
         setAppliedJobIds((prev) => [...prev, jobId]);
         setNotification(`Application submitted successfully for ${jobTitle}!`);
         setApplyingJob(null);
         setCoverLetter("");
       } else {
-        setNotification("Failed to submit application. Please try again.");
+        setNotification(data.message || "Failed to submit application.");
       }
     } catch (error) {
       console.error("Error submitting application:", error);
@@ -674,8 +672,6 @@ export default function BrowseJobs() {
     </div>
   );
 }
-
-
 
 
 
