@@ -542,14 +542,6 @@ export default function BrowseJobs() {
 
               <div className="flex items-center gap-3">
                 <button
-                  onClick={() => handleToggleSave(selectedJob)}
-                  className="inline-flex items-center gap-2 px-3.5 py-2 bg-[#14141f] border border-gray-800 text-gray-300 hover:text-white text-xs font-semibold rounded-xl cursor-pointer"
-                >
-                  <Bookmark className="w-4 h-4 text-purple-400" />
-                  {savedJobIds.includes(String(selectedJob._id || selectedJob.id)) ? "Saved" : "Save Job"}
-                </button>
-
-                <button
                   onClick={() => handleShareJob(selectedJob.title || selectedJob.jobTitle)}
                   className="inline-flex items-center gap-2 px-3.5 py-2 bg-[#14141f] border border-gray-800 text-gray-300 hover:text-white text-xs font-semibold rounded-xl cursor-pointer"
                 >

@@ -32,9 +32,9 @@ export default function SavedJobs() {
   const { data: session } = authClient.useSession();
   const user = session?.user;
 
-  // Fetch saved jobs from backend API by user email on mount or user change
+  // Fetch saved jobs & already applied jobs on mount / user change
   useEffect(() => {
-    const fetchSavedJobs = async () => {
+    const fetchSavedAndAppliedJobs = async () => {
       if (!user?.email) {
         setIsLoading(false);
         return;
@@ -43,49 +43,93 @@ export default function SavedJobs() {
       setIsLoading(true);
       try {
         const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000";
-        const response = await fetch(`${baseUrl}/api/savejob?email=${encodeURIComponent(user.email)}`);
+        
+        // 1. Fetch saved jobs
+        const savedRes = await fetch(`${baseUrl}/api/savejob?email=${encodeURIComponent(user.email)}`);
+        if (savedRes.ok) {
+          const data = await savedRes.json();
+          setSavedJobs(Array.isArray(data) ? data : data.jobs || []);
+        }
 
-        if (response.ok) {
-          const data = await response.json();
-          const fetchedJobs = Array.isArray(data) ? data : data.jobs || [];
-          setSavedJobs(fetchedJobs);
-        } else {
-          console.error("Failed to fetch saved jobs");
+        // 2. Fetch already submitted applications to match applicantId & jobId
+        const appliedRes = await fetch(`${baseUrl}/api/applications/${encodeURIComponent(user.email)}`);
+        if (appliedRes.ok) {
+          const data = await appliedRes.json();
+          const applicationsList = data.applications || [];
+          
+          const appliedIds = applicationsList
+            .filter((app) => 
+              (user.id && app.applicantId === user.id) || 
+              (user.email && app.applicantEmail?.toLowerCase() === user.email.toLowerCase())
+            )
+            .map((app) => String(app.jobId));
+
+          setAppliedJobIds(appliedIds);
         }
       } catch (error) {
-        console.error("Error connecting to server:", error);
+        console.error("Error fetching data:", error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchSavedJobs();
-  }, [user?.email]);
+    fetchSavedAndAppliedJobs();
+  }, [user?.email, user?.id]);
 
   // Remove Job from Saved List (Local UI filter)
   const handleRemoveSavedJob = (jobId, jobTitle) => {
-    setSavedJobs((prev) => prev.filter((job) => (job._id || job.id) !== jobId));
+    setSavedJobs((prev) => prev.filter((job) => String(job.id) !== String(jobId)));
     setNotification(`"${jobTitle || "Job"}" removed from your saved bookmarks.`);
     setTimeout(() => setNotification(""), 3000);
   };
 
-  // Submit Application Action
-  const handleSubmitApplication = (e) => {
+  // Submit Application Action to Backend API
+  const handleSubmitApplication = async (e) => {
     e.preventDefault();
-    if (!applyingJob) return;
+    if (!applyingJob || !user?.email) return;
 
-    const jobId = applyingJob._id || applyingJob.id;
+    // Use applyingJob.id directly
+    const jobId = String(applyingJob.id);
     const jobTitle = applyingJob.title || applyingJob.jobTitle;
 
     setIsSubmitting(true);
-    setTimeout(() => {
-      setAppliedJobIds((prev) => [...prev, jobId]);
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000";
+      const payload = {
+        jobId,
+        jobTitle,
+        companyName: applyingJob.companyName,
+        applicantId: user.id,
+        applicantEmail: user.email,
+        applicantName: user.name || "",
+        coverLetter,
+        resume: selectedResume,
+        appliedAt: new Date().toISOString(),
+      };
+
+      const response = await fetch(`${baseUrl}/api/applications`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setAppliedJobIds((prev) => [...prev, jobId]);
+        setNotification(`Successfully submitted application for ${jobTitle}!`);
+        setApplyingJob(null);
+        setCoverLetter("");
+      } else {
+        setNotification(data.message || "Failed to submit application.");
+      }
+    } catch (error) {
+      console.error("Error submitting application:", error);
+      setNotification("Network error processing application.");
+    } finally {
       setIsSubmitting(false);
-      setNotification(`Successfully submitted application for ${jobTitle}!`);
       setTimeout(() => setNotification(""), 4000);
-      setApplyingJob(null);
-      setCoverLetter("");
-    }, 900);
+    }
   };
 
   // Search Filtered Bookmarks
@@ -171,7 +215,7 @@ export default function SavedJobs() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {filteredJobs.map((job) => {
-            const jobId = job._id || job.id;
+            const jobId = String(job.id);
             const isApplied = appliedJobIds.includes(jobId);
 
             const jobTitle = job.title || job.jobTitle;
@@ -185,7 +229,6 @@ export default function SavedJobs() {
                 key={jobId}
                 className="bg-[#14141f] border border-gray-800 hover:border-purple-500/40 rounded-2xl p-6 space-y-5 transition-all shadow-xl flex flex-col justify-between"
               >
-                {/* Header: Company Logo & Action Buttons */}
                 <div className="space-y-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3.5">
@@ -204,7 +247,6 @@ export default function SavedJobs() {
                       </div>
                     </div>
 
-                    {/* Remove Bookmark Button */}
                     <button
                       onClick={() => handleRemoveSavedJob(jobId, jobTitle)}
                       title="Remove Saved Job"
@@ -214,7 +256,6 @@ export default function SavedJobs() {
                     </button>
                   </div>
 
-                  {/* Metadata Chips */}
                   <div className="flex flex-wrap items-center gap-2 text-xs text-gray-300">
                     <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[#0a0a0f] border border-gray-800 rounded-lg text-[11px]">
                       <MapPin className="w-3.5 h-3.5 text-purple-400" />
@@ -232,7 +273,6 @@ export default function SavedJobs() {
                     </span>
                   </div>
 
-                  {/* Skills Tags */}
                   <div className="flex flex-wrap gap-1.5 pt-1">
                     {skillsList.map((skill) => (
                       <span
@@ -245,7 +285,6 @@ export default function SavedJobs() {
                   </div>
                 </div>
 
-                {/* Footer with Saved Date & Apply Action */}
                 <div className="flex items-center justify-between pt-4 border-t border-gray-800 text-xs">
                   <span className="text-gray-500 text-[11px]">
                     Saved on {job.savedAt ? new Date(job.savedAt).toLocaleDateString() : "Recently"}
@@ -270,9 +309,7 @@ export default function SavedJobs() {
         </div>
       )}
 
-      {/* ========================================== */}
-      {/* APPLY NOW MODAL                           */}
-      {/* ========================================== */}
+      {/* APPLY NOW MODAL */}
       {applyingJob && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-[#14141f] border border-gray-800 rounded-2xl w-full max-w-lg p-6 space-y-6 shadow-2xl relative">
@@ -293,7 +330,6 @@ export default function SavedJobs() {
             </div>
 
             <form onSubmit={handleSubmitApplication} className="space-y-4 text-xs">
-              {/* Selected Resume Details */}
               <div className="space-y-2">
                 <label className="text-gray-300 font-semibold block">
                   Select Resume Document *
@@ -312,7 +348,6 @@ export default function SavedJobs() {
                 </div>
               </div>
 
-              {/* Cover Letter Input */}
               <div className="space-y-1.5">
                 <label className="text-gray-300 font-semibold block">
                   Cover Letter <span className="text-gray-500">(Optional)</span>
@@ -326,14 +361,13 @@ export default function SavedJobs() {
                 />
               </div>
 
-              {/* Form Action Buttons */}
               <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-800">
                 <button
                   type="button"
                   onClick={() => setApplyingJob(null)}
                   className="px-4 py-2 bg-[#0a0a0f] hover:bg-gray-800 border border-gray-800 text-gray-300 rounded-xl transition-all cursor-pointer font-medium"
                 >
-                  Apply Later
+                  Cancel
                 </button>
 
                 <button
@@ -351,10 +385,6 @@ export default function SavedJobs() {
     </div>
   );
 }
-
-
-
-
 
 
 
