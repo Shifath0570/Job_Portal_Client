@@ -13,6 +13,7 @@ import {
   CheckCircle,
   FileText,
   Loader2,
+  AlertTriangle,
 } from "lucide-react";
 import { authClient } from "@/app/lib/auth-client";
 
@@ -29,6 +30,10 @@ export default function SavedJobs() {
   const [selectedResume] = useState("Alex_Rivera_Resume_2026.pdf");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  // Modal State for "Delete Saved Job"
+  const [deletingJob, setDeletingJob] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const { data: session } = authClient.useSession();
   const user = session?.user;
 
@@ -43,7 +48,7 @@ export default function SavedJobs() {
       setIsLoading(true);
       try {
         const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000";
-        
+
         // 1. Fetch saved jobs
         const savedRes = await fetch(`${baseUrl}/api/savejob?email=${encodeURIComponent(user.email)}`);
         if (savedRes.ok) {
@@ -56,10 +61,10 @@ export default function SavedJobs() {
         if (appliedRes.ok) {
           const data = await appliedRes.json();
           const applicationsList = data.applications || [];
-          
+
           const appliedIds = applicationsList
-            .filter((app) => 
-              (user.id && app.applicantId === user.id) || 
+            .filter((app) =>
+              (user.id && app.applicantId === user.id) ||
               (user.email && app.applicantEmail?.toLowerCase() === user.email.toLowerCase())
             )
             .map((app) => String(app.jobId));
@@ -76,11 +81,37 @@ export default function SavedJobs() {
     fetchSavedAndAppliedJobs();
   }, [user?.email, user?.id]);
 
-  // Remove Job from Saved List (Local UI filter)
-  const handleRemoveSavedJob = (jobId, jobTitle) => {
-    setSavedJobs((prev) => prev.filter((job) => String(job.id) !== String(jobId)));
-    setNotification(`"${jobTitle || "Job"}" removed from your saved bookmarks.`);
-    setTimeout(() => setNotification(""), 3000);
+  // Handle Confirmed Delete Saved Job
+  const handleConfirmDelete = async () => {
+    if (!deletingJob || !user?.email) return;
+
+    const jobId = String(deletingJob.id);
+    const jobTitle = deletingJob.title || deletingJob.jobTitle;
+
+    setIsDeleting(true);
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000";
+
+      const response = await fetch(`${baseUrl}/api/savejob?id=${jobId}&email=${encodeURIComponent(user.email)}`, {
+        method: "DELETE",
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setSavedJobs((prev) => prev.filter((job) => String(job.id) !== jobId));
+        setNotification(`"${jobTitle || "Job"}" removed from your saved bookmarks.`);
+      } else {
+        setNotification(data.message || "Failed to remove saved job.");
+      }
+    } catch (error) {
+      console.error("Error deleting saved job:", error);
+      setNotification("Network error processing deletion.");
+    } finally {
+      setIsDeleting(false);
+      setDeletingJob(null);
+      setTimeout(() => setNotification(""), 4000);
+    }
   };
 
   // Submit Application Action to Backend API
@@ -88,7 +119,6 @@ export default function SavedJobs() {
     e.preventDefault();
     if (!applyingJob || !user?.email) return;
 
-    // Use applyingJob.id directly
     const jobId = String(applyingJob.id);
     const jobTitle = applyingJob.title || applyingJob.jobTitle;
 
@@ -248,7 +278,7 @@ export default function SavedJobs() {
                     </div>
 
                     <button
-                      onClick={() => handleRemoveSavedJob(jobId, jobTitle)}
+                      onClick={() => setDeletingJob(job)}
                       title="Remove Saved Job"
                       className="p-2 bg-[#0a0a0f] hover:bg-rose-500/10 border border-gray-800 hover:border-rose-500/30 text-gray-400 hover:text-rose-400 rounded-xl transition-all cursor-pointer shrink-0"
                     >
@@ -306,6 +336,43 @@ export default function SavedJobs() {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* DELETE CONFIRMATION MODAL */}
+      {deletingJob && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#14141f] border border-gray-800 rounded-2xl w-full max-w-sm p-6 space-y-5 shadow-2xl relative text-center">
+            <div className="w-12 h-12 bg-rose-500/10 border border-rose-500/20 rounded-2xl flex items-center justify-center mx-auto text-rose-400">
+              <AlertTriangle className="w-6 h-6" />
+            </div>
+
+            <div className="space-y-1.5">
+              <h2 className="text-base font-bold text-white">Remove Saved Job</h2>
+              <p className="text-xs text-gray-400">
+                Are you sure you want to remove <span className="text-white font-semibold">{deletingJob.title || deletingJob.jobTitle}</span> from your saved bookmarks?
+              </p>
+            </div>
+
+            <div className="flex items-center justify-center gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setDeletingJob(null)}
+                className="flex-1 px-4 py-2.5 bg-[#0a0a0f] hover:bg-gray-800 border border-gray-800 text-gray-300 rounded-xl transition-all cursor-pointer text-xs font-medium"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={handleConfirmDelete}
+                className="flex-1 px-4 py-2.5 bg-rose-600 hover:bg-rose-500 text-white rounded-xl shadow-md cursor-pointer transition-all text-xs font-semibold disabled:opacity-50"
+              >
+                {isDeleting ? "Removing..." : "Remove"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
