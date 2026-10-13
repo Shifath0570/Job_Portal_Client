@@ -226,6 +226,7 @@ export default function BrowseJobs() {
         coverLetter,
         resume: seekerProfile?.resume || selectedResume,
         appliedAt: new Date().toISOString(),
+        status: "Pending", // Status explicitly set to pending
       };
 
       const response = await fetch(`${baseUrl}/api/applications`, {
@@ -640,7 +641,7 @@ export default function BrowseJobs() {
                         {seekerProfile?.resume?.fileName || selectedResume || "No resume uploaded yet"}
                       </p>
                       <p className="text-[10px] text-gray-500">
-                        {seekerProfile?.resume?.fileSize ? `${seekerProfile.resume.fileSize} • ` : ""}Linked from Profile
+                        Linked from Profile
                       </p>
                     </div>
                   </div>
@@ -687,8 +688,6 @@ export default function BrowseJobs() {
     </div>
   );
 }
-
-
 
 
 

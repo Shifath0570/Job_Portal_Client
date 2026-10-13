@@ -135,6 +135,7 @@ export default function SavedJobs() {
         coverLetter,
         resume: selectedResume,
         appliedAt: new Date().toISOString(),
+        status: "Pending", // Status explicitly set to pending
       };
 
       const response = await fetch(`${baseUrl}/api/applications`, {
@@ -452,8 +453,6 @@ export default function SavedJobs() {
     </div>
   );
 }
-
-
 
 
 
