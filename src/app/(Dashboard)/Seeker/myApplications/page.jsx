@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Briefcase,
   Search,
@@ -11,98 +11,48 @@ import {
   MapPin,
   FileText,
   ExternalLink,
+  Loader2,
 } from "lucide-react";
-
-const INITIAL_APPLICATIONS = [
-  {
-    id: "app-101",
-    jobTitle: "Senior React Developer",
-    company: "Acme Technologies",
-    companyLogo:
-      "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100&auto=format&fit=crop&q=80",
-    location: "San Francisco, CA (Remote)",
-    appliedDate: "Aug 06, 2026",
-    status: "Hired",
-    statusNote:
-      "Official offer letter accepted. Onboarding begins September 1st.",
-    resumeUsed: "Alex_Rivera_Resume_2026.pdf",
-    salary: "$145,000 / year",
-  },
-  {
-    id: "app-102",
-    jobTitle: "UI/UX Product Designer",
-    company: "Starlight Design Studio",
-    companyLogo:
-      "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=100&auto=format&fit=crop&q=80",
-    location: "New York, NY (Hybrid)",
-    appliedDate: "Aug 04, 2026",
-    status: "Interview Scheduled",
-    statusNote:
-      "Technical round scheduled via Google Meet on Aug 12, 2:00 PM.",
-    resumeUsed: "Alex_Rivera_Resume_2026.pdf",
-    salary: "$120,000 / year",
-  },
-  {
-    id: "app-103",
-    jobTitle: "Frontend Architect",
-    company: "Nexus Systems",
-    companyLogo:
-      "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=100&auto=format&fit=crop&q=80",
-    location: "Remote",
-    appliedDate: "Jul 28, 2026",
-    status: "Shortlisted",
-    statusNote:
-      "Application moved to candidate shortlist. Hiring manager review in progress.",
-    resumeUsed: "Alex_Rivera_Resume_2026.pdf",
-    salary: "$150,000 / year",
-  },
-  {
-    id: "app-104",
-    jobTitle: "Full Stack JavaScript Developer",
-    company: "CyberPulse Labs",
-    companyLogo:
-      "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=100&auto=format&fit=crop&q=80",
-    location: "Austin, TX",
-    appliedDate: "Jul 22, 2026",
-    status: "Reviewed",
-    statusNote: "Application has been viewed by the recruitment team.",
-    resumeUsed: "Alex_Rivera_Resume_2026.pdf",
-    salary: "$130,000 / year",
-  },
-  {
-    id: "app-105",
-    jobTitle: "Junior Software Engineer",
-    company: "CloudVibe Tech",
-    companyLogo:
-      "https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=100&auto=format&fit=crop&q=80",
-    location: "Remote",
-    appliedDate: "Jul 18, 2026",
-    status: "Pending",
-    statusNote: "Submission received. Awaiting initial screening.",
-    resumeUsed: "Alex_Rivera_Resume_2026.pdf",
-    salary: "$95,000 / year",
-  },
-  {
-    id: "app-106",
-    jobTitle: "DevOps & Cloud Engineer",
-    company: "Apex Innovations",
-    companyLogo:
-      "https://images.unsplash.com/photo-1572021335469-31706a17aaef?w=100&auto=format&fit=crop&q=80",
-    location: "Seattle, WA",
-    appliedDate: "Jul 10, 2026",
-    status: "Rejected",
-    statusNote:
-      "Position filled by an internal candidate. Submission archived.",
-    resumeUsed: "Alex_Rivera_Resume_2026.pdf",
-    salary: "$140,000 / year",
-  },
-];
+import { authClient } from "@/app/lib/auth-client";
 
 export default function MyApplications() {
-  const [applications] = useState(INITIAL_APPLICATIONS);
+  const [applications, setApplications] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStatusFilter, setSelectedStatusFilter] = useState("ALL");
   const [activeApplicationModal, setActiveApplicationModal] = useState(null);
+
+  const { data: session } = authClient.useSession();
+  const user = session?.user;
+
+  // Fetch applications from backend API by user email
+  useEffect(() => {
+    const fetchUserApplications = async () => {
+      if (!user?.email) {
+        setIsLoading(false);
+        return;
+      }
+
+      setIsLoading(true);
+      try {
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000";
+        const response = await fetch(`${baseUrl}/api/applications/${encodeURIComponent(user.email)}`);
+
+        if (response.ok) {
+          const data = await response.json();
+          setApplications(data.applications || []);
+        } else {
+          console.error("Failed to fetch applications");
+        }
+      } catch (error) {
+        console.error("Error connecting to applications server:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchUserApplications();
+  }, [user?.email]);
 
   // Status Styling & Badge Helper
   const getStatusBadgeStyle = (status) => {
@@ -126,10 +76,13 @@ export default function MyApplications() {
 
   // Filter Logic
   const filteredApplications = applications.filter((app) => {
+    const jobTitle = app.jobTitle || "";
+    const company = app.companyName || app.company || "";
+
     const matchesSearch =
       searchQuery === "" ||
-      app.jobTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      app.company.toLowerCase().includes(searchQuery.toLowerCase());
+      jobTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      company.toLowerCase().includes(searchQuery.toLowerCase());
 
     const matchesStatus =
       selectedStatusFilter === "ALL" || app.status === selectedStatusFilter;
@@ -240,11 +193,22 @@ export default function MyApplications() {
 
       {/* Applications Table / Cards */}
       <div className="bg-[#14141f] border border-gray-800 rounded-2xl p-6 shadow-xl space-y-4">
-        {filteredApplications.length === 0 ? (
+        {isLoading ? (
+          <div className="p-16 text-center flex flex-col items-center justify-center space-y-3">
+            <Loader2 className="w-8 h-8 animate-spin text-purple-400" />
+            <p className="text-xs text-gray-400">Loading your applications...</p>
+          </div>
+        ) : !user?.email ? (
+          <div className="p-12 text-center text-gray-500 space-y-2">
+            <Briefcase className="w-10 h-10 mx-auto text-gray-600 mb-2" />
+            <p className="text-sm font-semibold text-white">Please log in</p>
+            <p className="text-xs text-gray-400">Log in to view your submitted job applications.</p>
+          </div>
+        ) : filteredApplications.length === 0 ? (
           <div className="p-12 text-center text-gray-500 space-y-2">
             <Briefcase className="w-10 h-10 mx-auto text-gray-600 mb-2" />
             <p className="text-sm font-semibold text-white">
-              No applications match your query.
+              No applications found.
             </p>
             <p className="text-xs text-gray-400">
               Try adjusting your filter status or search term.
@@ -262,64 +226,71 @@ export default function MyApplications() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-800/80">
-                {filteredApplications.map((app) => (
-                  <tr
-                    key={app.id}
-                    className="hover:bg-purple-500/[0.02] transition-colors group"
-                  >
-                    {/* Job Title & Company */}
-                    <td className="py-4 px-4">
-                      <div className="flex items-center gap-3">
-                        <img
-                          src={app.companyLogo}
-                          alt={app.company}
-                          className="w-10 h-10 rounded-xl object-cover border border-gray-800 shrink-0"
-                        />
-                        <div>
-                          <p className="font-bold text-white text-sm group-hover:text-purple-400 transition-colors">
-                            {app.jobTitle}
-                          </p>
-                          <p className="text-gray-400 text-[11px] pt-0.5">
-                            {app.company} • {app.location}
-                          </p>
+                {filteredApplications.map((app) => {
+                  const appId = app._id || app.id;
+                  const companyName = app.companyName || app.company || "Company";
+                  const companyLogo = app.companyLogo || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100";
+                  const formattedDate = app.appliedAt ? new Date(app.appliedAt).toLocaleDateString() : (app.appliedDate || "Recently");
+
+                  return (
+                    <tr
+                      key={appId}
+                      className="hover:bg-purple-500/[0.02] transition-colors group"
+                    >
+                      {/* Job Title & Company */}
+                      <td className="py-4 px-4">
+                        <div className="flex items-center gap-3">
+                          <img
+                            src={companyLogo}
+                            alt={companyName}
+                            className="w-10 h-10 rounded-xl object-cover border border-gray-800 shrink-0"
+                          />
+                          <div>
+                            <p className="font-bold text-white text-sm group-hover:text-purple-400 transition-colors">
+                              {app.jobTitle}
+                            </p>
+                            <p className="text-gray-400 text-[11px] pt-0.5">
+                              {companyName} {app.location ? `• ${app.location}` : ""}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    </td>
+                      </td>
 
-                    {/* Applied Date */}
-                    <td className="py-4 px-4 text-gray-300 font-medium">
-                      <span className="inline-flex items-center gap-1.5">
-                        <Calendar className="w-3.5 h-3.5 text-purple-400" />
-                        {app.appliedDate}
-                      </span>
-                    </td>
+                      {/* Applied Date */}
+                      <td className="py-4 px-4 text-gray-300 font-medium">
+                        <span className="inline-flex items-center gap-1.5">
+                          <Calendar className="w-3.5 h-3.5 text-purple-400" />
+                          {formattedDate}
+                        </span>
+                      </td>
 
-                    {/* Application Status Badge */}
-                    <td className="py-4 px-4">
-                      <span
-                        className={`inline-flex items-center px-3 py-1 rounded-full text-[11px] font-semibold border ${getStatusBadgeStyle(
-                          app.status
-                        )}`}
-                      >
-                        {app.status}
-                      </span>
-                      <p className="text-[11px] text-gray-500 pt-1 line-clamp-1 max-w-xs">
-                        {app.statusNote}
-                      </p>
-                    </td>
+                      {/* Application Status Badge */}
+                      <td className="py-4 px-4">
+                        <span
+                          className={`inline-flex items-center px-3 py-1 rounded-full text-[11px] font-semibold border ${getStatusBadgeStyle(
+                            app.status || "Pending"
+                          )}`}
+                        >
+                          {app.status || "Pending"}
+                        </span>
+                        <p className="text-[11px] text-gray-500 pt-1 line-clamp-1 max-w-xs">
+                          {app.statusNote || "Application submitted successfully."}
+                        </p>
+                      </td>
 
-                    {/* View Details Action */}
-                    <td className="py-4 px-4 text-right">
-                      <button
-                        onClick={() => setActiveApplicationModal(app)}
-                        className="px-3 py-1.5 bg-[#0a0a0f] hover:bg-gray-800 border border-gray-800 text-gray-300 hover:text-white rounded-xl transition-all cursor-pointer font-medium text-xs inline-flex items-center gap-1"
-                      >
-                        <ExternalLink className="w-3.5 h-3.5 text-purple-400" />
-                        View
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                      {/* View Details Action */}
+                      <td className="py-4 px-4 text-right">
+                        <button
+                          onClick={() => setActiveApplicationModal(app)}
+                          className="px-3 py-1.5 bg-[#0a0a0f] hover:bg-gray-800 border border-gray-800 text-gray-300 hover:text-white rounded-xl transition-all cursor-pointer font-medium text-xs inline-flex items-center gap-1"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5 text-purple-400" />
+                          View
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -327,7 +298,7 @@ export default function MyApplications() {
       </div>
 
       {/* ========================================== */}
-      {/* APPLICATION DETAILS MODAL                  */}
+      {/* APPLICATION DETAILS MODAL                   */}
       {/* ========================================== */}
       {activeApplicationModal && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
@@ -336,8 +307,8 @@ export default function MyApplications() {
             <div className="flex items-center justify-between border-b border-gray-800 pb-4">
               <div className="flex items-center gap-3">
                 <img
-                  src={activeApplicationModal.companyLogo}
-                  alt={activeApplicationModal.company}
+                  src={activeApplicationModal.companyLogo || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100"}
+                  alt={activeApplicationModal.companyName || activeApplicationModal.company}
                   className="w-11 h-11 rounded-xl object-cover border border-gray-800"
                 />
                 <div>
@@ -345,7 +316,7 @@ export default function MyApplications() {
                     {activeApplicationModal.jobTitle}
                   </h2>
                   <p className="text-xs text-purple-400">
-                    {activeApplicationModal.company}
+                    {activeApplicationModal.companyName || activeApplicationModal.company}
                   </p>
                 </div>
               </div>
@@ -365,10 +336,10 @@ export default function MyApplications() {
                   <span className="text-gray-400">Current Status</span>
                   <span
                     className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${getStatusBadgeStyle(
-                      activeApplicationModal.status
+                      activeApplicationModal.status || "Pending"
                     )}`}
                   >
-                    {activeApplicationModal.status}
+                    {activeApplicationModal.status || "Pending"}
                   </span>
                 </div>
 
@@ -377,7 +348,7 @@ export default function MyApplications() {
                     Status Note:
                   </span>
                   <p className="text-gray-200 leading-relaxed">
-                    {activeApplicationModal.statusNote}
+                    {activeApplicationModal.statusNote || "Your submission is currently under review."}
                   </p>
                 </div>
               </div>
@@ -388,16 +359,16 @@ export default function MyApplications() {
                     Applied Date
                   </span>
                   <p className="font-bold text-white">
-                    {activeApplicationModal.appliedDate}
+                    {activeApplicationModal.appliedAt ? new Date(activeApplicationModal.appliedAt).toLocaleDateString() : activeApplicationModal.appliedDate}
                   </p>
                 </div>
 
                 <div className="p-3 bg-[#0a0a0f] border border-gray-800 rounded-xl space-y-1">
                   <span className="text-gray-500 text-[10px] font-semibold block uppercase">
-                    Offered / Target Salary
+                    Salary Range
                   </span>
                   <p className="font-bold text-emerald-400">
-                    {activeApplicationModal.salary}
+                    {activeApplicationModal.salaryRange || activeApplicationModal.salary || "Competitive"}
                   </p>
                 </div>
               </div>
@@ -408,7 +379,9 @@ export default function MyApplications() {
                   <span className="text-gray-300">Resume Submitted:</span>
                 </div>
                 <span className="font-bold text-white">
-                  {activeApplicationModal.resumeUsed}
+                  {typeof activeApplicationModal.resume === "string" 
+                    ? activeApplicationModal.resume 
+                    : activeApplicationModal.resume?.fileName || activeApplicationModal.resumeUsed || "Resume.pdf"}
                 </span>
               </div>
             </div>
@@ -429,9 +402,6 @@ export default function MyApplications() {
     </div>
   );
 }
-
-
-
 
 
 
