@@ -219,6 +219,7 @@ export default function BrowseJobs() {
       const payload = {
         jobId,
         jobTitle,
+        jobEmail: applyingJob.companyEmail || applyingJob.jobEmail || "",
         companyLogo: applyingJob.companyLogo || "",
         companyName: applyingJob.companyName || "",
         applicantId: user.id,

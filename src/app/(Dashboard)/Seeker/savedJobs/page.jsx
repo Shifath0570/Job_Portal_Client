@@ -160,6 +160,7 @@ export default function SavedJobs() {
       const payload = {
         jobId,
         jobTitle,
+        jobEmail: applyingJob.companyEmail || applyingJob.jobEmail || "",
         companyLogo: applyingJob.companyLogo || "",
         companyName: applyingJob.companyName || "",
         applicantId: user.id,
@@ -495,5 +496,8 @@ export default function SavedJobs() {
     </div>
   );
 }
+
+
+
 
 
