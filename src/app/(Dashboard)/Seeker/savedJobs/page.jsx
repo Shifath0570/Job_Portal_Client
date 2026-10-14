@@ -128,14 +128,18 @@ export default function SavedJobs() {
       const payload = {
         jobId,
         jobTitle,
-        companyName: applyingJob.companyName,
+        companyLogo: applyingJob.companyLogo || "",
+        companyName: applyingJob.companyName || "",
         applicantId: user.id,
         applicantEmail: user.email,
         applicantName: user.name || "",
         coverLetter,
         resume: selectedResume,
+        location: applyingJob.location || "",
+        remoteOption: applyingJob.workplaceType || applyingJob.remoteOption || "Remote",
+        salaryRange: applyingJob.salary || applyingJob.salaryRange || "",
         appliedAt: new Date().toISOString(),
-        status: "Pending", // Status explicitly set to pending
+        status: "Pending",
       };
 
       const response = await fetch(`${baseUrl}/api/applications`, {
@@ -453,6 +457,9 @@ export default function SavedJobs() {
     </div>
   );
 }
+
+
+
 
 
 

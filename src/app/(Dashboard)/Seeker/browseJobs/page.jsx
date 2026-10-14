@@ -113,7 +113,7 @@ export default function BrowseJobs() {
         if (response.ok) {
           const data = await response.json();
           const savedJobsList = data.jobs || [];
-          
+
           const ids = savedJobsList.map((item) => String(item.id || item.originalJobId || item._id));
           setSavedJobIds(ids);
         }
@@ -136,7 +136,7 @@ export default function BrowseJobs() {
         if (response.ok) {
           const data = await response.json();
           const applicationsList = data.applications || [];
-          
+
           const appliedIds = applicationsList.map((app) => String(app.jobId));
           setAppliedJobIds(appliedIds);
         }
@@ -219,14 +219,18 @@ export default function BrowseJobs() {
       const payload = {
         jobId,
         jobTitle,
-        companyName: applyingJob.companyName,
+        companyLogo: applyingJob.companyLogo || "",
+        companyName: applyingJob.companyName || "",
         applicantId: user.id,
         applicantEmail: user.email,
         applicantName: user.name || seekerProfile?.fullName || seekerProfile?.SeekerName || "",
         coverLetter,
         resume: seekerProfile?.resume || selectedResume,
+        location: applyingJob.location || "",
+        remoteOption: applyingJob.workplaceType || applyingJob.remoteOption || "Remote",
+        salaryRange: applyingJob.salary || applyingJob.salaryRange || "",
         appliedAt: new Date().toISOString(),
-        status: "Pending", // Status explicitly set to pending
+        status: "Pending",
       };
 
       const response = await fetch(`${baseUrl}/api/applications`, {
@@ -433,11 +437,10 @@ export default function BrowseJobs() {
 
                       <button
                         onClick={() => handleToggleSave(job)}
-                        className={`p-2 rounded-xl border transition-all cursor-pointer ${
-                          isSaved
+                        className={`p-2 rounded-xl border transition-all cursor-pointer ${isSaved
                             ? "bg-purple-500/10 border-purple-500/30 text-purple-400"
                             : "bg-[#0a0a0f] border-gray-800 text-gray-400 hover:text-white"
-                        }`}
+                          }`}
                       >
                         {isSaved ? <BookmarkCheck className="w-4 h-4" /> : <Bookmark className="w-4 h-4" />}
                       </button>
@@ -632,7 +635,7 @@ export default function BrowseJobs() {
                 <label className="text-gray-300 font-semibold block">
                   Select Resume Document *
                 </label>
-                
+
                 <div className="p-3 bg-[#0a0a0f] border border-purple-500/30 rounded-xl flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <FileText className="w-5 h-5 text-purple-400" />
@@ -688,6 +691,9 @@ export default function BrowseJobs() {
     </div>
   );
 }
+
+
+
 
 
 
