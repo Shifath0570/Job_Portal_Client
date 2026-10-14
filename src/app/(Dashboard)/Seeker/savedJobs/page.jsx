@@ -24,10 +24,13 @@ export default function SavedJobs() {
   const [searchQuery, setSearchQuery] = useState("");
   const [notification, setNotification] = useState("");
 
+  // Seeker Profile State
+  const [seekerProfile, setSeekerProfile] = useState(null);
+
   // Modal State for "Apply Now"
   const [applyingJob, setApplyingJob] = useState(null);
   const [coverLetter, setCoverLetter] = useState("");
-  const [selectedResume] = useState("Alex_Rivera_Resume_2026.pdf");
+  const [selectedResume, setSelectedResume] = useState("Alex_Rivera_Resume_2026.pdf");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Modal State for "Delete Saved Job"
@@ -37,7 +40,7 @@ export default function SavedJobs() {
   const { data: session } = authClient.useSession();
   const user = session?.user;
 
-  // Fetch saved jobs & already applied jobs on mount / user change
+  // 1. Fetch saved jobs & already applied jobs on mount / user change
   useEffect(() => {
     const fetchSavedAndAppliedJobs = async () => {
       if (!user?.email) {
@@ -49,14 +52,14 @@ export default function SavedJobs() {
       try {
         const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000";
 
-        // 1. Fetch saved jobs
+        // Fetch saved jobs
         const savedRes = await fetch(`${baseUrl}/api/savejob?email=${encodeURIComponent(user.email)}`);
         if (savedRes.ok) {
           const data = await savedRes.json();
           setSavedJobs(Array.isArray(data) ? data : data.jobs || []);
         }
 
-        // 2. Fetch already submitted applications to match applicantId & jobId
+        // Fetch already submitted applications to match applicantId & jobId
         const appliedRes = await fetch(`${baseUrl}/api/applications/${encodeURIComponent(user.email)}`);
         if (appliedRes.ok) {
           const data = await appliedRes.json();
@@ -81,7 +84,7 @@ export default function SavedJobs() {
     fetchSavedAndAppliedJobs();
   }, [user?.email, user?.id]);
 
-
+  // 2. Fetch Seeker Profile by User Email (Includes phone, skills, experience, education, etc.)
   useEffect(() => {
     const fetchSeekerProfile = async () => {
       if (!user?.email) return;
@@ -114,7 +117,7 @@ export default function SavedJobs() {
   const handleConfirmDelete = async () => {
     if (!deletingJob || !user?.email) return;
 
-    const jobId = String(deletingJob.id);
+    const jobId = String(deletingJob.id || deletingJob._id);
     const jobTitle = deletingJob.title || deletingJob.jobTitle;
 
     setIsDeleting(true);
@@ -128,7 +131,7 @@ export default function SavedJobs() {
       const data = await response.json();
 
       if (response.ok) {
-        setSavedJobs((prev) => prev.filter((job) => String(job.id) !== jobId));
+        setSavedJobs((prev) => prev.filter((job) => String(job.id || job._id) !== jobId));
         setNotification(`"${jobTitle || "Job"}" removed from your saved bookmarks.`);
       } else {
         setNotification(data.message || "Failed to remove saved job.");
@@ -143,12 +146,12 @@ export default function SavedJobs() {
     }
   };
 
-  // Submit Application Action to Backend API
+  // Submit Application Action to Backend API with Complete Seeker Details
   const handleSubmitApplication = async (e) => {
     e.preventDefault();
     if (!applyingJob || !user?.email) return;
 
-    const jobId = String(applyingJob.id);
+    const jobId = String(applyingJob.id || applyingJob._id);
     const jobTitle = applyingJob.title || applyingJob.jobTitle;
 
     setIsSubmitting(true);
@@ -161,12 +164,16 @@ export default function SavedJobs() {
         companyName: applyingJob.companyName || "",
         applicantId: user.id,
         applicantEmail: user.email,
-        applicantName: user.name || "",
+        applicantName: user.name || seekerProfile?.fullName || seekerProfile?.SeekerName || "",
         coverLetter,
-        resume: selectedResume,
+        resume: seekerProfile?.resume || selectedResume,
         location: applyingJob.location || "",
         remoteOption: applyingJob.workplaceType || applyingJob.remoteOption || "Remote",
         salaryRange: applyingJob.salary || applyingJob.salaryRange || "",
+        number: seekerProfile?.phone || seekerProfile?.number || seekerProfile?.contactNumber || "",
+        skills: seekerProfile?.skills || [],
+        experience: seekerProfile?.experience || [],
+        education: seekerProfile?.education || [],
         appliedAt: new Date().toISOString(),
         status: "Pending",
       };
@@ -279,7 +286,7 @@ export default function SavedJobs() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {filteredJobs.map((job) => {
-            const jobId = String(job.id);
+            const jobId = String(job.id || job._id);
             const isApplied = appliedJobIds.includes(jobId);
 
             const jobTitle = job.title || job.jobTitle;
@@ -439,8 +446,10 @@ export default function SavedJobs() {
                   <div className="flex items-center gap-3">
                     <FileText className="w-5 h-5 text-purple-400" />
                     <div>
-                      <p className="font-bold text-white">{selectedResume}</p>
-                      <p className="text-[10px] text-gray-500">PDF Document • 1.8 MB</p>
+                      <p className="font-bold text-white">
+                        {seekerProfile?.resume?.fileName || selectedResume || "No resume uploaded yet"}
+                      </p>
+                      <p className="text-[10px] text-gray-500">Linked from Profile</p>
                     </div>
                   </div>
                   <span className="text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
@@ -486,9 +495,5 @@ export default function SavedJobs() {
     </div>
   );
 }
-
-
-
-
 
 
