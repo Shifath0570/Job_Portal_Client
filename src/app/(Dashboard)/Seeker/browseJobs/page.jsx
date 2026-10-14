@@ -229,6 +229,10 @@ export default function BrowseJobs() {
         location: applyingJob.location || "",
         remoteOption: applyingJob.workplaceType || applyingJob.remoteOption || "Remote",
         salaryRange: applyingJob.salary || applyingJob.salaryRange || "",
+        number: seekerProfile?.phone || seekerProfile?.number || "",
+        skills: seekerProfile?.skills || [],
+        experience: seekerProfile?.experience || [],
+        education: seekerProfile?.education || [],
         appliedAt: new Date().toISOString(),
         status: "Pending",
       };
@@ -437,10 +441,11 @@ export default function BrowseJobs() {
 
                       <button
                         onClick={() => handleToggleSave(job)}
-                        className={`p-2 rounded-xl border transition-all cursor-pointer ${isSaved
+                        className={`p-2 rounded-xl border transition-all cursor-pointer ${
+                          isSaved
                             ? "bg-purple-500/10 border-purple-500/30 text-purple-400"
                             : "bg-[#0a0a0f] border-gray-800 text-gray-400 hover:text-white"
-                          }`}
+                        }`}
                       >
                         {isSaved ? <BookmarkCheck className="w-4 h-4" /> : <Bookmark className="w-4 h-4" />}
                       </button>
@@ -691,8 +696,6 @@ export default function BrowseJobs() {
     </div>
   );
 }
-
-
 
 
 

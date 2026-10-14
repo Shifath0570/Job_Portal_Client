@@ -81,6 +81,35 @@ export default function SavedJobs() {
     fetchSavedAndAppliedJobs();
   }, [user?.email, user?.id]);
 
+
+  useEffect(() => {
+    const fetchSeekerProfile = async () => {
+      if (!user?.email) return;
+      try {
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000";
+        const response = await fetch(`${baseUrl}/api/seeker/profile/${encodeURIComponent(user.email)}`);
+
+        if (response.ok) {
+          const data = await response.json();
+          setSeekerProfile(data);
+
+          if (data.resume) {
+            const resumeName = typeof data.resume === "string" ? data.resume : data.resume.fileName || data.resume.filename || "";
+            setSelectedResume(resumeName);
+          } else if (data.resumes && data.resumes.length > 0) {
+            const firstRes = data.resumes[0];
+            const firstName = typeof firstRes === "string" ? firstRes : firstRes.fileName || firstRes.filename || "Resume 1";
+            setSelectedResume(firstName);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching seeker profile:", error);
+      }
+    };
+
+    fetchSeekerProfile();
+  }, [user?.email]);
+
   // Handle Confirmed Delete Saved Job
   const handleConfirmDelete = async () => {
     if (!deletingJob || !user?.email) return;
