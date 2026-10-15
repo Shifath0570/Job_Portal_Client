@@ -11,7 +11,6 @@ import {
   Download as DownloadIcon,
   X as CloseIcon,
   MapPin as MapPinIcon,
-  Briefcase as BriefcaseIcon,
   DollarSign as DollarSignIcon,
 } from "lucide-react";
 import { authClient } from "@/app/lib/auth-client";
@@ -66,27 +65,29 @@ export default function ViewApplicants() {
         const data = await res.json();
 
         if (data.success && Array.isArray(data.applications)) {
-          // Map all MongoDB schema fields to frontend expected fields
           const formattedApplicants = data.applications.map((app) => ({
             ...app,
             id: app._id,
-            name: app.applicantName || app.name,
-            email: app.applicantEmail || app.email,
-            jobPosition: app.jobTitle || app.jobPosition,
-            phone: app.number || app.phone,
+            name: app.applicantName || app.name || "Unknown Candidate",
+            email: app.applicantEmail || app.email || "No Email",
+            jobPosition: app.jobTitle || app.jobPosition || "Position Not Specified",
+            phone: app.number || app.phone || "N/A",
             companyName: app.companyName || "N/A",
             companyLogo: app.companyLogo || "",
             location: app.location || "Remote",
             remoteOption: app.remoteOption || "On-site",
             salaryRange: app.salaryRange || "Not Specified",
             skills: Array.isArray(app.skills) ? app.skills : [],
+            experience: app.experience || "Experience details not provided",
+            education: app.education || "Education details not provided",
+            coverLetter: app.coverLetter || "",
             resumeUrl: app.resume?.fileUrl || app.resumeUrl || "#",
             applicationDate: app.appliedAt
               ? new Date(app.appliedAt).toLocaleDateString("en-US", {
-                month: "short",
-                day: "2-digit",
-                year: "numeric",
-              })
+                  month: "short",
+                  day: "2-digit",
+                  year: "numeric",
+                })
               : "Recent",
           }));
 
@@ -341,14 +342,18 @@ export default function ViewApplicants() {
                       Skills
                     </span>
                     <div className="flex flex-wrap gap-1.5 pt-1">
-                      {app.skills?.map((skill) => (
-                        <span
-                          key={skill}
-                          className="px-2.5 py-1 bg-purple-500/10 border border-purple-500/20 text-purple-300 rounded-lg text-xs"
-                        >
-                          {skill}
-                        </span>
-                      ))}
+                      {app.skills.length > 0 ? (
+                        app.skills.map((skill) => (
+                          <span
+                            key={skill}
+                            className="px-2.5 py-1 bg-purple-500/10 border border-purple-500/20 text-purple-300 rounded-lg text-xs"
+                          >
+                            {skill}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="text-gray-500">No skills listed</span>
+                      )}
                     </div>
                   </div>
 
@@ -553,6 +558,7 @@ export default function ViewApplicants() {
     </div>
   );
 }
+
 
 
 
