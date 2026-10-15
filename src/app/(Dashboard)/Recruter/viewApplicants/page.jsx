@@ -10,6 +10,9 @@ import {
   Eye as EyeIcon,
   Download as DownloadIcon,
   X as CloseIcon,
+  MapPin as MapPinIcon,
+  Briefcase as BriefcaseIcon,
+  DollarSign as DollarSignIcon,
 } from "lucide-react";
 import { authClient } from "@/app/lib/auth-client";
 
@@ -63,7 +66,7 @@ export default function ViewApplicants() {
         const data = await res.json();
 
         if (data.success && Array.isArray(data.applications)) {
-          // Map MongoDB schema fields to frontend expected fields
+          // Map all MongoDB schema fields to frontend expected fields
           const formattedApplicants = data.applications.map((app) => ({
             ...app,
             id: app._id,
@@ -71,6 +74,12 @@ export default function ViewApplicants() {
             email: app.applicantEmail || app.email,
             jobPosition: app.jobTitle || app.jobPosition,
             phone: app.number || app.phone,
+            companyName: app.companyName || "N/A",
+            companyLogo: app.companyLogo || "",
+            location: app.location || "Remote",
+            remoteOption: app.remoteOption || "On-site",
+            salaryRange: app.salaryRange || "Not Specified",
+            skills: Array.isArray(app.skills) ? app.skills : [],
             resumeUrl: app.resume?.fileUrl || app.resumeUrl || "#",
             applicationDate: app.appliedAt
               ? new Date(app.appliedAt).toLocaleDateString("en-US", {
@@ -273,7 +282,12 @@ export default function ViewApplicants() {
                       className="w-16 h-16 rounded-2xl object-cover border border-purple-500/20 shadow-md shrink-0"
                     />
                     <div>
-                      <h2 className="text-lg font-bold text-white">{app.name}</h2>
+                      <div className="flex items-center gap-2">
+                        <h2 className="text-lg font-bold text-white">{app.name}</h2>
+                        <span className="px-2 py-0.5 bg-gray-800 text-gray-300 text-[10px] font-medium rounded-md">
+                          {app.companyName}
+                        </span>
+                      </div>
                       <p className="text-xs text-purple-400 font-medium pt-0.5">
                         Applied for: <span className="text-white">{app.jobPosition}</span>
                       </p>
@@ -283,6 +297,12 @@ export default function ViewApplicants() {
                         </span>
                         <span className="flex items-center gap-1">
                           <PhoneIcon className="w-3.5 h-3.5" /> {app.phone}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <MapPinIcon className="w-3.5 h-3.5 text-red-400" /> {app.location} ({app.remoteOption})
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <DollarSignIcon className="w-3.5 h-3.5 text-emerald-400" /> {app.salaryRange}
                         </span>
                         <span>Applied: {app.applicationDate}</span>
                       </div>
@@ -337,7 +357,6 @@ export default function ViewApplicants() {
                       Experience
                     </span>
                     <p className="text-white pt-1 whitespace-pre-line">{app.experience}</p>
-                    <p className="text-gray-500">{app.experienceLevel || "Experienced"}</p>
                   </div>
 
                   <div className="space-y-1">
@@ -361,7 +380,7 @@ export default function ViewApplicants() {
 
                 <div className="flex items-center justify-between pt-2 border-t border-gray-800/80">
                   <span className="text-xs text-gray-500">
-                    Attached Resume: {app.resume?.fileName || "Document.pdf"}
+                    Attached Resume: {app.resume?.fileName || "Document.pdf"} ({app.resume?.fileSize || ""})
                   </span>
                   <div className="flex items-center gap-3">
                     <button
@@ -377,7 +396,7 @@ export default function ViewApplicants() {
                       className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#0a0a0f] hover:bg-gray-800 border border-gray-800 text-gray-300 hover:text-white text-xs font-medium rounded-xl transition-all cursor-pointer"
                     >
                       <DownloadIcon className="w-3.5 h-3.5 text-emerald-400" />
-                      Download Resume ({app.resume?.fileSize || "PDF"})
+                      Download Resume
                     </a>
                   </div>
                 </div>
@@ -534,5 +553,7 @@ export default function ViewApplicants() {
     </div>
   );
 }
+
+
 
 
