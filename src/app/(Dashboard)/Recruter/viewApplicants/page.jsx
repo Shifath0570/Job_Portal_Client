@@ -1,6 +1,7 @@
+
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Search as SearchIcon,
   Mail as MailIcon,
@@ -10,6 +11,7 @@ import {
   Download as DownloadIcon,
   X as CloseIcon,
 } from "lucide-react";
+import { authClient } from "@/app/lib/auth-client";
 
 const STATUS_OPTIONS = [
   "Pending",
@@ -20,65 +22,11 @@ const STATUS_OPTIONS = [
   "Hired",
 ];
 
-const INITIAL_APPLICANTS = [
-  {
-    id: "app-101",
-    profilePicture:
-      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80",
-    name: "Eleanor Pena",
-    email: "eleanor.pena@example.com",
-    phone: "+1 (555) 345-6789",
-    jobPosition: "Senior Frontend Engineer",
-    skills: ["React", "TypeScript", "Next.js", "Tailwind CSS"],
-    experienceLevel: "Senior Level (5+ yrs)",
-    experience: "5 Years at Tech Corp as Lead Frontend Dev",
-    education: "B.Sc. in Computer Science, Stanford University",
-    coverLetter:
-      "I have over 5 years of experience building modern web architectures. Excited to bring my Next.js and frontend skillsets to your engineering team.",
-    applicationDate: "Aug 05, 2026",
-    status: "Shortlisted",
-    resumeUrl: "/resumes/eleanor-pena.pdf",
-  },
-  {
-    id: "app-102",
-    profilePicture:
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
-    name: "Jerome Bell",
-    email: "jerome.bell@example.com",
-    phone: "+1 (555) 876-5432",
-    jobPosition: "UI/UX Product Designer",
-    skills: ["Figma", "User Research", "Prototyping", "Wireframing"],
-    experienceLevel: "Mid Level (3-5 yrs)",
-    experience: "3 Years at Design Studio as UI Designer",
-    education: "B.A. in Graphic Design, NYU",
-    coverLetter:
-      "Crafting intuitive digital experiences is my passion. I have designed product systems for over 10 scalable web applications.",
-    applicationDate: "Aug 02, 2026",
-    status: "Interview Scheduled",
-    resumeUrl: "/resumes/jerome-bell.pdf",
-  },
-  {
-    id: "app-103",
-    profilePicture:
-      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80",
-    name: "Devon Lane",
-    email: "devon.lane@example.com",
-    phone: "+1 (555) 234-9876",
-    jobPosition: "Backend Node.js Architect",
-    skills: ["Node.js", "Express", "PostgreSQL", "Docker", "GraphQL"],
-    experienceLevel: "Senior Level (5+ yrs)",
-    experience: "6 Years as Senior Backend Developer",
-    education: "M.Sc. in Software Engineering, MIT",
-    coverLetter:
-      "Specialized in microservices design, RESTful APIs, and database optimization. Looking forward to discussing this opportunity.",
-    applicationDate: "Jul 29, 2026",
-    status: "Pending",
-    resumeUrl: "/resumes/devon-lane.pdf",
-  },
-];
-
 export default function ViewApplicants() {
-  const [applicants, setApplicants] = useState(INITIAL_APPLICANTS);
+  const [applicants, setApplicants] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState("All");
   const [filterExperience, setFilterExperience] = useState("All");
@@ -98,10 +46,64 @@ export default function ViewApplicants() {
     notes: "",
   });
 
+  const { data: session, isPending: sessionLoading } = authClient.useSession();
+  const user = session?.user;
+
+  // Fetch applications from backend API once session is resolved
+  useEffect(() => {
+    if (sessionLoading) return;
+
+    async function fetchApplicants() {
+      try {
+        setLoading(true);
+        const targetEmail = user?.email || "all";
+
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000";
+        const res = await fetch(`${baseUrl}/api/applicants/${targetEmail}`);
+        const data = await res.json();
+
+        if (data.success && Array.isArray(data.applications)) {
+          // Map MongoDB schema fields to frontend expected fields
+          const formattedApplicants = data.applications.map((app) => ({
+            ...app,
+            id: app._id,
+            name: app.applicantName || app.name,
+            email: app.applicantEmail || app.email,
+            jobPosition: app.jobTitle || app.jobPosition,
+            phone: app.number || app.phone,
+            resumeUrl: app.resume?.fileUrl || app.resumeUrl || "#",
+            applicationDate: app.appliedAt
+              ? new Date(app.appliedAt).toLocaleDateString("en-US", {
+                month: "short",
+                day: "2-digit",
+                year: "numeric",
+              })
+              : "Recent",
+          }));
+
+          setApplicants(formattedApplicants);
+        } else {
+          setError(data.message || "Failed to load applicants");
+        }
+      } catch (err) {
+        console.error("Fetch Error:", err);
+        setError("Something went wrong while fetching applicants.");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchApplicants();
+  }, [sessionLoading, user?.email]);
+
   // Handle Status Change
   const handleStatusChange = (applicantId, newStatus) => {
     setApplicants((prev) =>
-      prev.map((app) => (app.id === applicantId ? { ...app, status: newStatus } : app))
+      prev.map((app) =>
+        app._id === applicantId || app.id === applicantId
+          ? { ...app, status: newStatus }
+          : app
+      )
     );
   };
 
@@ -110,8 +112,8 @@ export default function ViewApplicants() {
     e.preventDefault();
     if (!interviewModalApplicant) return;
 
-    // Auto-update status to "Interview Scheduled"
-    handleStatusChange(interviewModalApplicant.id, "Interview Scheduled");
+    const targetId = interviewModalApplicant._id || interviewModalApplicant.id;
+    handleStatusChange(targetId, "Interview Scheduled");
 
     setNotificationMsg(
       `Interview scheduled with ${interviewModalApplicant.name}. A notification email has been dispatched!`
@@ -126,9 +128,9 @@ export default function ViewApplicants() {
   const filteredApplicants = applicants.filter((app) => {
     const query = searchQuery.toLowerCase();
     const matchesSearch =
-      app.name.toLowerCase().includes(query) ||
-      app.jobPosition.toLowerCase().includes(query) ||
-      app.skills.some((skill) => skill.toLowerCase().includes(query));
+      app.name?.toLowerCase().includes(query) ||
+      app.jobPosition?.toLowerCase().includes(query) ||
+      app.skills?.some((skill) => skill.toLowerCase().includes(query));
 
     const matchesStatus = filterStatus === "All" || app.status === filterStatus;
     const matchesExperience =
@@ -139,16 +141,32 @@ export default function ViewApplicants() {
   });
 
   // Dynamic lists for filter dropdowns
-  const uniqueJobs = Array.from(new Set(applicants.map((a) => a.jobPosition)));
+  const uniqueJobs = Array.from(new Set(applicants.map((a) => a.jobPosition).filter(Boolean)));
+
+  if (loading || sessionLoading) {
+    return (
+      <div className="min-h-screen flex-1 bg-[#0a0a0f] text-white flex items-center justify-center">
+        <p className="text-purple-400 text-sm animate-pulse">Loading applicant profiles...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex-1 bg-[#0a0a0f] text-white flex items-center justify-center p-6">
+        <div className="p-6 bg-red-500/10 border border-red-500/30 text-red-300 text-sm rounded-xl">
+          {error}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex-1 bg-[#0a0a0f] text-white p-4 sm:p-6 lg:p-8 space-y-8">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-gray-800/80">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-            Job Applicants
-          </h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Job Applicants</h1>
           <p className="text-gray-400 text-sm pt-1">
             Review candidate profiles, change application statuses, download resumes, and schedule interviews.
           </p>
@@ -164,7 +182,6 @@ export default function ViewApplicants() {
 
       {/* Search & Filter Controls */}
       <div className="bg-[#14141f] border border-gray-800 rounded-2xl p-5 shadow-xl space-y-4">
-        {/* Search Bar */}
         <div className="relative">
           <SearchIcon className="w-5 h-5 absolute left-4 top-3 text-gray-400" />
           <input
@@ -176,9 +193,7 @@ export default function ViewApplicants() {
           />
         </div>
 
-        {/* Filter Selects */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {/* Status Filter */}
           <div>
             <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider block mb-1">
               Application Status
@@ -197,7 +212,6 @@ export default function ViewApplicants() {
             </select>
           </div>
 
-          {/* Job Filter */}
           <div>
             <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider block mb-1">
               Job Position
@@ -216,7 +230,6 @@ export default function ViewApplicants() {
             </select>
           </div>
 
-          {/* Experience Filter */}
           <div>
             <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider block mb-1">
               Experience Level
@@ -235,168 +248,168 @@ export default function ViewApplicants() {
         </div>
       </div>
 
-      {/* Applicants Grid / Cards */}
+      {/* Applicants Grid */}
       <div className="space-y-6">
         {filteredApplicants.length === 0 ? (
           <div className="p-12 text-center bg-[#14141f] border border-gray-800 rounded-2xl text-gray-500">
             No applicants found matching your search and filter criteria.
           </div>
         ) : (
-          filteredApplicants.map((app) => (
-            <div
-              key={app.id}
-              className="bg-[#14141f] border border-gray-800 hover:border-purple-500/40 rounded-2xl p-6 shadow-xl transition-all space-y-6"
-            >
-              {/* Header Info */}
-              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-gray-800 pb-5">
-                <div className="flex items-center gap-4">
-                  <img
-                    src={app.profilePicture}
-                    alt={app.name}
-                    className="w-16 h-16 rounded-2xl object-cover border border-purple-500/20 shadow-md shrink-0"
-                  />
-                  <div>
-                    <h2 className="text-lg font-bold text-white">{app.name}</h2>
-                    <p className="text-xs text-purple-400 font-medium pt-0.5">
-                      Applied for: <span className="text-white">{app.jobPosition}</span>
-                    </p>
-                    <div className="flex flex-wrap items-center gap-3 text-xs text-gray-400 pt-1">
-                      <span className="flex items-center gap-1">
-                        <MailIcon className="w-3.5 h-3.5" /> {app.email}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <PhoneIcon className="w-3.5 h-3.5" /> {app.phone}
-                      </span>
-                      <span>• Applied: {app.applicationDate}</span>
+          filteredApplicants.map((app) => {
+            const appId = app._id || app.id;
+            return (
+              <div
+                key={appId}
+                className="bg-[#14141f] border border-gray-800 hover:border-purple-500/40 rounded-2xl p-6 shadow-xl transition-all space-y-6"
+              >
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-gray-800 pb-5">
+                  <div className="flex items-center gap-4">
+                    <img
+                      src={
+                        app.companyLogo ||
+                        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80"
+                      }
+                      alt={app.name}
+                      className="w-16 h-16 rounded-2xl object-cover border border-purple-500/20 shadow-md shrink-0"
+                    />
+                    <div>
+                      <h2 className="text-lg font-bold text-white">{app.name}</h2>
+                      <p className="text-xs text-purple-400 font-medium pt-0.5">
+                        Applied for: <span className="text-white">{app.jobPosition}</span>
+                      </p>
+                      <div className="flex flex-wrap items-center gap-3 text-xs text-gray-400 pt-1">
+                        <span className="flex items-center gap-1">
+                          <MailIcon className="w-3.5 h-3.5" /> {app.email}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <PhoneIcon className="w-3.5 h-3.5" /> {app.phone}
+                        </span>
+                        <span>Applied: {app.applicationDate}</span>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Status Selector & Schedule Button */}
-                <div className="flex flex-wrap items-center gap-3">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-gray-400 font-medium">Status:</span>
-                    <select
-                      value={app.status}
-                      onChange={(e) => handleStatusChange(app.id, e.target.value)}
-                      className="px-3 py-1.5 bg-[#0a0a0f] border border-gray-800 focus:border-purple-500 text-xs font-semibold text-white rounded-xl outline-none cursor-pointer"
-                    >
-                      {STATUS_OPTIONS.map((st) => (
-                        <option key={st} value={st}>
-                          {st}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <button
-                    onClick={() => setInterviewModalApplicant(app)}
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-medium rounded-xl transition-all shadow-md cursor-pointer"
-                  >
-                    <CalendarIcon className="w-4 h-4" />
-                    Schedule Interview
-                  </button>
-                </div>
-              </div>
-
-              {/* Applicant Details Body */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 text-xs text-gray-300">
-                {/* Skills */}
-                <div className="space-y-2">
-                  <span className="text-gray-400 uppercase tracking-wider font-semibold">
-                    Skills
-                  </span>
-                  <div className="flex flex-wrap gap-1.5 pt-1">
-                    {app.skills.map((skill) => (
-                      <span
-                        key={skill}
-                        className="px-2.5 py-1 bg-purple-500/10 border border-purple-500/20 text-purple-300 rounded-lg text-xs"
+                  <div className="flex flex-wrap items-center gap-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-400 font-medium">Status:</span>
+                      <select
+                        value={app.status || "Pending"}
+                        onChange={(e) => handleStatusChange(appId, e.target.value)}
+                        className="px-3 py-1.5 bg-[#0a0a0f] border border-gray-800 focus:border-purple-500 text-xs font-semibold text-white rounded-xl outline-none cursor-pointer"
                       >
-                        {skill}
-                      </span>
-                    ))}
+                        {STATUS_OPTIONS.map((st) => (
+                          <option key={st} value={st}>
+                            {st}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <button
+                      onClick={() => setInterviewModalApplicant(app)}
+                      className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-medium rounded-xl transition-all shadow-md cursor-pointer"
+                    >
+                      <CalendarIcon className="w-4 h-4" />
+                      Schedule Interview
+                    </button>
                   </div>
                 </div>
 
-                {/* Experience */}
-                <div className="space-y-1">
-                  <span className="text-gray-400 uppercase tracking-wider font-semibold block">
-                    Experience
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 text-xs text-gray-300">
+                  <div className="space-y-2">
+                    <span className="text-gray-400 uppercase tracking-wider font-semibold">
+                      Skills
+                    </span>
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                      {app.skills?.map((skill) => (
+                        <span
+                          key={skill}
+                          className="px-2.5 py-1 bg-purple-500/10 border border-purple-500/20 text-purple-300 rounded-lg text-xs"
+                        >
+                          {skill}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <span className="text-gray-400 uppercase tracking-wider font-semibold block">
+                      Experience
+                    </span>
+                    <p className="text-white pt-1 whitespace-pre-line">{app.experience}</p>
+                    <p className="text-gray-500">{app.experienceLevel || "Experienced"}</p>
+                  </div>
+
+                  <div className="space-y-1">
+                    <span className="text-gray-400 uppercase tracking-wider font-semibold block">
+                      Education
+                    </span>
+                    <p className="text-white pt-1">{app.education}</p>
+                  </div>
+                </div>
+
+                {app.coverLetter && (
+                  <div className="space-y-2">
+                    <span className="text-xs text-gray-400 uppercase tracking-wider font-semibold">
+                      Cover Letter
+                    </span>
+                    <p className="p-3 bg-[#0a0a0f] border border-gray-800 rounded-xl text-xs text-gray-400 leading-relaxed">
+                      {app.coverLetter}
+                    </p>
+                  </div>
+                )}
+
+                <div className="flex items-center justify-between pt-2 border-t border-gray-800/80">
+                  <span className="text-xs text-gray-500">
+                    Attached Resume: {app.resume?.fileName || "Document.pdf"}
                   </span>
-                  <p className="text-white pt-1">{app.experience}</p>
-                  <p className="text-gray-500">{app.experienceLevel}</p>
-                </div>
-
-                {/* Education */}
-                <div className="space-y-1">
-                  <span className="text-gray-400 uppercase tracking-wider font-semibold block">
-                    Education
-                  </span>
-                  <p className="text-white pt-1">{app.education}</p>
-                </div>
-              </div>
-
-              {/* Cover Letter */}
-              <div className="space-y-2">
-                <span className="text-xs text-gray-400 uppercase tracking-wider font-semibold">
-                  Cover Letter
-                </span>
-                <p className="p-3 bg-[#0a0a0f] border border-gray-800 rounded-xl text-xs text-gray-400 leading-relaxed">
-                  {app.coverLetter}
-                </p>
-              </div>
-
-              {/* Resume Action Bar */}
-              <div className="flex items-center justify-between pt-2 border-t border-gray-800/80">
-                <span className="text-xs text-gray-500">Attached Resume File</span>
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={() => setSelectedResume(app)}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#0a0a0f] hover:bg-gray-800 border border-gray-800 text-gray-300 hover:text-white text-xs font-medium rounded-xl transition-all cursor-pointer"
-                  >
-                    <EyeIcon className="w-3.5 h-3.5 text-purple-400" />
-                    View Resume
-                  </button>
-                  <a
-                    href={app.resumeUrl}
-                    download
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#0a0a0f] hover:bg-gray-800 border border-gray-800 text-gray-300 hover:text-white text-xs font-medium rounded-xl transition-all cursor-pointer"
-                  >
-                    <DownloadIcon className="w-3.5 h-3.5 text-emerald-400" />
-                    Download Resume (PDF)
-                  </a>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => setSelectedResume(app)}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#0a0a0f] hover:bg-gray-800 border border-gray-800 text-gray-300 hover:text-white text-xs font-medium rounded-xl transition-all cursor-pointer"
+                    >
+                      <EyeIcon className="w-3.5 h-3.5 text-purple-400" />
+                      View Resume
+                    </button>
+                    <a
+                      href={app.resumeUrl}
+                      download={app.resume?.fileName || "resume.pdf"}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#0a0a0f] hover:bg-gray-800 border border-gray-800 text-gray-300 hover:text-white text-xs font-medium rounded-xl transition-all cursor-pointer"
+                    >
+                      <DownloadIcon className="w-3.5 h-3.5 text-emerald-400" />
+                      Download Resume ({app.resume?.fileSize || "PDF"})
+                    </a>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
 
-      {/* Resume Modal View */}
+      {/* Resume Modal */}
       {selectedResume && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-[#14141f] border border-gray-800 rounded-2xl w-full max-w-2xl p-6 space-y-4 shadow-2xl relative">
             <div className="flex items-center justify-between pb-3 border-b border-gray-800">
-              <h3 className="text-lg font-bold text-white">
-                Resume: {selectedResume.name}
-              </h3>
+              <h3 className="text-lg font-bold text-white">Resume: {selectedResume.name}</h3>
               <button
                 onClick={() => setSelectedResume(null)}
-                className="text-gray-400 hover:text-white"
+                className="text-gray-400 hover:text-white cursor-pointer"
               >
                 <CloseIcon className="w-5 h-5" />
               </button>
             </div>
             <div className="p-8 bg-[#0a0a0f] border border-gray-800 rounded-xl text-center space-y-4">
               <p className="text-sm text-gray-300">
-                Previewing PDF document for <strong>{selectedResume.name}</strong> ({selectedResume.jobPosition})
+                Previewing file: <strong>{selectedResume.resume?.fileName || "Resume.pdf"}</strong> ({selectedResume.resume?.fileSize || ""})
               </p>
               <div className="p-12 border border-dashed border-gray-800 rounded-xl text-gray-500 text-xs">
                 [PDF Document Viewer Canvas]
               </div>
               <a
                 href={selectedResume.resumeUrl}
-                download
+                download={selectedResume.resume?.fileName || "resume.pdf"}
                 className="inline-flex items-center gap-2 px-5 py-2.5 bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold rounded-xl shadow-md cursor-pointer transition-all"
               >
                 <DownloadIcon className="w-4 h-4" /> Download PDF File
@@ -420,7 +433,7 @@ export default function ViewApplicants() {
               <button
                 type="button"
                 onClick={() => setInterviewModalApplicant(null)}
-                className="text-gray-400 hover:text-white"
+                className="text-gray-400 hover:text-white cursor-pointer"
               >
                 <CloseIcon className="w-5 h-5" />
               </button>
@@ -429,9 +442,7 @@ export default function ViewApplicants() {
             <div className="space-y-4 text-xs">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-gray-400 font-semibold block mb-1">
-                    Date *
-                  </label>
+                  <label className="text-gray-400 font-semibold block mb-1">Date *</label>
                   <input
                     type="date"
                     value={interviewForm.date}
@@ -443,9 +454,7 @@ export default function ViewApplicants() {
                   />
                 </div>
                 <div>
-                  <label className="text-gray-400 font-semibold block mb-1">
-                    Time *
-                  </label>
+                  <label className="text-gray-400 font-semibold block mb-1">Time *</label>
                   <input
                     type="time"
                     value={interviewForm.time}
@@ -525,8 +534,5 @@ export default function ViewApplicants() {
     </div>
   );
 }
-
-
-
 
 
