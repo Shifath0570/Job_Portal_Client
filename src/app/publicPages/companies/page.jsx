@@ -1,6 +1,7 @@
+
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import {
   Building2,
@@ -34,36 +35,26 @@ const COMPANY_SIZES = [
 
 export default function CompaniesPage() {
   // Data States
-  const [companies, setCompanies] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [allCompanies, setAllCompanies] = useState([]);
+  const [filteredCompanies, setFilteredCompanies] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [hasSearched, setHasSearched] = useState(false);
 
   // Filter States
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedIndustry, setSelectedIndustry] = useState("All");
   const [selectedSize, setSelectedSize] = useState("All");
 
-  // Server GET request triggered on user action
-  const fetchCompanies = async (overrideParams = {}) => {
+  // Base API URL configuration
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000";
+
+  // Fetch all companies from backend
+  const fetchCompanies = useCallback(async () => {
     setLoading(true);
     setError(null);
-    setHasSearched(true);
-
-    const queryParams = new URLSearchParams({
-      ...(overrideParams.search !== undefined
-        ? overrideParams.search && { search: overrideParams.search }
-        : searchQuery && { search: searchQuery }),
-      ...(overrideParams.industry !== undefined
-        ? overrideParams.industry !== "All" && { industry: overrideParams.industry }
-        : selectedIndustry !== "All" && { industry: selectedIndustry }),
-      ...(overrideParams.size !== undefined
-        ? overrideParams.size !== "All" && { size: overrideParams.size }
-        : selectedSize !== "All" && { size: selectedSize }),
-    });
 
     try {
-      const response = await fetch(`/api/companies?${queryParams.toString()}`, {
+      const response = await fetch(`${baseUrl}/api/company/all`, {
         method: "GET",
         headers: { "Content-Type": "application/json" },
       });
@@ -73,30 +64,89 @@ export default function CompaniesPage() {
       }
 
       const result = await response.json();
-      setCompanies(result.companies || result || []);
+      
+      // Access the array from response (res.data or array directly)
+      const rawData = result.data || result.companies || (Array.isArray(result) ? result : []);
+
+      // Normalize schema field mappings
+      const formattedCompanies = rawData.map((comp) => ({
+        ...comp,
+        id: comp._id || comp.id,
+        name: comp.companyName || comp.name || "Unnamed Company",
+        logo: comp.companyLogo || comp.logo || "https://images.unsplash.com/photo-1549923746-c502d488b3ea?w=150&auto=format&fit=crop&q=80",
+        industry: comp.industry || "General Industry",
+        location: comp.location || comp.address || "Remote",
+        size: comp.companySize || comp.size || "11-50 employees",
+        totalOpenJobs: comp.totalOpenJobs || comp.openJobs || 0,
+      }));
+
+      setAllCompanies(formattedCompanies);
+      setFilteredCompanies(formattedCompanies);
     } catch (err) {
       console.error("Fetch error:", err);
       setError(err.message || "An error occurred while fetching companies.");
     } finally {
       setLoading(false);
     }
-  };
+  }, [baseUrl]);
 
-  // Search Submit Handler
+  // Initial load on component mount
+  useEffect(() => {
+    fetchCompanies();
+  }, [fetchCompanies]);
+
+  // Client-side Filter & Search Logic
+  const applyFilters = useCallback(
+    (query = searchQuery, ind = selectedIndustry, sz = selectedSize) => {
+      let updated = [...allCompanies];
+
+      if (query.trim()) {
+        const q = query.toLowerCase();
+        updated = updated.filter(
+          (c) =>
+            c.name?.toLowerCase().includes(q) ||
+            c.industry?.toLowerCase().includes(q) ||
+            c.location?.toLowerCase().includes(q)
+        );
+      }
+
+      if (ind !== "All") {
+        updated = updated.filter(
+          (c) => c.industry?.toLowerCase() === ind.toLowerCase()
+        );
+      }
+
+      if (sz !== "All") {
+        updated = updated.filter(
+          (c) => c.size?.toLowerCase() === sz.toLowerCase()
+        );
+      }
+
+      setFilteredCompanies(updated);
+    },
+    [allCompanies, searchQuery, selectedIndustry, selectedSize]
+  );
+
+  // Re-run filtering when search parameters change
+  useEffect(() => {
+    applyFilters();
+  }, [searchQuery, selectedIndustry, selectedSize, applyFilters]);
+
+  // Search Form Submit Handler
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    fetchCompanies();
+    applyFilters();
   };
 
-  // Filter Select Handlers
+  // Filter Handlers
   const handleIndustryChange = (industry) => {
     setSelectedIndustry(industry);
-    fetchCompanies({ industry });
+    applyFilters(searchQuery, industry, selectedSize);
   };
 
   const handleSizeChange = (size) => {
     setSelectedSize(size);
-    fetchCompanies({ size });
+    applyFilters(searchQuery, selectedIndustry, size);
   };
 
   // Reset Filters Handler
@@ -104,13 +154,12 @@ export default function CompaniesPage() {
     setSearchQuery("");
     setSelectedIndustry("All");
     setSelectedSize("All");
-    fetchCompanies({ search: "", industry: "All", size: "All" });
+    setFilteredCompanies(allCompanies);
   };
 
   return (
     <div className="min-h-screen bg-[#0a0a0f] text-white py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto space-y-8">
-        
         {/* Header Title */}
         <div className="text-center md:text-left space-y-2">
           <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
@@ -123,7 +172,6 @@ export default function CompaniesPage() {
 
         {/* Search & Main Layout Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          
           {/* Left Sidebar Filters */}
           <aside className="lg:col-span-1 bg-[#14141f] border border-gray-800 rounded-2xl p-6 h-fit space-y-6">
             <div className="flex items-center justify-between pb-4 border-b border-gray-800">
@@ -149,7 +197,7 @@ export default function CompaniesPage() {
                 <Search className="absolute left-3 w-4 h-4 text-gray-400" />
                 <input
                   type="text"
-                  placeholder="Company name..."
+                  placeholder="Company name or location..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-9 pr-3 py-2.5 bg-[#0a0a0f] border border-gray-800 rounded-xl text-sm focus:outline-none focus:border-purple-500 text-white placeholder-gray-500 transition-colors"
@@ -195,8 +243,8 @@ export default function CompaniesPage() {
 
             <button
               type="button"
-              onClick={() => fetchCompanies()}
-              className="w-full py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-medium text-xs rounded-xl transition-all shadow-md cursor-pointer"
+              onClick={() => applyFilters()}
+              className="w-full py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-medium text-xs rounded-xl transition-all shadow-md cursor-pointer"
             >
               Apply Filters
             </button>
@@ -204,55 +252,38 @@ export default function CompaniesPage() {
 
           {/* Right Main Grid */}
           <main className="lg:col-span-3 space-y-6">
-            
             {/* Header Counter */}
             <div className="bg-[#14141f] border border-gray-800 rounded-2xl px-6 py-4 flex items-center justify-between">
               <span className="text-sm text-gray-400">
-                Found <strong className="text-white">{companies.length}</strong> companies
+                Found <strong className="text-white">{filteredCompanies.length}</strong> companies
               </span>
             </div>
 
-            {/* Error Message */}
+            {/* Error Banner */}
             {error && (
               <div className="p-4 bg-red-950/40 border border-red-600/60 rounded-2xl text-red-400 text-sm text-center">
                 {error}
               </div>
             )}
 
-            {/* Content States */}
+            {/* Loading / Data / Empty Display States */}
             {loading ? (
               <div className="bg-[#14141f] border border-gray-800 rounded-2xl p-12 text-center flex flex-col items-center justify-center space-y-3">
                 <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
                 <p className="text-sm text-gray-400">Fetching companies from server...</p>
               </div>
-            ) : !hasSearched ? (
-              /* Prompt state before initial load */
-              <div className="bg-[#14141f] border border-gray-800 rounded-2xl p-12 text-center space-y-4">
-                <Building2 className="w-12 h-12 text-gray-600 mx-auto" />
-                <h3 className="text-lg font-semibold text-white">Find Registered Companies</h3>
-                <p className="text-sm text-gray-400 max-w-sm mx-auto">
-                  Click the button below to load top employers and their available job openings.
-                </p>
-                <button
-                  type="button"
-                  onClick={() => fetchCompanies()}
-                  className="px-5 py-2.5 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-semibold shadow-lg transition-all cursor-pointer"
-                >
-                  Load All Companies
-                </button>
-              </div>
-            ) : companies.length > 0 ? (
+            ) : filteredCompanies.length > 0 ? (
               /* Company Cards Grid */
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {companies.map((company) => (
+                {filteredCompanies.map((company) => (
                   <div
-                    key={company.id || company._id}
+                    key={company.id}
                     className="group bg-[#14141f] border border-gray-800 hover:border-purple-500/50 rounded-2xl p-6 transition-all duration-300 hover:shadow-[0_0_20px_rgba(168,85,247,0.15)] flex flex-col justify-between space-y-5"
                   >
                     {/* Header: Logo & Name */}
                     <div className="flex items-start gap-4">
                       <img
-                        src={company.logo || "/placeholder-company.png"}
+                        src={company.logo}
                         alt={company.name}
                         className="w-14 h-14 rounded-xl object-cover border border-gray-700/60 shrink-0"
                       />
@@ -271,7 +302,7 @@ export default function CompaniesPage() {
                     <div className="space-y-2 text-xs text-gray-400 pt-2 border-t border-gray-800/80">
                       <div className="flex items-center gap-2">
                         <MapPin className="w-3.5 h-3.5 text-gray-500" />
-                        <span>{company.location || "Remote"}</span>
+                        <span>{company.location}</span>
                       </div>
                       {company.size && (
                         <div className="flex items-center gap-2">
@@ -281,14 +312,14 @@ export default function CompaniesPage() {
                       )}
                     </div>
 
-                    {/* Footer: Open Jobs Count & View Action */}
+                    {/* Footer: Open Jobs & Action */}
                     <div className="flex items-center justify-between pt-2">
                       <span className="text-xs font-medium text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full border border-emerald-500/20">
-                        {company.totalOpenJobs || 0} Open Jobs
+                        {company.totalOpenJobs} Open Jobs
                       </span>
 
                       <Link
-                        href={`/companies/${company.id || company._id}`}
+                        href={`/companies/${company.id}`}
                         className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-300 hover:text-white transition-colors group-hover:translate-x-0.5 duration-200"
                       >
                         View Company <ArrowRight className="w-3.5 h-3.5 text-purple-400" />
@@ -303,7 +334,7 @@ export default function CompaniesPage() {
                 <Filter className="w-12 h-12 text-gray-600 mx-auto" />
                 <h3 className="text-lg font-semibold text-white">No companies found</h3>
                 <p className="text-sm text-gray-400 max-w-sm mx-auto">
-                  We couldnt find any companies matching your search filters.
+                  We couldn&apos;t find any companies matching your search filters.
                 </p>
                 <button
                   type="button"
@@ -314,14 +345,14 @@ export default function CompaniesPage() {
                 </button>
               </div>
             )}
-
           </main>
         </div>
-
       </div>
     </div>
   );
 }
+
+
 
 
 
