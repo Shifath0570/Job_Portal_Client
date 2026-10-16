@@ -3,7 +3,7 @@
 
 import { authClient } from "@/app/lib/auth-client";
 import React, { useState, useEffect, useCallback } from "react";
-import { Upload, Save, RefreshCw, Building2, Loader2 } from "lucide-react";
+import { Upload, Save, RefreshCw, Building2, Loader2, MapPin } from "lucide-react";
 
 const EMPTY_PROFILE = {
   companyLogo: "",
@@ -14,6 +14,7 @@ const EMPTY_PROFILE = {
   phoneNumber: "",
   companySize: "51-200 employees",
   address: "",
+  location: "", // Added location field
   description: "",
   socialLinks: {
     linkedin: "",
@@ -87,6 +88,7 @@ export default function CompanyProfile() {
           phoneNumber: data.phoneNumber || "",
           companySize: data.companySize || "51-200 employees",
           address: data.address || "",
+          location: data.location || "", // Load location from DB
           description: data.description || "",
           socialLinks: {
             linkedin: data.socialLinks?.linkedin || "",
@@ -367,7 +369,7 @@ export default function CompanyProfile() {
                 name="companySize"
                 value={formData.companySize}
                 onChange={handleChange}
-                className="w-full px-4 py-2.5 bg-[#0a0a0f] border border-gray-800 focus:border-purple-500 text-white text-sm rounded-xl outline-none transition-all"
+                className="w-full px-4 py-2.5 bg-[#0a0a0f] border border-gray-800 focus:border-purple-500 text-white text-sm rounded-xl outline-none transition-all cursor-pointer"
               >
                 <option value="1-10 employees">1-10 employees</option>
                 <option value="11-50 employees">11-50 employees</option>
@@ -378,18 +380,35 @@ export default function CompanyProfile() {
             </div>
           </div>
 
-          <div className="space-y-2 pt-2">
-            <label className="text-xs font-semibold uppercase tracking-wider text-gray-400">
-              Headquarters Address
-            </label>
-            <input
-              type="text"
-              name="address"
-              value={formData.address}
-              onChange={handleChange}
-              className="w-full px-4 py-2.5 bg-[#0a0a0f] border border-gray-800 focus:border-purple-500 text-white text-sm rounded-xl outline-none transition-all"
-              placeholder="Full street address, city, state, postal code"
-            />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+            <div className="space-y-2">
+              <label className="text-xs font-semibold uppercase tracking-wider text-gray-400 flex items-center gap-1.5">
+                <MapPin className="w-3.5 h-3.5 text-purple-400" /> Location / City *
+              </label>
+              <input
+                type="text"
+                name="location"
+                value={formData.location}
+                onChange={handleChange}
+                required
+                className="w-full px-4 py-2.5 bg-[#0a0a0f] border border-gray-800 focus:border-purple-500 text-white text-sm rounded-xl outline-none transition-all"
+                placeholder="e.g. San Francisco, CA or Remote"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-semibold uppercase tracking-wider text-gray-400">
+                Headquarters Address
+              </label>
+              <input
+                type="text"
+                name="address"
+                value={formData.address}
+                onChange={handleChange}
+                className="w-full px-4 py-2.5 bg-[#0a0a0f] border border-gray-800 focus:border-purple-500 text-white text-sm rounded-xl outline-none transition-all"
+                placeholder="Full street address, postal code"
+              />
+            </div>
           </div>
 
           <div className="space-y-2">
@@ -487,9 +506,6 @@ export default function CompanyProfile() {
     </div>
   );
 }
-
-
-
 
 
 
