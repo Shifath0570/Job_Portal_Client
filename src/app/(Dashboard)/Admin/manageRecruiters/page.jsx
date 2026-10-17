@@ -1,8 +1,7 @@
 
-
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Search,
   Filter,
@@ -14,81 +13,14 @@ import {
   Building,
   X,
   ExternalLink,
+  Loader2,
 } from "lucide-react";
 
-const INITIAL_RECRUITERS = [
-  {
-    id: "rec-101",
-    name: "Sarah Jenkins",
-    title: "Lead Talent Partner",
-    email: "sarah.j@starlight.design",
-    status: "Verified",
-    company: {
-      name: "Starlight Design Studio",
-      website: "https://starlight.design",
-      industry: "Design & Agency",
-      size: "50-200 Employees",
-      location: "New York, NY",
-      description: "Premier product design studio serving Fortune 500 tech startups.",
-      logo: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=100&auto=format&fit=crop&q=80",
-    },
-    joinedDate: "Feb 02, 2026",
-  },
-  {
-    id: "rec-102",
-    name: "David Miller",
-    title: "Director of Technical Recruiting",
-    email: "d.miller@acmetech.io",
-    status: "Pending",
-    company: {
-      name: "Acme Technologies",
-      website: "https://acmetech.io",
-      industry: "Software & SaaS",
-      size: "500-1000 Employees",
-      location: "San Francisco, CA",
-      description: "Cloud infrastructure and AI toolings software enterprise.",
-      logo: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100&auto=format&fit=crop&q=80",
-    },
-    joinedDate: "Aug 01, 2026",
-  },
-  {
-    id: "rec-103",
-    name: "Rachel Vance",
-    title: "HR Specialist",
-    email: "rachel@cyberpulse.com",
-    status: "Suspended",
-    company: {
-      name: "CyberPulse Labs",
-      website: "https://cyberpulse.com",
-      industry: "Cybersecurity",
-      size: "100-250 Employees",
-      location: "Austin, TX",
-      description: "Cyber threat response and automated security monitoring systems.",
-      logo: "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=100&auto=format&fit=crop&q=80",
-    },
-    joinedDate: "Mar 14, 2026",
-  },
-  {
-    id: "rec-104",
-    name: "Kenneth Cole",
-    title: "Head of People",
-    email: "k.cole@cloudvibe.net",
-    status: "Rejected",
-    company: {
-      name: "CloudVibe Tech",
-      website: "https://cloudvibe.net",
-      industry: "Cloud Computing",
-      size: "20-50 Employees",
-      location: "Seattle, WA",
-      description: "Cloud hosting solutions and developer ecosystem utilities.",
-      logo: "https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=100&auto=format&fit=crop&q=80",
-    },
-    joinedDate: "Jul 18, 2026",
-  },
-];
-
 export default function ManageRecruiters() {
-  const [recruiters, setRecruiters] = useState(INITIAL_RECRUITERS);
+  const [recruiters, setRecruiters] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStatusFilter, setSelectedStatusFilter] = useState("ALL");
   const [activeCompanyModal, setActiveCompanyModal] = useState(null);
@@ -98,6 +30,58 @@ export default function ManageRecruiters() {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(""), 3000);
   };
+
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000";
+
+  // Fetch recruiters/companies from backend API
+  const fetchRecruitersAndCompanies = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`${baseUrl}/api/company/all`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch company profiles: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      const rawCompanies = result.data || result.companies || (Array.isArray(result) ? result : []);
+
+      // Transform backend company profiles into the recruiter management structure
+      const formattedRecruiters = rawCompanies.map((comp, idx) => ({
+        id: comp._id || comp.id || `rec-${100 + idx}`,
+        name: comp.companyName || comp.name || "Recruiter Contact",
+        title: comp.title || "Talent Acquisition Lead",
+        email: comp.email || "contact@company.com",
+        status: comp.status || "Verified",
+        joinedDate: comp.createdAt ? new Date(comp.createdAt).toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" }) : "Recent",
+        company: {
+          name: comp.companyName || comp.name || "Unnamed Enterprise",
+          website: comp.website || "https://example.com",
+          industry: comp.industry || "Technology & Software",
+          size: comp.companySize || comp.size || "51-200 employees",
+          location: comp.location || comp.address || "Remote",
+          description: comp.description || "Leading organization driving innovation across modern digital platforms.",
+          logo: comp.companyLogo || comp.logo || "https://images.unsplash.com/photo-1549923746-c502d488b3ea?w=150&auto=format&fit=crop&q=80",
+        },
+      }));
+
+      setRecruiters(formattedRecruiters);
+    } catch (err) {
+      console.error("Fetch Error:", err);
+      setError(err.message || "Failed to load recruiter profiles.");
+    } finally {
+      setLoading(false);
+    }
+  }, [baseUrl]);
+
+  useEffect(() => {
+    fetchRecruitersAndCompanies();
+  }, [fetchRecruitersAndCompanies]);
 
   // Verify Recruiter
   const handleVerify = (id, name) => {
@@ -172,7 +156,15 @@ export default function ManageRecruiters() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={fetchRecruitersAndCompanies}
+            disabled={loading}
+            className="px-4 py-2 bg-[#14141f] hover:bg-gray-800 border border-gray-800 text-gray-300 hover:text-white text-xs font-semibold rounded-xl transition-all cursor-pointer disabled:opacity-50"
+          >
+            {loading ? "Refreshing..." : "Reload Data"}
+          </button>
           <span className="px-3.5 py-1.5 bg-purple-500/10 border border-purple-500/20 text-purple-300 text-xs font-semibold rounded-xl">
             {recruiters.length} Registered Recruiters
           </span>
@@ -218,9 +210,21 @@ export default function ManageRecruiters() {
         </div>
       </div>
 
-      {/* Recruiters Table */}
+      {/* Error State */}
+      {error && (
+        <div className="p-4 bg-red-950/40 border border-red-600/60 rounded-2xl text-red-400 text-sm text-center">
+          {error}
+        </div>
+      )}
+
+      {/* Recruiters Table / Loading State */}
       <div className="bg-[#14141f] border border-gray-800 rounded-2xl p-6 shadow-xl space-y-4">
-        {filteredRecruiters.length === 0 ? (
+        {loading ? (
+          <div className="p-16 text-center flex flex-col items-center justify-center space-y-3">
+            <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
+            <p className="text-sm text-gray-400">Loading registered companies & recruiters...</p>
+          </div>
+        ) : filteredRecruiters.length === 0 ? (
           <div className="p-12 text-center text-gray-500 space-y-2">
             <Building className="w-10 h-10 mx-auto text-gray-600 mb-2" />
             <p className="text-sm font-semibold text-white">No recruiters found.</p>
@@ -251,7 +255,7 @@ export default function ManageRecruiters() {
                           {rec.name}
                         </p>
                         <p className="text-gray-400 text-[11px] pt-0.5">
-                          {rec.title} • {rec.email}
+                          {rec.email}
                         </p>
                       </div>
                     </td>
@@ -299,7 +303,7 @@ export default function ManageRecruiters() {
                     {/* Action Controls */}
                     <td className="py-4 px-4 text-right">
                       <div className="flex items-center justify-end gap-1.5">
-                        {/* Verify Button (if not verified) */}
+                        {/* Verify Button */}
                         {rec.status !== "Verified" && (
                           <button
                             type="button"
@@ -311,7 +315,7 @@ export default function ManageRecruiters() {
                           </button>
                         )}
 
-                        {/* Reject Button (if pending) */}
+                        {/* Reject Button */}
                         {rec.status === "Pending" && (
                           <button
                             type="button"
@@ -422,7 +426,7 @@ export default function ManageRecruiters() {
                   rel="noopener noreferrer"
                   className="text-purple-400 hover:text-purple-300 font-bold inline-flex items-center gap-1"
                 >
-                  {activeCompanyModal.website.replace("https://", "")}
+                  {activeCompanyModal.website.replace("https://", "").replace("http://", "")}
                   <ExternalLink className="w-3.5 h-3.5" />
                 </a>
               </div>
@@ -444,8 +448,6 @@ export default function ManageRecruiters() {
     </div>
   );
 }
-
-
 
 
 
