@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Users,
   Search,
@@ -11,58 +11,14 @@ import {
   ShieldAlert,
   CheckCircle,
   X,
+  Loader2,
 } from "lucide-react";
 
-const INITIAL_USERS = [
-  {
-    id: "usr-1",
-    name: "Alex Rivera",
-    email: "alex.rivera@example.com",
-    role: "Candidate",
-    status: "Active",
-    joinedDate: "Jan 15, 2026",
-    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80",
-  },
-  {
-    id: "usr-2",
-    name: "Sarah Jenkins",
-    email: "sarah.j@starlight.design",
-    role: "Recruiter",
-    status: "Active",
-    joinedDate: "Feb 02, 2026",
-    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=80",
-  },
-  {
-    id: "usr-3",
-    name: "David Miller",
-    email: "d.miller@acmetech.io",
-    role: "Recruiter",
-    status: "Suspended",
-    joinedDate: "Mar 10, 2026",
-    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80",
-  },
-  {
-    id: "usr-4",
-    name: "Elena Rostova",
-    email: "elena.admin@platform.com",
-    role: "Admin",
-    status: "Active",
-    joinedDate: "Nov 01, 2025",
-    avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&auto=format&fit=crop&q=80",
-  },
-  {
-    id: "usr-5",
-    name: "Marcus Vance",
-    email: "m.vance@devmail.org",
-    role: "Candidate",
-    status: "Active",
-    joinedDate: "Apr 20, 2026",
-    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=80",
-  },
-];
-
 export default function ManageUsers() {
-  const [users, setUsers] = useState(INITIAL_USERS);
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRoleFilter, setSelectedRoleFilter] = useState("ALL");
   const [toastMessage, setToastMessage] = useState("");
@@ -75,6 +31,53 @@ export default function ManageUsers() {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(""), 3000);
   };
+
+  // Base API URL configuration
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000";
+
+  // Fetch users from backend API
+  const fetchUsers = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`${baseUrl}/api/users`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch users: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      const rawUsers = result.users || (Array.isArray(result) ? result : []);
+
+      // Normalize MongoDB fields to frontend expected structure
+      const formattedUsers = rawUsers.map((u) => ({
+        ...u,
+        id: u._id || u.id,
+        name: u.name || u.fullName || "Unnamed User",
+        email: u.email || "No Email",
+        role: u.role || "Candidate",
+        status: u.status || "Active",
+        joinedDate: u.joinedDate || (u.createdAt ? new Date(u.createdAt).toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" }) : "Recent"),
+        avatar: u.avatar || u.image || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80",
+      }));
+
+      setUsers(formattedUsers);
+    } catch (err) {
+      console.error("Fetch Users Error:", err);
+      setError(err.message || "Something went wrong while fetching users.");
+    } finally {
+      setLoading(false);
+    }
+  }, [baseUrl]);
+
+  // Initial load on mount
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
 
   // Toggle Suspend / Activate Status
   const handleToggleStatus = (userId) => {
@@ -163,7 +166,15 @@ export default function ManageUsers() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={fetchUsers}
+            disabled={loading}
+            className="px-4 py-2 bg-[#14141f] hover:bg-gray-800 border border-gray-800 text-gray-300 hover:text-white text-xs font-semibold rounded-xl transition-all cursor-pointer disabled:opacity-50"
+          >
+            {loading ? "Refreshing..." : "Reload Data"}
+          </button>
           <span className="px-3.5 py-1.5 bg-purple-500/10 border border-purple-500/20 text-purple-300 text-xs font-semibold rounded-xl">
             {users.length} Total Users
           </span>
@@ -208,9 +219,21 @@ export default function ManageUsers() {
         </div>
       </div>
 
-      {/* Users Table */}
+      {/* Error State */}
+      {error && (
+        <div className="p-4 bg-red-950/40 border border-red-600/60 rounded-2xl text-red-400 text-sm text-center">
+          {error}
+        </div>
+      )}
+
+      {/* Users Table / Loading State */}
       <div className="bg-[#14141f] border border-gray-800 rounded-2xl p-6 shadow-xl space-y-4">
-        {filteredUsers.length === 0 ? (
+        {loading ? (
+          <div className="p-16 text-center flex flex-col items-center justify-center space-y-3">
+            <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
+            <p className="text-sm text-gray-400">Loading registered users...</p>
+          </div>
+        ) : filteredUsers.length === 0 ? (
           <div className="p-12 text-center text-gray-500 space-y-2">
             <Users className="w-10 h-10 mx-auto text-gray-600 mb-2" />
             <p className="text-sm font-semibold text-white">No users found.</p>
@@ -326,7 +349,7 @@ export default function ManageUsers() {
       </div>
 
       {/* ========================================== */}
-      {/* EDIT USER & ROLE MODAL                    */}
+      {/* EDIT USER & ROLE MODAL                     */}
       {/* ========================================== */}
       {editingUser && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
@@ -415,9 +438,6 @@ export default function ManageUsers() {
     </div>
   );
 }
-
-
-
 
 
 
