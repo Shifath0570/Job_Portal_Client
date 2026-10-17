@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Users,
   Search,
@@ -14,77 +14,14 @@ import {
   X,
   MapPin,
   ExternalLink,
+  Loader2,
 } from "lucide-react";
 
-const INITIAL_CANDIDATES = [
-  {
-    id: "cand-101",
-    name: "Alex Rivera",
-    title: "Senior Full Stack Engineer",
-    email: "alex.rivera@example.com",
-    phone: "+1 (555) 019-2834",
-    location: "San Francisco, CA",
-    status: "Active",
-    appliedCount: 12,
-    skills: ["React", "TypeScript", "Node.js", "PostgreSQL", "Tailwind CSS"],
-    bio: "Passionate engineer with 6+ years of experience crafting high-throughput web applications and cloud architectures.",
-    resumeUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
-    resumeName: "Alex_Rivera_Software_Engineer_CV.pdf",
-    joinedDate: "Jan 15, 2026",
-    avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80",
-  },
-  {
-    id: "cand-102",
-    name: "Marcus Vance",
-    title: "UI/UX Product Designer",
-    email: "m.vance@devmail.org",
-    phone: "+1 (555) 014-8821",
-    location: "Austin, TX",
-    status: "Active",
-    appliedCount: 8,
-    skills: ["Figma", "Design Systems", "Prototyping", "User Research", "CSS"],
-    bio: "Product designer focused on building intuitive, high-conversion design systems for enterprise SaaS platforms.",
-    resumeUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
-    resumeName: "Marcus_Vance_Product_Designer_Resume.pdf",
-    joinedDate: "Apr 20, 2026",
-    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=80",
-  },
-  {
-    id: "cand-103",
-    name: "Sophia Chen",
-    title: "DevOps & Cloud Architect",
-    email: "sophia.chen@cloudlab.io",
-    phone: "+1 (555) 017-3390",
-    location: "Seattle, WA",
-    status: "Suspended",
-    appliedCount: 4,
-    skills: ["AWS", "Docker", "Kubernetes", "Terraform", "CI/CD"],
-    bio: "Cloud infrastructure developer specialized in Kubernetes cluster management and zero-downtime deployment pipelines.",
-    resumeUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
-    resumeName: "Sophia_Chen_DevOps_Specialist.pdf",
-    joinedDate: "May 11, 2026",
-    avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&auto=format&fit=crop&q=80",
-  },
-  {
-    id: "cand-104",
-    name: "Jordan Lee",
-    title: "Data Scientist & AI Specialist",
-    email: "j.lee@datascience.net",
-    phone: "+1 (555) 012-9012",
-    location: "Chicago, IL",
-    status: "Active",
-    appliedCount: 15,
-    skills: ["Python", "PyTorch", "SQL", "Pandas", "Scikit-Learn"],
-    bio: "Data scientist developing predictive analytics models and natural language processing pipelines for fintech applications.",
-    resumeUrl: "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
-    resumeName: "Jordan_Lee_Data_Science_CV.pdf",
-    joinedDate: "Jun 02, 2026",
-    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80",
-  },
-];
-
 export default function ManageCandidates() {
-  const [candidates, setCandidates] = useState(INITIAL_CANDIDATES);
+  const [candidates, setCandidates] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStatusFilter, setSelectedStatusFilter] = useState("ALL");
 
@@ -97,6 +34,57 @@ export default function ManageCandidates() {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(""), 3000);
   };
+
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000";
+
+  // Fetch job seekers from backend API
+  const fetchSeekers = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`${baseUrl}/api/seeker/all`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch job seekers: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      const rawSeekers = result.data || result.seekers || (Array.isArray(result) ? result : []);
+
+      // Normalize MongoDB fields to frontend expected structure
+      const formattedCandidates = rawSeekers.map((seek, idx) => ({
+        id: seek._id || seek.id || `cand-${101 + idx}`,
+        name: seek.fullName || seek.name || "Candidate Name",
+        title: seek.jobTitle || seek.title || "Full Stack Developer",
+        email: seek.email || "candidate@example.com",
+        phone: seek.phoneNumber || seek.phone || "+1 (555) 000-0000",
+        location: seek.location || seek.address || "Remote",
+        status: seek.status || "Active",
+        appliedCount: seek.appliedCount || seek.applications?.length || 0,
+        skills: seek.skills || ["JavaScript", "React", "Node.js"],
+        bio: seek.bio || seek.description || "Passionate professional eager to contribute to innovative tech teams.",
+        resumeUrl: seek.resumeUrl || seek.resume || "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+        resumeName: seek.resumeName || "Candidate_Resume.pdf",
+        joinedDate: seek.createdAt ? new Date(seek.createdAt).toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" }) : "Recent",
+        avatar: seek.avatar || seek.image || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80",
+      }));
+
+      setCandidates(formattedCandidates);
+    } catch (err) {
+      console.error("Fetch Seekers Error:", err);
+      setError(err.message || "Failed to load job seeker profiles.");
+    } finally {
+      setLoading(false);
+    }
+  }, [baseUrl]);
+
+  useEffect(() => {
+    fetchSeekers();
+  }, [fetchSeekers]);
 
   // Toggle Suspend / Activate Status
   const handleToggleSuspend = (id, name, currentStatus) => {
@@ -139,7 +127,15 @@ export default function ManageCandidates() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={fetchSeekers}
+            disabled={loading}
+            className="px-4 py-2 bg-[#14141f] hover:bg-gray-800 border border-gray-800 text-gray-300 hover:text-white text-xs font-semibold rounded-xl transition-all cursor-pointer disabled:opacity-50"
+          >
+            {loading ? "Refreshing..." : "Reload Data"}
+          </button>
           <span className="px-3.5 py-1.5 bg-purple-500/10 border border-purple-500/20 text-purple-300 text-xs font-semibold rounded-xl">
             {candidates.length} Registered Candidates
           </span>
@@ -183,9 +179,21 @@ export default function ManageCandidates() {
         </div>
       </div>
 
-      {/* Candidates Table */}
+      {/* Error State */}
+      {error && (
+        <div className="p-4 bg-red-950/40 border border-red-600/60 rounded-2xl text-red-400 text-sm text-center">
+          {error}
+        </div>
+      )}
+
+      {/* Candidates Table / Loading State */}
       <div className="bg-[#14141f] border border-gray-800 rounded-2xl p-6 shadow-xl space-y-4">
-        {filteredCandidates.length === 0 ? (
+        {loading ? (
+          <div className="p-16 text-center flex flex-col items-center justify-center space-y-3">
+            <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
+            <p className="text-sm text-gray-400">Loading registered job seekers...</p>
+          </div>
+        ) : filteredCandidates.length === 0 ? (
           <div className="p-12 text-center text-gray-500 space-y-2">
             <Users className="w-10 h-10 mx-auto text-gray-600 mb-2" />
             <p className="text-sm font-semibold text-white">No candidates found.</p>
@@ -222,7 +230,7 @@ export default function ManageCandidates() {
                             {cand.name}
                           </p>
                           <p className="text-purple-400 text-[11px] font-medium pt-0.5">
-                            {cand.title} • <span className="text-gray-400">{cand.email}</span>
+                            {cand.title} <span className="text-gray-400">({cand.email})</span>
                           </p>
                         </div>
                       </div>
@@ -441,7 +449,7 @@ export default function ManageCandidates() {
               <FileText className="w-12 h-12 mx-auto text-purple-400" />
               <div className="space-y-1">
                 <p className="text-sm font-bold text-white">{resumeCandidate.resumeName}</p>
-                <p className="text-xs text-gray-400">PDF Document • 1.2 MB</p>
+                <p className="text-xs text-gray-400">PDF Document</p>
               </div>
 
               <div className="pt-2 flex items-center justify-center gap-3">
@@ -473,6 +481,8 @@ export default function ManageCandidates() {
     </div>
   );
 }
+
+
 
 
 
