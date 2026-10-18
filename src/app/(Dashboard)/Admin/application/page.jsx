@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   FileCheck,
   Search,
@@ -11,81 +11,14 @@ import {
   Trash2,
   X,
   ExternalLink,
+  Loader2,
 } from "lucide-react";
 
-const INITIAL_APPLICATIONS = [
-  {
-    id: "app-301",
-    candidateName: "Alex Rivera",
-    candidateEmail: "alex.rivera@example.com",
-    candidateAvatar:
-      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80",
-    jobTitle: "Senior Full Stack Developer",
-    company: "Starlight Design Studio",
-    companyLogo:
-      "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=100&auto=format&fit=crop&q=80",
-    applicationDate: "Aug 05, 2026",
-    status: "Interview",
-    coverNote:
-      "With 6+ years building React/Node microservices, I am very eager to help Starlight build world-class design tools.",
-    resumeUrl:
-      "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
-  },
-  {
-    id: "app-302",
-    candidateName: "Marcus Vance",
-    candidateEmail: "m.vance@devmail.org",
-    candidateAvatar:
-      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=80",
-    jobTitle: "Lead Product Designer",
-    company: "Acme Technologies",
-    companyLogo:
-      "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100&auto=format&fit=crop&q=80",
-    applicationDate: "Aug 06, 2026",
-    status: "Pending",
-    coverNote:
-      "I have spearheaded Figma component design systems for major SaaS enterprises and look forward to discussing Acme's vision.",
-    resumeUrl:
-      "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
-  },
-  {
-    id: "app-303",
-    candidateName: "Sophia Chen",
-    candidateEmail: "sophia.chen@cloudlab.io",
-    candidateAvatar:
-      "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&auto=format&fit=crop&q=80",
-    jobTitle: "DevOps & Cloud Engineer",
-    company: "CyberPulse Labs",
-    companyLogo:
-      "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=100&auto=format&fit=crop&q=80",
-    applicationDate: "Jul 28, 2026",
-    status: "Accepted",
-    coverNote:
-      "Specialized in zero-downtime Kubernetes cluster deployments with Terraform and automated CI/CD.",
-    resumeUrl:
-      "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
-  },
-  {
-    id: "app-304",
-    candidateName: "Jordan Lee",
-    candidateEmail: "j.lee@datascience.net",
-    candidateAvatar:
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80",
-    jobTitle: "AI Specialist & Machine Learning Researcher",
-    company: "CloudVibe Tech",
-    companyLogo:
-      "https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=100&auto=format&fit=crop&q=80",
-    applicationDate: "Aug 02, 2026",
-    status: "Rejected",
-    coverNote:
-      "Focused on fine-tuning LLMs and NLP analytics pipelines in Python and PyTorch.",
-    resumeUrl:
-      "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
-  },
-];
-
 export default function Application() {
-  const [applications, setApplications] = useState(INITIAL_APPLICATIONS);
+  const [applications, setApplications] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStatusFilter, setSelectedStatusFilter] = useState("ALL");
 
@@ -97,6 +30,54 @@ export default function Application() {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(""), 3000);
   };
+
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000";
+
+  // Fetch applications from backend API
+  const fetchApplications = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`${baseUrl}/api/application/all`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch applications: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      const rawApps = result.data || result.applications || (Array.isArray(result) ? result : []);
+
+      // Normalize MongoDB document structure
+      const formattedApps = rawApps.map((app, idx) => ({
+        id: app._id || app.id || `app-${301 + idx}`,
+        candidateName: app.candidateName || app.fullName || app.applicantName || "Candidate",
+        candidateEmail: app.candidateEmail || app.email || app.applicantEmail || "applicant@example.com",
+        candidateAvatar: app.candidateAvatar || app.avatar || app.applicantImage || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80",
+        jobTitle: app.jobTitle || app.position || "Full Stack Developer",
+        company: app.company || app.companyName || "Company Name",
+        companyLogo: app.companyLogo || app.logo || "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=100&auto=format&fit=crop&q=80",
+        applicationDate: app.createdAt ? new Date(app.createdAt).toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" }) : app.applicationDate || "Recent",
+        status: app.status || "Pending",
+        coverNote: app.coverNote || app.coverLetter || "No cover note provided by applicant.",
+        resumeUrl: app.resumeUrl || app.resume || "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+      }));
+
+      setApplications(formattedApps);
+    } catch (err) {
+      console.error("Fetch Applications Error:", err);
+      setError(err.message || "Failed to load application submissions.");
+    } finally {
+      setLoading(false);
+    }
+  }, [baseUrl]);
+
+  useEffect(() => {
+    fetchApplications();
+  }, [fetchApplications]);
 
   // Status Change Handler
   const handleStatusChange = (id, newStatus, candidateName) => {
@@ -155,7 +136,15 @@ export default function Application() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={fetchApplications}
+            disabled={loading}
+            className="px-4 py-2 bg-[#14141f] hover:bg-gray-800 border border-gray-800 text-gray-300 hover:text-white text-xs font-semibold rounded-xl transition-all cursor-pointer disabled:opacity-50"
+          >
+            {loading ? "Refreshing..." : "Reload Data"}
+          </button>
           <span className="px-3.5 py-1.5 bg-purple-500/10 border border-purple-500/20 text-purple-300 text-xs font-semibold rounded-xl">
             {applications.length} Total Submissions
           </span>
@@ -201,9 +190,21 @@ export default function Application() {
         </div>
       </div>
 
-      {/* Applications Table */}
+      {/* Error State */}
+      {error && (
+        <div className="p-4 bg-red-950/40 border border-red-600/60 rounded-2xl text-red-400 text-sm text-center">
+          {error}
+        </div>
+      )}
+
+      {/* Applications Table / Loading State */}
       <div className="bg-[#14141f] border border-gray-800 rounded-2xl p-6 shadow-xl space-y-4">
-        {filteredApplications.length === 0 ? (
+        {loading ? (
+          <div className="p-16 text-center flex flex-col items-center justify-center space-y-3">
+            <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
+            <p className="text-sm text-gray-400">Loading submitted applications...</p>
+          </div>
+        ) : filteredApplications.length === 0 ? (
           <div className="p-12 text-center text-gray-500 space-y-2">
             <FileCheck className="w-10 h-10 mx-auto text-gray-600 mb-2" />
             <p className="text-sm font-semibold text-white">No applications found.</p>
@@ -414,7 +415,6 @@ export default function Application() {
     </div>
   );
 }
-
 
 
 
