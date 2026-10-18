@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Search,
   Filter,
@@ -14,73 +14,14 @@ import {
   X,
   DollarSign,
   MapPin,
+  Loader2,
 } from "lucide-react";
 
-const INITIAL_JOBS = [
-  {
-    id: "job-101",
-    title: "Senior Full Stack Developer",
-    company: "Starlight Design Studio",
-    companyLogo:
-      "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=100&auto=format&fit=crop&q=80",
-    location: "New York, NY (Remote)",
-    type: "Full-Time",
-    salary: "$140,000 - $170,000",
-    status: "Active",
-    postedDate: "Aug 01, 2026",
-    applicationsCount: 48,
-    description:
-      "We are seeking a Lead Developer skilled in React, Node.js, and cloud deployments to build high-scale design tools.",
-  },
-  {
-    id: "job-102",
-    title: "Lead Product Designer",
-    company: "Acme Technologies",
-    companyLogo:
-      "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100&auto=format&fit=crop&q=80",
-    location: "San Francisco, CA",
-    status: "Pending",
-    type: "Full-Time",
-    salary: "$130,000 - $160,000",
-    postedDate: "Aug 06, 2026",
-    applicationsCount: 0,
-    description:
-      "Lead user interface and experience initiatives across our enterprise SaaS suites.",
-  },
-  {
-    id: "job-103",
-    title: "DevOps & Cloud Engineer",
-    company: "CyberPulse Labs",
-    companyLogo:
-      "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=100&auto=format&fit=crop&q=80",
-    location: "Austin, TX (Hybrid)",
-    status: "Closed",
-    type: "Contract",
-    salary: "$90/hr - $110/hr",
-    postedDate: "Jul 15, 2026",
-    applicationsCount: 82,
-    description:
-      "Manage AWS infrastructure automation with Terraform and Kubernetes clusters.",
-  },
-  {
-    id: "job-104",
-    title: "AI Specialist & Machine Learning Researcher",
-    company: "CloudVibe Tech",
-    companyLogo:
-      "https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=100&auto=format&fit=crop&q=80",
-    location: "Remote",
-    status: "Active",
-    type: "Full-Time",
-    salary: "$160,000 - $200,000",
-    postedDate: "Aug 04, 2026",
-    applicationsCount: 29,
-    description:
-      "Build state-of-the-art fine-tuned ML models for NLP analysis.",
-  },
-];
-
 export default function ManageJobs() {
-  const [jobs, setJobs] = useState(INITIAL_JOBS);
+  const [jobs, setJobs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStatusFilter, setSelectedStatusFilter] = useState("ALL");
   const [toastMessage, setToastMessage] = useState("");
@@ -101,6 +42,54 @@ export default function ManageJobs() {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(""), 3000);
   };
+
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000";
+
+  // Fetch jobs from backend API
+  const fetchJobs = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`${baseUrl}/api/jobs`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch jobs: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      const rawJobs = result.jobs || result.data || (Array.isArray(result) ? result : []);
+
+      // Normalize MongoDB fields
+      const formattedJobs = rawJobs.map((job, idx) => ({
+        id: job._id || job.id || `job-${101 + idx}`,
+        title: job.jobTitle || job.title || "Untitled Position",
+        company: job.companyName || job.company || "Company Name",
+        companyLogo: job.companyLogo || job.logo || "https://images.unsplash.com/photo-1549923746-c502d488b3ea?w=150&auto=format&fit=crop&q=80",
+        location: job.location || job.address || "Remote",
+        type: job.jobType || job.type || "Full-Time",
+        salary: job.salary || job.salaryRange || "$100,000 - $130,000",
+        status: job.status || "Active",
+        postedDate: job.createdAt ? new Date(job.createdAt).toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" }) : "Recent",
+        applicationsCount: job.applicationsCount || job.applicants?.length || 0,
+        description: job.description || job.jobDescription || "No job overview provided.",
+      }));
+
+      setJobs(formattedJobs);
+    } catch (err) {
+      console.error("Fetch Jobs Error:", err);
+      setError(err.message || "Failed to load job listings.");
+    } finally {
+      setLoading(false);
+    }
+  }, [baseUrl]);
+
+  useEffect(() => {
+    fetchJobs();
+  }, [fetchJobs]);
 
   // Approve Job Posting
   const handleApprove = (id, title) => {
@@ -203,7 +192,15 @@ export default function ManageJobs() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={fetchJobs}
+            disabled={loading}
+            className="px-4 py-2 bg-[#14141f] hover:bg-gray-800 border border-gray-800 text-gray-300 hover:text-white text-xs font-semibold rounded-xl transition-all cursor-pointer disabled:opacity-50"
+          >
+            {loading ? "Refreshing..." : "Reload Data"}
+          </button>
           <span className="px-3.5 py-1.5 bg-purple-500/10 border border-purple-500/20 text-purple-300 text-xs font-semibold rounded-xl">
             {jobs.length} Total Postings
           </span>
@@ -248,9 +245,21 @@ export default function ManageJobs() {
         </div>
       </div>
 
-      {/* Jobs Table */}
+      {/* Error State */}
+      {error && (
+        <div className="p-4 bg-red-950/40 border border-red-600/60 rounded-2xl text-red-400 text-sm text-center">
+          {error}
+        </div>
+      )}
+
+      {/* Jobs Table / Loading State */}
       <div className="bg-[#14141f] border border-gray-800 rounded-2xl p-6 shadow-xl space-y-4">
-        {filteredJobs.length === 0 ? (
+        {loading ? (
+          <div className="p-16 text-center flex flex-col items-center justify-center space-y-3">
+            <Loader2 className="w-8 h-8 text-purple-500 animate-spin" />
+            <p className="text-sm text-gray-400">Loading job listings...</p>
+          </div>
+        ) : filteredJobs.length === 0 ? (
           <div className="p-12 text-center text-gray-500 space-y-2">
             <Briefcase className="w-10 h-10 mx-auto text-gray-600 mb-2" />
             <p className="text-sm font-semibold text-white">No jobs found.</p>
@@ -654,9 +663,6 @@ export default function ManageJobs() {
     </div>
   );
 }
-
-
-
 
 
 
