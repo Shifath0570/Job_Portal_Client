@@ -123,16 +123,21 @@ export default function RecruiterOverview() {
         setIsFetching(true);
         try {
             const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000";
-            const jobsResponse = await fetch(`${baseUrl}/api/jobs`);
+
+            // Fetch jobs and applications concurrently
+            const [jobsRes, appsRes] = await Promise.all([
+                fetch(`${baseUrl}/api/jobs`),
+                fetch(`${baseUrl}/api/application/all`)
+            ]);
+
             let totalJobsCount = null;
             let activeJobsCount = null;
             let closedJobsCount = null;
 
-            if (jobsResponse.ok) {
-                const jobsData = await jobsResponse.json();
+            if (jobsRes.ok) {
+                const jobsData = await jobsRes.json();
                 if (Array.isArray(jobsData)) {
                     totalJobsCount = jobsData.length;
-                    // Adjust status filter based on your MongoDB schema (e.g., status === "active" or "closed")
                     activeJobsCount = jobsData.filter(
                         (job) => job.status?.toLowerCase() === "active" || job.status?.toLowerCase() === "hiring"
                     ).length;
@@ -140,21 +145,63 @@ export default function RecruiterOverview() {
                 }
             }
 
-            // Optional: Fetch general overview metrics if endpoint exists
-            let overviewData = {};
-            try {
-                const overviewRes = await fetch("/api/recruiter/overview");
-                if (overviewRes.ok) {
-                    overviewData = await overviewRes.json();
+            let totalAppsCount = null;
+            let shortlistedCount = null;
+            let interviewCount = null;
+            let hiredCount = null;
+            let formattedRecentApps = null;
+
+            if (appsRes.ok) {
+                const appsResult = await appsRes.json();
+                const appsData = appsResult.data || (Array.isArray(appsResult) ? appsResult : []);
+
+                if (Array.isArray(appsData)) {
+                    totalAppsCount = appsData.length;
+                    
+                    shortlistedCount = appsData.filter(
+                        (app) => app.status?.toLowerCase() === "shortlisted"
+                    ).length;
+
+                    interviewCount = appsData.filter(
+                        (app) => 
+                            app.status?.toLowerCase() === "interview scheduled" || 
+                            app.status?.toLowerCase() === "interview"
+                    ).length;
+
+                    hiredCount = appsData.filter(
+                        (app) => app.status?.toLowerCase() === "hired"
+                    ).length;
+
+                    // Map backend application format to UI list format
+                    formattedRecentApps = appsData.slice(0, 5).map((app, index) => {
+                        const statusLower = app.status?.toLowerCase() || "";
+                        let statusColor = "bg-gray-500/10 text-gray-400 border-gray-500/20";
+
+                        if (statusLower.includes("shortlist")) {
+                            statusColor = "bg-amber-500/10 text-amber-400 border-amber-500/20";
+                        } else if (statusLower.includes("interview")) {
+                            statusColor = "bg-indigo-500/10 text-indigo-400 border-indigo-500/20";
+                        } else if (statusLower.includes("hire") || statusLower.includes("accepted")) {
+                            statusColor = "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
+                        }
+
+                        return {
+                            id: app._id || app.id || index,
+                            name: app.applicantName || app.name || "Candidate",
+                            role: app.jobTitle || app.role || "Applied Role",
+                            appliedDate: app.appliedAt ? new Date(app.appliedAt).toLocaleDateString() : "Recently",
+                            status: app.status || "Pending",
+                            statusColor: statusColor,
+                        };
+                    });
                 }
-            } catch (err) {
-                // Ignore if overview endpoint isn't set up yet
             }
 
             // Update metrics state with live database values
             setMetrics((prev) =>
                 prev.map((item) => {
                     let newValue = item.value;
+
                     if (item.id === "total-jobs" && totalJobsCount !== null) {
                         newValue = totalJobsCount.toString();
                     }
@@ -164,17 +211,28 @@ export default function RecruiterOverview() {
                     if (item.id === "closed-jobs" && closedJobsCount !== null) {
                         newValue = closedJobsCount.toString();
                     }
-                    
+                    if (item.id === "total-apps" && totalAppsCount !== null) {
+                        newValue = totalAppsCount.toLocaleString();
+                    }
+                    if (item.id === "shortlisted" && shortlistedCount !== null) {
+                        newValue = shortlistedCount.toString();
+                    }
+                    if (item.id === "interviews" && interviewCount !== null) {
+                        newValue = interviewCount.toString();
+                    }
+                    if (item.id === "hired" && hiredCount !== null) {
+                        newValue = hiredCount.toString();
+                    }
+
                     return {
                         ...item,
-                        value: overviewData.metrics?.[item.id]?.value ?? newValue,
-                        change: overviewData.metrics?.[item.id]?.change ?? item.change,
+                        value: newValue,
                     };
                 })
             );
 
-            if (overviewData.recentApplications) {
-                setRecentApps(overviewData.recentApplications);
+            if (formattedRecentApps && formattedRecentApps.length > 0) {
+                setRecentApps(formattedRecentApps);
             }
         } catch (error) {
             console.warn("Using baseline mock data due to sync error:", error);
@@ -183,7 +241,7 @@ export default function RecruiterOverview() {
         }
     };
 
-    // Automatically sync live job counts when the component mounts
+    // Automatically sync live metrics when the component mounts
     useEffect(() => {
         handleFetchData();
     }, []);
@@ -326,8 +384,6 @@ export default function RecruiterOverview() {
         </div>
     );
 }
-
-
 
 
 
