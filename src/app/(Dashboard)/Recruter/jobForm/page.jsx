@@ -26,6 +26,8 @@ export function JobForm() {
   const { data: session } = authClient.useSession();
   const user = session?.user;
 
+  console.log(user)
+
   const [skillInput, setSkillInput] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isFetchingProfile, setIsFetchingProfile] = useState(false);
