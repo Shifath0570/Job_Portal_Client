@@ -86,22 +86,6 @@ export function Navbar() {
             Companies
           </Link>
           <Link
-            href="/publicPages/categories"
-            className={`transition-colors ${
-              pathname === "/categories" ? "text-white font-semibold" : "hover:text-white"
-            }`}
-          >
-            Categories
-          </Link>
-          <Link
-            href="/publicPages/careerResources"
-            className={`transition-colors whitespace-nowrap ${
-              pathname === "/resources" ? "text-white font-semibold" : "hover:text-white"
-            }`}
-          >
-            Career Resources
-          </Link>
-          <Link
             href="/publicPages/blog"
             className={`transition-colors ${
               pathname === "/blog" ? "text-white font-semibold" : "hover:text-white"

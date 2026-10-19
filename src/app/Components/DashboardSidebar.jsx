@@ -33,6 +33,7 @@ const DashboardSidebar = () => {
     { id: "browseJobs", href: "/Seeker/browseJobs", label: "Browse Jobs", icon: Bookmark },
     { id: "savedJobs", href: "/Seeker/savedJobs", label: "Saved Jobs", icon: FileText },
     { id: "myApplications", href: "/Seeker/myApplications", label: "My Applications", icon: FileText },
+    { id: "blogWriting", href: "/Seeker/blogWriting", label: "Blog Writing", icon: FileText },
     { id: "interviews", href: "/Seeker/interviews", label: "Interviews", icon: FileText },
     { id: "notifications", href: "/Seeker/notifications", label: "Notifications", icon: FileText },
   ];
@@ -43,6 +44,7 @@ const DashboardSidebar = () => {
     { id: "jobForm", href: "/Recruter/jobForm", label: "Post a Job", icon: PlusCircle },
     { id: "manageJobs", href: "/Recruter/manageJobs", label: "Manage Jobs", icon: FileText },
     { id: "viewApplicants", href: "/Recruter/viewApplicants", label: "View Applicants", icon: Users },
+    { id: "blogWriting", href: "/Seeker/blogWriting", label: "Blog Writing", icon: FileText },
     { id: "notifications", href: "/Recruter/notifications", label: "Notifications", icon: User },
     { id: "recruiterAnalytics", href: "/Recruter/recruiterAnalytics", label: "Recruiter Analytics", icon: User },
   ];
@@ -55,7 +57,6 @@ const DashboardSidebar = () => {
     { id: "manageJobs", href: "/Admin/manageJobs", label: "Manage Jobs", icon: CreditCard },
     { id: "application", href: "/Admin/application", label: "Application", icon: CreditCard },
     { id: "reportsManagement", href: "/Admin/reportsManagement", label: "Reports Management", icon: CreditCard },
-    { id: "jobCategoriesManagement", href: "/Admin/jobCategoriesManagement", label: "Job Categories Management", icon: CreditCard },
     { id: "notifications", href: "/Admin/notifications", label: "Notifications", icon: CreditCard },
     { id: "analyticsDashboard", href: "/Admin/analyticsDashboard", label: "Analytics Dashboard", icon: CreditCard },
   ];
