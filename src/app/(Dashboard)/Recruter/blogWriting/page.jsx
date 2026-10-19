@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState } from "react";
@@ -13,6 +14,8 @@ import {
   Save,
   X,
   FileText,
+  Upload,
+  Loader2,
 } from "lucide-react";
 
 export default function BlogWrite() {
@@ -30,6 +33,7 @@ export default function BlogWrite() {
   const [previewMode, setPreviewMode] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
 
   const showToast = (msg) => {
     setToastMessage(msg);
@@ -39,6 +43,52 @@ export default function BlogWrite() {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // ImgBB Upload Handler
+  const handleCoverImageUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploadingImage(true);
+    showToast("");
+
+    // Local instant preview reader
+    const localReader = new FileReader();
+    localReader.onloadend = () => {
+      setFormData((prev) => ({ ...prev, coverImage: localReader.result }));
+    };
+    localReader.readAsDataURL(file);
+
+    try {
+      const apiKey = process.env.NEXT_PUBLIC_IMGBB_API_KEY;
+      if (!apiKey) {
+        throw new Error("NEXT_PUBLIC_IMGBB_API_KEY environment variable is missing.");
+      }
+
+      const imgData = new FormData();
+      imgData.append("image", file);
+
+      const response = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
+        method: "POST",
+        body: imgData,
+      });
+
+      const resData = await response.json();
+
+      if (resData.success) {
+        const uploadedUrl = resData.data.url;
+        setFormData((prev) => ({ ...prev, coverImage: uploadedUrl }));
+        showToast("Cover image uploaded to ImgBB successfully!");
+      } else {
+        throw new Error(resData.error?.message || "Failed to upload image to ImgBB.");
+      }
+    } catch (error) {
+      console.error("ImgBB upload error:", error);
+      showToast(`Image upload failed: ${error.message}`);
+    } finally {
+      setIsUploadingImage(false);
+    }
   };
 
   const handleSubmit = async (e, saveStatus) => {
@@ -204,7 +254,7 @@ export default function BlogWrite() {
             </div>
           </div>
 
-          {/* Cover Image Settings */}
+          {/* Cover Image Settings (ImgBB Integration) */}
           <div className="bg-[#14141f] border border-gray-800 rounded-2xl p-6 shadow-xl space-y-4">
             <h2 className="text-sm font-bold text-white border-b border-gray-800 pb-3 flex items-center gap-2">
               <ImageIcon className="w-4 h-4 text-purple-400" />
@@ -212,22 +262,48 @@ export default function BlogWrite() {
             </h2>
 
             <div className="space-y-3">
+              <div className="flex flex-col gap-2">
+                <label className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-purple-600 hover:bg-purple-500 text-white text-xs font-medium rounded-xl cursor-pointer transition-all shadow-md disabled:opacity-50">
+                  {isUploadingImage ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Upload className="w-4 h-4" />
+                  )}
+                  {isUploadingImage ? "Uploading to ImgBB..." : "Upload Cover Image"}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleCoverImageUpload}
+                    disabled={isUploadingImage}
+                    className="hidden"
+                  />
+                </label>
+                <p className="text-[10px] text-gray-400">
+                  Or paste direct URL below:
+                </p>
+              </div>
+
               <input
                 type="url"
                 name="coverImage"
-                placeholder="Paste image URL (Unsplash, etc.)"
+                placeholder="https://i.ibb.co/..."
                 value={formData.coverImage}
                 onChange={handleChange}
-                className="w-full px-3.5 py-2.5 bg-[#0a0a0f] border border-gray-800 focus:border-purple-500 text-white rounded-xl text-xs outline-none"
+                className="w-full px-3.5 py-2 bg-[#0a0a0f] border border-gray-800 focus:border-purple-500 text-white rounded-xl text-xs outline-none"
               />
 
               {formData.coverImage ? (
-                <div className="relative rounded-xl overflow-hiden border border-gray-800 h-36">
+                <div className="relative rounded-xl overflow-hidden border border-gray-800 h-36">
                   <img
                     src={formData.coverImage}
                     alt="Cover preview"
                     className="w-full h-full object-cover"
                   />
+                  {isUploadingImage && (
+                    <div className="absolute inset-0 bg-black/70 flex items-center justify-center">
+                      <Loader2 className="w-6 h-6 text-purple-400 animate-spin" />
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="h-36 bg-[#0a0a0f] border border-dashed border-gray-800 rounded-xl flex flex-col items-center justify-center text-gray-500 text-xs">
@@ -347,3 +423,13 @@ export default function BlogWrite() {
     </div>
   );
 }
+
+
+
+
+
+
+
+
+
+
