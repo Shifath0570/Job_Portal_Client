@@ -71,16 +71,37 @@ export default function ManageJobs() {
     }
   }, [userEmail, handleFetchJobs]);
 
-  // Toggle Job Status (Close / Reopen)
-  const handleToggleStatus = (jobId) => {
-    setJobs((prev) =>
-      prev.map((job) => {
-        const id = job._id || job.id;
-        return id === jobId
-          ? { ...job, status: job.status === "Active" ? "Closed" : "Active" }
-          : job;
-      })
-    );
+  // Toggle Job Status (Close / Reopen) via API PATCH
+  const handleToggleStatus = async (jobId, currentStatus) => {
+    const newStatus = currentStatus === "Active" ? "Closed" : "Active";
+
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000";
+      const response = await fetch(`${baseUrl}/api/jobs/${jobId}/status`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || "Failed to update job status");
+      }
+
+      // Update local state upon success
+      setJobs((prev) =>
+        prev.map((job) => {
+          const id = job._id || job.id;
+          return id === jobId ? { ...job, status: newStatus } : job;
+        })
+      );
+    } catch (err) {
+      console.error("Error updating job status:", err);
+      alert(`Failed to change job status: ${err.message}`);
+    }
   };
 
   // Delete Job
@@ -102,13 +123,11 @@ export default function ManageJobs() {
         });
 
         const data = await response.json();
-        console.log("Delete response:", data);
 
         if (!response.ok || !data.success) {
           throw new Error(data.message || "Failed to delete job");
         }
 
-        // Remove from local state upon successful deletion
         setJobs((prev) =>
           prev.filter((job) => (job._id || job.id) !== jobId)
         );
@@ -221,6 +240,7 @@ export default function ManageJobs() {
               ) : (
                 filteredJobs.map((job) => {
                   const jobId = job._id || job.id;
+                  const currentStatus = job.status || "Active";
                   return (
                     <tr
                       key={jobId}
@@ -243,12 +263,12 @@ export default function ManageJobs() {
                       <td className="py-4 px-6">
                         <span
                           className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${
-                            job.status === "Active"
+                            currentStatus === "Active"
                               ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
                               : "bg-gray-500/10 text-gray-400 border-gray-500/20"
                           }`}
                         >
-                          {job.status || "Active"}
+                          {currentStatus}
                         </span>
                       </td>
                       <td className="py-4 px-6 text-right space-x-2">
@@ -272,17 +292,17 @@ export default function ManageJobs() {
 
                         {/* Close / Reopen Job */}
                         <button
-                          onClick={() => handleToggleStatus(jobId)}
+                          onClick={() => handleToggleStatus(jobId, currentStatus)}
                           title={
-                            job.status === "Active" ? "Close Job" : "Reopen Job"
+                            currentStatus === "Active" ? "Close Job" : "Reopen Job"
                           }
                           className={`p-2 bg-[#0a0a0f] border border-gray-800 rounded-lg transition-all cursor-pointer inline-flex items-center justify-center ${
-                            job.status === "Active"
+                            currentStatus === "Active"
                               ? "hover:border-amber-500/40 text-amber-400"
                               : "hover:border-emerald-500/40 text-emerald-400"
                           }`}
                         >
-                          {job.status === "Active" ? (
+                          {currentStatus === "Active" ? (
                             <LockIcon className="w-4 h-4" />
                           ) : (
                             <UnlockIcon className="w-4 h-4" />
@@ -445,9 +465,6 @@ export default function ManageJobs() {
     </div>
   );
 }
-
-
-
 
 
 
