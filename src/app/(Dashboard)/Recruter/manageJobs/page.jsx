@@ -84,11 +84,38 @@ export default function ManageJobs() {
   };
 
   // Delete Job
-  const handleDeleteJob = (jobId) => {
+  const handleDeleteJob = async (jobId) => {
+    if (!jobId) {
+      console.error("Delete Error: Job ID is undefined!");
+      alert("Error: Invalid job ID.");
+      return;
+    }
+
     if (confirm("Are you sure you want to delete this job posting?")) {
-      setJobs((prev) =>
-        prev.filter((job) => (job._id || job.id) !== jobId)
-      );
+      try {
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000";
+        const response = await fetch(`${baseUrl}/api/jobs/${jobId}`, {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        const data = await response.json();
+        console.log("Delete response:", data);
+
+        if (!response.ok || !data.success) {
+          throw new Error(data.message || "Failed to delete job");
+        }
+
+        // Remove from local state upon successful deletion
+        setJobs((prev) =>
+          prev.filter((job) => (job._id || job.id) !== jobId)
+        );
+      } catch (err) {
+        console.error("Error deleting job:", err);
+        alert(`Failed to delete the job listing: ${err.message}`);
+      }
     }
   };
 
@@ -418,9 +445,6 @@ export default function ManageJobs() {
     </div>
   );
 }
-
-
-
 
 
 
