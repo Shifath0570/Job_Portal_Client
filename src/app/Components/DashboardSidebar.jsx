@@ -46,7 +46,6 @@ const DashboardSidebar = () => {
     { id: "viewApplicants", href: "/Recruter/viewApplicants", label: "View Applicants", icon: Users },
     { id: "blogWriting", href: "/Seeker/blogWriting", label: "Blog Writing", icon: FileText },
     { id: "notifications", href: "/Recruter/notifications", label: "Notifications", icon: User },
-    { id: "recruiterAnalytics", href: "/Recruter/recruiterAnalytics", label: "Recruiter Analytics", icon: User },
   ];
 
   const adminNavItems = [

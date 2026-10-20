@@ -12,7 +12,9 @@ import {
     Award as AwardIcon,
     Plus as PlusIcon,
     RefreshCw as RefreshIcon,
+    Loader2,
 } from "lucide-react";
+import { authClient } from "@/app/lib/auth-client";
 
 const INITIAL_METRICS = [
     {
@@ -115,6 +117,10 @@ const INITIAL_APPLICATIONS = [
 ];
 
 export default function RecruiterOverview() {
+    // 1️⃣ ALL HOOKS CALLED UNCONDITIONALLY FIRST
+    const { data: session, isPending: sessionLoading } = authClient.useSession();
+    const user = session?.user;
+
     const [metrics, setMetrics] = useState(INITIAL_METRICS);
     const [recentApps, setRecentApps] = useState(INITIAL_APPLICATIONS);
     const [isFetching, setIsFetching] = useState(false);
@@ -123,11 +129,14 @@ export default function RecruiterOverview() {
         setIsFetching(true);
         try {
             const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000";
+            
+            // Fallback or use user's email for company jobs and applicants query
+            const userEmail = user?.email || "all";
 
-            // Fetch jobs and applications concurrently
+            // Fetch company-specific jobs and applicants concurrently
             const [jobsRes, appsRes] = await Promise.all([
-                fetch(`${baseUrl}/api/jobs`),
-                fetch(`${baseUrl}/api/application/all`)
+                fetch(`${baseUrl}/api/jobs/company/${userEmail}`),
+                fetch(`${baseUrl}/api/applicants/${userEmail}`)
             ]);
 
             let totalJobsCount = null;
@@ -136,9 +145,11 @@ export default function RecruiterOverview() {
 
             if (jobsRes.ok) {
                 const jobsData = await jobsRes.json();
-                if (Array.isArray(jobsData)) {
-                    totalJobsCount = jobsData.length;
-                    activeJobsCount = jobsData.filter(
+                const jobsList = Array.isArray(jobsData) ? jobsData : (jobsData.jobs || jobsData.data || []);
+                
+                if (Array.isArray(jobsList)) {
+                    totalJobsCount = jobsList.length;
+                    activeJobsCount = jobsList.filter(
                         (job) => job.status?.toLowerCase() === "active" || job.status?.toLowerCase() === "hiring"
                     ).length;
                     closedJobsCount = totalJobsCount - activeJobsCount;
@@ -153,7 +164,7 @@ export default function RecruiterOverview() {
 
             if (appsRes.ok) {
                 const appsResult = await appsRes.json();
-                const appsData = appsResult.data || (Array.isArray(appsResult) ? appsResult : []);
+                const appsData = appsResult.applications || appsResult.data || (Array.isArray(appsResult) ? appsResult : []);
 
                 if (Array.isArray(appsData)) {
                     totalAppsCount = appsData.length;
@@ -241,10 +252,21 @@ export default function RecruiterOverview() {
         }
     };
 
-    // Automatically sync live metrics when the component mounts
+    // Automatically sync live metrics when session user changes or component mounts
     useEffect(() => {
-        handleFetchData();
-    }, []);
+        if (user) {
+            handleFetchData();
+        }
+    }, [user]);
+
+    // 2️⃣ CONDITIONAL RETURNS GO AFTER ALL HOOKS ARE DECLARED
+    if (sessionLoading) {
+        return (
+            <div className="min-h-screen bg-[#0a0a0f] flex items-center justify-center text-purple-400">
+                <Loader2 className="w-8 h-8 animate-spin" />
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen flex-1 bg-[#0a0a0f] text-white p-4 sm:p-6 lg:p-8 space-y-8">
@@ -255,7 +277,7 @@ export default function RecruiterOverview() {
                         Recruiter Overview
                     </h1>
                     <p className="text-gray-400 text-sm pt-1">
-                        Welcome back! Here is a summary of your hiring activities and job listings.
+                        Welcome back, {user?.name || "Recruiter"}! Here is a summary of your hiring activities and job listings.
                     </p>
                 </div>
                 <div className="flex items-center gap-3">
