@@ -93,10 +93,34 @@ export default function ManageUsers() {
     );
   };
 
-  // Delete User
-  const handleDeleteUser = (userId, userName) => {
-    setUsers((prev) => prev.filter((u) => u.id !== userId));
-    showToast(`User ${userName} has been removed.`);
+  // Delete User (Connected to backend DELETE /api/users/:id)
+  const handleDeleteUser = async (userId, userName) => {
+    if (!userId) {
+      console.error("Delete Error: User ID is undefined!");
+      alert("Error: Invalid user ID.");
+      return;
+    }
+
+    if (confirm(`Are you sure you want to delete user "${userName}"?`)) {
+      try {
+        const response = await fetch(`${baseUrl}/api/users/${userId}`, {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+          throw new Error(data.message || "Failed to delete user");
+        }
+
+        setUsers((prev) => prev.filter((u) => u.id !== userId));
+        showToast(`User ${userName} has been removed.`);
+      } catch (err) {
+        console.error("Error deleting user:", err);
+        alert(`Failed to delete user: ${err.message}`);
+      }
+    }
   };
 
   // Open Edit User Modal
@@ -349,7 +373,7 @@ export default function ManageUsers() {
       </div>
 
       {/* ========================================== */}
-      {/* EDIT USER & ROLE MODAL                     */}
+      {/* EDIT USER & ROLE MODAL                    */}
       {/* ========================================== */}
       {editingUser && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
@@ -438,9 +462,6 @@ export default function ManageUsers() {
     </div>
   );
 }
-
-
-
 
 
 
