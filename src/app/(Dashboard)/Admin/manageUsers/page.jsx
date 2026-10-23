@@ -27,6 +27,9 @@ export default function ManageUsers() {
   const [editingUser, setEditingUser] = useState(null);
   const [editFormData, setEditFormData] = useState({ name: "", email: "", role: "" });
 
+  // Delete Confirmation Modal State
+  const [deletingUser, setDeletingUser] = useState(null);
+
   const showToast = (msg) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(""), 3000);
@@ -93,33 +96,35 @@ export default function ManageUsers() {
     );
   };
 
-  // Delete User (Connected to backend DELETE /api/users/:id)
-  const handleDeleteUser = async (userId, userName) => {
-    if (!userId) {
-      console.error("Delete Error: User ID is undefined!");
-      alert("Error: Invalid user ID.");
-      return;
-    }
+  // Open Delete Confirmation Modal
+  const handleOpenDelete = (user) => {
+    setDeletingUser(user);
+  };
 
-    if (confirm(`Are you sure you want to delete user "${userName}"?`)) {
-      try {
-        const response = await fetch(`${baseUrl}/api/users/${userId}`, {
-          method: "DELETE",
-          headers: { "Content-Type": "application/json" },
-        });
+  // Confirm & Execute Delete User
+  const handleConfirmDelete = async () => {
+    if (!deletingUser) return;
+    const { id, name } = deletingUser;
 
-        const data = await response.json();
+    try {
+      const response = await fetch(`${baseUrl}/api/users/${id}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+      });
 
-        if (!response.ok || !data.success) {
-          throw new Error(data.message || "Failed to delete user");
-        }
+      const data = await response.json();
 
-        setUsers((prev) => prev.filter((u) => u.id !== userId));
-        showToast(`User ${userName} has been removed.`);
-      } catch (err) {
-        console.error("Error deleting user:", err);
-        alert(`Failed to delete user: ${err.message}`);
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || "Failed to delete user");
       }
+
+      setUsers((prev) => prev.filter((u) => u.id !== id));
+      showToast(`User ${name} has been removed.`);
+    } catch (err) {
+      console.error("Error deleting user:", err);
+      alert(`Failed to delete user: ${err.message}`);
+    } finally {
+      setDeletingUser(null);
     }
   };
 
@@ -356,7 +361,7 @@ export default function ManageUsers() {
 
                         {/* Delete User Button */}
                         <button
-                          onClick={() => handleDeleteUser(user.id, user.name)}
+                          onClick={() => handleOpenDelete(user)}
                           title="Delete User Account"
                           className="p-2 bg-[#0a0a0f] hover:bg-rose-500/10 border border-gray-800 hover:border-rose-500/30 text-gray-400 hover:text-rose-400 rounded-xl transition-all cursor-pointer"
                         >
@@ -459,10 +464,56 @@ export default function ManageUsers() {
           </div>
         </div>
       )}
+
+      {/* ========================================== */}
+      {/* DELETE CONFIRMATION MODAL                 */}
+      {/* ========================================== */}
+      {deletingUser && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#14141f] border border-gray-800 rounded-2xl w-full max-w-sm p-6 space-y-6 shadow-2xl relative text-xs">
+            <div className="flex items-center justify-between border-b border-gray-800 pb-4">
+              <div className="flex items-center gap-2 text-rose-400 font-bold text-sm">
+                <ShieldAlert className="w-5 h-5" />
+                Confirm Deletion
+              </div>
+              <button
+                onClick={() => setDeletingUser(null)}
+                className="text-gray-400 hover:text-white cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-2 text-gray-300">
+              <p>
+                Are you sure you want to delete <span className="font-bold text-white">{deletingUser.name}</span>?
+              </p>
+              <p className="text-[11px] text-gray-400">
+                This action is permanent and will remove all associated user data from the platform database.
+              </p>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-800">
+              <button
+                type="button"
+                onClick={() => setDeletingUser(null)}
+                className="px-4 py-2 bg-[#0a0a0f] hover:bg-gray-800 border border-gray-800 text-gray-300 rounded-xl transition-all cursor-pointer font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                className="px-5 py-2 bg-rose-600 hover:bg-rose-500 text-white font-semibold rounded-xl shadow-md cursor-pointer transition-all"
+              >
+                Yes, Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-
-
 
 
