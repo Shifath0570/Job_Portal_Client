@@ -12,7 +12,9 @@ import {
   X,
   ExternalLink,
   Loader2,
+  ShieldAlert,
 } from "lucide-react";
+
 
 export default function Application() {
   const [applications, setApplications] = useState([]);
@@ -24,6 +26,7 @@ export default function Application() {
 
   // Modal & Notification State
   const [viewingApp, setViewingApp] = useState(null);
+  const [deletingApp, setDeletingApp] = useState(null); // Delete Confirmation Modal State
   const [toastMessage, setToastMessage] = useState("");
 
   const showToast = (msg) => {
@@ -87,10 +90,36 @@ export default function Application() {
     showToast(`Application status for ${candidateName} updated to "${newStatus}".`);
   };
 
-  // Delete Application Record
-  const handleDeleteApplication = (id, candidateName) => {
-    setApplications((prev) => prev.filter((app) => app.id !== id));
-    showToast(`Application for ${candidateName} deleted.`);
+  // Open Delete Confirmation Modal
+  const handleOpenDelete = (app) => {
+    setDeletingApp(app);
+  };
+
+  // Confirm & Execute Delete Application Record
+  const handleConfirmDelete = async () => {
+    if (!deletingApp) return;
+    const { id, candidateName } = deletingApp;
+
+    try {
+      const response = await fetch(`${baseUrl}/api/application/${id}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || "Failed to delete job application");
+      }
+
+      setApplications((prev) => prev.filter((app) => app.id !== id));
+      showToast(`Application for ${candidateName} deleted.`);
+    } catch (err) {
+      console.error("Error deleting application:", err);
+      alert(`Failed to delete application: ${err.message}`);
+    } finally {
+      setDeletingApp(null);
+    }
   };
 
   // Status Badge Styling Helper
@@ -301,6 +330,7 @@ export default function Application() {
                       <div className="flex items-center justify-end gap-1.5">
                         {/* Inspect Details Button */}
                         <button
+                          type="button"
                           onClick={() => setViewingApp(app)}
                           title="View Application Details"
                           className="p-2 bg-[#0a0a0f] hover:bg-purple-500/10 border border-gray-800 hover:border-purple-500/30 text-gray-300 hover:text-purple-400 rounded-xl transition-all cursor-pointer"
@@ -310,7 +340,8 @@ export default function Application() {
 
                         {/* Delete Button */}
                         <button
-                          onClick={() => handleDeleteApplication(app.id, app.candidateName)}
+                          type="button"
+                          onClick={() => handleOpenDelete(app)}
                           title="Delete Application Record"
                           className="p-2 bg-[#0a0a0f] hover:bg-rose-500/10 border border-gray-800 hover:border-rose-500/30 text-gray-400 hover:text-rose-400 rounded-xl transition-all cursor-pointer"
                         >
@@ -351,6 +382,7 @@ export default function Application() {
               </div>
 
               <button
+                type="button"
                 onClick={() => setViewingApp(null)}
                 className="text-gray-400 hover:text-white cursor-pointer"
               >
@@ -412,12 +444,58 @@ export default function Application() {
           </div>
         </div>
       )}
+
+      {/* ========================================== */}
+      {/* DELETE CONFIRMATION MODAL                 */}
+      {/* ========================================== */}
+      {deletingApp && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#14141f] border border-gray-800 rounded-2xl w-full max-w-sm p-6 space-y-6 shadow-2xl relative text-xs">
+            <div className="flex items-center justify-between border-b border-gray-800 pb-4">
+              <div className="flex items-center gap-2 text-rose-400 font-bold text-sm">
+                <ShieldAlert className="w-5 h-5" />
+                Confirm Deletion
+              </div>
+              <button
+                type="button"
+                onClick={() => setDeletingApp(null)}
+                className="text-gray-400 hover:text-white cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-2 text-gray-300">
+              <p>
+                Are you sure you want to delete the application for <span className="font-bold text-white">{deletingApp.candidateName}</span>?
+              </p>
+              <p className="text-[11px] text-gray-400">
+                This action is permanent and will remove the job application record from the database.
+              </p>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-800">
+              <button
+                type="button"
+                onClick={() => setDeletingApp(null)}
+                className="px-4 py-2 bg-[#0a0a0f] hover:bg-gray-800 border border-gray-800 text-gray-300 rounded-xl transition-all cursor-pointer font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                className="px-5 py-2 bg-rose-600 hover:bg-rose-500 text-white font-semibold rounded-xl shadow-md cursor-pointer transition-all"
+              >
+                Yes, Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-
-
-
 
 
 
