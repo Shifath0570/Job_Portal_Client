@@ -28,6 +28,7 @@ export default function ManageCandidates() {
   // Modals state
   const [selectedCandidate, setSelectedCandidate] = useState(null);
   const [resumeCandidate, setResumeCandidate] = useState(null);
+  const [deletingCandidate, setDeletingCandidate] = useState(null); // Delete Confirmation Modal State
   const [toastMessage, setToastMessage] = useState("");
 
   const showToast = (msg) => {
@@ -95,10 +96,36 @@ export default function ManageCandidates() {
     showToast(`Candidate ${name} account set to ${newStatus.toLowerCase()}.`);
   };
 
-  // Delete Candidate Account
-  const handleDeleteCandidate = (id, name) => {
-    setCandidates((prev) => prev.filter((c) => c.id !== id));
-    showToast(`Candidate ${name} removed from system.`);
+  // Open Delete Confirmation Modal
+  const handleOpenDelete = (candidate) => {
+    setDeletingCandidate(candidate);
+  };
+
+  // Confirm & Execute Delete Candidate
+  const handleConfirmDelete = async () => {
+    if (!deletingCandidate) return;
+    const { id, name } = deletingCandidate;
+
+    try {
+      const response = await fetch(`${baseUrl}/api/seeker/${id}`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || "Failed to delete job seeker profile");
+      }
+
+      setCandidates((prev) => prev.filter((c) => c.id !== id));
+      showToast(`Candidate ${name} removed from system.`);
+    } catch (err) {
+      console.error("Error deleting candidate:", err);
+      alert(`Failed to delete candidate: ${err.message}`);
+    } finally {
+      setDeletingCandidate(null);
+    }
   };
 
   // Filter Candidates
@@ -266,6 +293,7 @@ export default function ManageCandidates() {
                       <div className="flex items-center justify-end gap-1.5">
                         {/* View Candidate Profile Modal Button */}
                         <button
+                          type="button"
                           onClick={() => setSelectedCandidate(cand)}
                           title="View Candidate Profile"
                           className="p-2 bg-[#0a0a0f] hover:bg-gray-800 border border-gray-800 text-gray-300 hover:text-white rounded-xl transition-all cursor-pointer"
@@ -275,6 +303,7 @@ export default function ManageCandidates() {
 
                         {/* View Resume Button */}
                         <button
+                          type="button"
                           onClick={() => setResumeCandidate(cand)}
                           title="View Candidate Resume"
                           className="p-2 bg-[#0a0a0f] hover:bg-purple-500/10 border border-gray-800 hover:border-purple-500/30 text-gray-300 hover:text-purple-400 rounded-xl transition-all cursor-pointer"
@@ -284,6 +313,7 @@ export default function ManageCandidates() {
 
                         {/* Suspend / Activate Button */}
                         <button
+                          type="button"
                           onClick={() => handleToggleSuspend(cand.id, cand.name, cand.status)}
                           title={cand.status === "Active" ? "Suspend Candidate" : "Activate Candidate"}
                           className={`p-2 bg-[#0a0a0f] border rounded-xl transition-all cursor-pointer ${
@@ -297,7 +327,8 @@ export default function ManageCandidates() {
 
                         {/* Delete Candidate Button */}
                         <button
-                          onClick={() => handleDeleteCandidate(cand.id, cand.name)}
+                          type="button"
+                          onClick={() => handleOpenDelete(cand)}
                           title="Delete Candidate Account"
                           className="p-2 bg-[#0a0a0f] hover:bg-rose-500/10 border border-gray-800 hover:border-rose-500/30 text-gray-400 hover:text-rose-400 rounded-xl transition-all cursor-pointer"
                         >
@@ -338,6 +369,7 @@ export default function ManageCandidates() {
               </div>
 
               <button
+                type="button"
                 onClick={() => setSelectedCandidate(null)}
                 className="text-gray-400 hover:text-white cursor-pointer"
               >
@@ -437,6 +469,7 @@ export default function ManageCandidates() {
               </div>
 
               <button
+                type="button"
                 onClick={() => setResumeCandidate(null)}
                 className="text-gray-400 hover:text-white cursor-pointer"
               >
@@ -478,12 +511,58 @@ export default function ManageCandidates() {
           </div>
         </div>
       )}
+
+      {/* ========================================== */}
+      {/* DELETE CONFIRMATION MODAL                 */}
+      {/* ========================================== */}
+      {deletingCandidate && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#14141f] border border-gray-800 rounded-2xl w-full max-w-sm p-6 space-y-6 shadow-2xl relative text-xs">
+            <div className="flex items-center justify-between border-b border-gray-800 pb-4">
+              <div className="flex items-center gap-2 text-rose-400 font-bold text-sm">
+                <ShieldAlert className="w-5 h-5" />
+                Confirm Deletion
+              </div>
+              <button
+                type="button"
+                onClick={() => setDeletingCandidate(null)}
+                className="text-gray-400 hover:text-white cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-2 text-gray-300">
+              <p>
+                Are you sure you want to delete candidate <span className="font-bold text-white">{deletingCandidate.name}</span>?
+              </p>
+              <p className="text-[11px] text-gray-400">
+                This action is permanent and will remove the job seeker profile and associated records from the database.
+              </p>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-800">
+              <button
+                type="button"
+                onClick={() => setDeletingCandidate(null)}
+                className="px-4 py-2 bg-[#0a0a0f] hover:bg-gray-800 border border-gray-800 text-gray-300 rounded-xl transition-all cursor-pointer font-medium"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmDelete}
+                className="px-5 py-2 bg-rose-600 hover:bg-rose-500 text-white font-semibold rounded-xl shadow-md cursor-pointer transition-all"
+              >
+                Yes, Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-
-
-
 
 
 
