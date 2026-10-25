@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   PenTool,
   Image as ImageIcon,
@@ -17,8 +17,12 @@ import {
   Upload,
   Loader2,
 } from "lucide-react";
+import { authClient } from "@/app/lib/auth-client";
 
 export default function BlogWrite() {
+  const { data: session } = authClient.useSession();
+  const user = session?.user;
+
   const [formData, setFormData] = useState({
     title: "",
     category: "Career Advice",
@@ -34,6 +38,17 @@ export default function BlogWrite() {
   const [toastMessage, setToastMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+
+  // Synchronize author name and avatar when user session loads
+  useEffect(() => {
+    if (user) {
+      setFormData((prev) => ({
+        ...prev,
+        authorName: user.name || user.fullName || prev.authorName,
+        authorAvatar: user.image || user.avatar || prev.authorAvatar,
+      }));
+    }
+  }, [user]);
 
   const showToast = (msg) => {
     setToastMessage(msg);
@@ -364,6 +379,7 @@ export default function BlogWrite() {
               </div>
 
               <button
+                type="button"
                 onClick={() => setPreviewMode(false)}
                 className="text-gray-400 hover:text-white cursor-pointer"
               >
@@ -423,10 +439,6 @@ export default function BlogWrite() {
     </div>
   );
 }
-
-
-
-
 
 
 
