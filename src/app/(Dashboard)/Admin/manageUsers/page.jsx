@@ -54,7 +54,7 @@ export default function ManageUsers() {
       }
 
       const result = await response.json();
-      const rawUsers = result.users || (Array.isArray(result) ? result : []);
+      const rawUsers = result.users || result.data || (Array.isArray(result) ? result : []);
 
       // Normalize MongoDB fields to frontend expected structure
       const formattedUsers = rawUsers.map((u) => ({
@@ -83,17 +83,30 @@ export default function ManageUsers() {
   }, [fetchUsers]);
 
   // Toggle Suspend / Activate Status
-  const handleToggleStatus = (userId) => {
-    setUsers((prev) =>
-      prev.map((u) => {
-        if (u.id === userId) {
-          const newStatus = u.status === "Active" ? "Suspended" : "Active";
-          showToast(`User ${u.name} is now ${newStatus.toLowerCase()}.`);
-          return { ...u, status: newStatus };
-        }
-        return u;
-      })
-    );
+  const handleToggleStatus = async (user) => {
+    const newStatus = user.status === "Active" ? "Suspended" : "Active";
+
+    try {
+      const response = await fetch(`${baseUrl}/api/users/${user.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || "Failed to update user status");
+      }
+
+      setUsers((prev) =>
+        prev.map((u) => (u.id === user.id ? { ...u, status: newStatus } : u))
+      );
+      showToast(`User ${user.name} is now ${newStatus.toLowerCase()}.`);
+    } catch (err) {
+      console.error("Toggle Status Error:", err);
+      alert(`Failed to update status: ${err.message}`);
+    }
   };
 
   // Open Delete Confirmation Modal
@@ -134,36 +147,53 @@ export default function ManageUsers() {
     setEditFormData({ name: user.name, email: user.email, role: user.role });
   };
 
-  // Save Edit User
-  const handleSaveUser = (e) => {
+  // Save Edit User (Async PUT API Integration)
+  const handleSaveUser = async (e) => {
     e.preventDefault();
     if (!editingUser) return;
 
-    setUsers((prev) =>
-      prev.map((u) =>
-        u.id === editingUser.id
-          ? {
+    try {
+      const response = await fetch(`${baseUrl}/api/users/${editingUser.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(editFormData),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || "Failed to update user");
+      }
+
+      setUsers((prev) =>
+        prev.map((u) =>
+          u.id === editingUser.id
+            ? {
               ...u,
               name: editFormData.name,
               email: editFormData.email,
               role: editFormData.role,
             }
-          : u
-      )
-    );
+            : u
+        )
+      );
 
-    showToast(`Updated profile for ${editFormData.name}.`);
-    setEditingUser(null);
+      showToast(`Updated profile for ${editFormData.name}.`);
+      setEditingUser(null);
+    } catch (err) {
+      console.error("Error updating user:", err);
+      alert(`Failed to update user: ${err.message}`);
+    }
   };
 
   // Role Badge Color Helper
   const getRoleBadgeStyle = (role) => {
     switch (role) {
-      case "Admin":
+      case "admin":
         return "bg-rose-500/10 text-rose-400 border-rose-500/20";
-      case "Recruiter":
+      case "recruiter":
         return "bg-indigo-500/10 text-indigo-400 border-indigo-500/20";
-      case "Candidate":
+      case "seeker":
         return "bg-purple-500/10 text-purple-400 border-purple-500/20";
       default:
         return "bg-gray-500/10 text-gray-400 border-gray-500/20";
@@ -319,11 +349,10 @@ export default function ManageUsers() {
                     {/* Account Status Badge */}
                     <td className="py-4 px-4">
                       <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${
-                          user.status === "Active"
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${user.status === "Active"
                             ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
                             : "bg-amber-500/10 text-amber-400 border-amber-500/20"
-                        }`}
+                          }`}
                       >
                         {user.status}
                       </span>
@@ -339,6 +368,7 @@ export default function ManageUsers() {
                       <div className="flex items-center justify-end gap-2">
                         {/* Edit Button */}
                         <button
+                          type="button"
                           onClick={() => handleOpenEdit(user)}
                           title="Edit User Info / Role"
                           className="p-2 bg-[#0a0a0f] hover:bg-gray-800 border border-gray-800 text-gray-300 hover:text-white rounded-xl transition-all cursor-pointer"
@@ -348,19 +378,20 @@ export default function ManageUsers() {
 
                         {/* Suspend / Activate Button */}
                         <button
-                          onClick={() => handleToggleStatus(user.id)}
+                          type="button"
+                          onClick={() => handleToggleStatus(user)}
                           title={user.status === "Active" ? "Suspend User" : "Activate User"}
-                          className={`p-2 bg-[#0a0a0f] border rounded-xl transition-all cursor-pointer ${
-                            user.status === "Active"
+                          className={`p-2 bg-[#0a0a0f] border rounded-xl transition-all cursor-pointer ${user.status === "Active"
                               ? "border-gray-800 text-amber-400 hover:bg-amber-500/10 hover:border-amber-500/30"
                               : "border-gray-800 text-emerald-400 hover:bg-emerald-500/10 hover:border-emerald-500/30"
-                          }`}
+                            }`}
                         >
                           <ShieldAlert className="w-3.5 h-3.5" />
                         </button>
 
                         {/* Delete User Button */}
                         <button
+                          type="button"
                           onClick={() => handleOpenDelete(user)}
                           title="Delete User Account"
                           className="p-2 bg-[#0a0a0f] hover:bg-rose-500/10 border border-gray-800 hover:border-rose-500/30 text-gray-400 hover:text-rose-400 rounded-xl transition-all cursor-pointer"
@@ -393,6 +424,7 @@ export default function ManageUsers() {
               </div>
 
               <button
+                type="button"
                 onClick={() => setEditingUser(null)}
                 className="text-gray-400 hover:text-white cursor-pointer"
               >
@@ -477,6 +509,7 @@ export default function ManageUsers() {
                 Confirm Deletion
               </div>
               <button
+                type="button"
                 onClick={() => setDeletingUser(null)}
                 className="text-gray-400 hover:text-white cursor-pointer"
               >
@@ -515,5 +548,9 @@ export default function ManageUsers() {
     </div>
   );
 }
+
+
+
+
 
 
