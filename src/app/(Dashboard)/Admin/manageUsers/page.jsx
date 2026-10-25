@@ -469,9 +469,9 @@ export default function ManageUsers() {
                   }
                   className="w-full px-3.5 py-2.5 bg-[#0a0a0f] border border-gray-800 focus:border-purple-500 text-white rounded-xl outline-none cursor-pointer"
                 >
-                  <option value="Admin">Admin</option>
-                  <option value="Recruiter">Recruiter</option>
-                  <option value="Candidate">Candidate</option>
+                  <option value="admin">Admin</option>
+                  <option value="recruiter">Recruiter</option>
+                  <option value="seeker">Seeker</option>
                 </select>
               </div>
 
