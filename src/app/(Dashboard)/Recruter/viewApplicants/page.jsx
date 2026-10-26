@@ -106,8 +106,9 @@ export default function ViewApplicants() {
     fetchApplicants();
   }, [sessionLoading, user?.email]);
 
-  // Handle Status Change
-  const handleStatusChange = (applicantId, newStatus) => {
+  // Handle Status Change with API Integration
+  const handleStatusChange = async (applicantId, newStatus) => {
+    // Optimistic UI update
     setApplicants((prev) =>
       prev.map((app) =>
         app._id === applicantId || app.id === applicantId
@@ -115,15 +116,38 @@ export default function ViewApplicants() {
           : app
       )
     );
+
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000";
+      const response = await fetch(`${baseUrl}/api/applicants/${applicantId}/status`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || "Failed to update application status");
+      }
+
+      setNotificationMsg(`Application status updated to "${newStatus}" successfully!`);
+      setTimeout(() => setNotificationMsg(""), 3000);
+    } catch (err) {
+      console.error("Status Update Error:", err);
+      alert(`Failed to update status: ${err.message}`);
+    }
   };
 
   // Schedule Interview Submission
-  const handleScheduleInterview = (e) => {
+  const handleScheduleInterview = async (e) => {
     e.preventDefault();
     if (!interviewModalApplicant) return;
 
     const targetId = interviewModalApplicant._id || interviewModalApplicant.id;
-    handleStatusChange(targetId, "Interview Scheduled");
+    await handleStatusChange(targetId, "Interview Scheduled");
 
     setNotificationMsg(
       `Interview scheduled with ${interviewModalApplicant.name}. A notification email has been dispatched!`
@@ -327,6 +351,7 @@ export default function ViewApplicants() {
                     </div>
 
                     <button
+                      type="button"
                       onClick={() => setInterviewModalApplicant(app)}
                       className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-medium rounded-xl transition-all shadow-md cursor-pointer"
                     >
@@ -389,6 +414,7 @@ export default function ViewApplicants() {
                   </span>
                   <div className="flex items-center gap-3">
                     <button
+                      type="button"
                       onClick={() => setSelectedResume(app)}
                       className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#0a0a0f] hover:bg-gray-800 border border-gray-800 text-gray-300 hover:text-white text-xs font-medium rounded-xl transition-all cursor-pointer"
                     >
@@ -418,6 +444,7 @@ export default function ViewApplicants() {
             <div className="flex items-center justify-between pb-3 border-b border-gray-800">
               <h3 className="text-lg font-bold text-white">Resume: {selectedResume.name}</h3>
               <button
+                type="button"
                 onClick={() => setSelectedResume(null)}
                 className="text-gray-400 hover:text-white cursor-pointer"
               >
@@ -558,8 +585,6 @@ export default function ViewApplicants() {
     </div>
   );
 }
-
-
 
 
 
