@@ -9,7 +9,6 @@ import {
   MapPin,
   FileText,
   Video,
-  Copy,
   ExternalLink,
 } from "lucide-react";
 
@@ -61,15 +60,7 @@ const INITIAL_INTERVIEWS = [
 export default function Interviews() {
   const [interviews] = useState(INITIAL_INTERVIEWS);
   const [activeTab, setActiveTab] = useState("UPCOMING");
-  const [notification, setNotification] = useState("");
-
-  const handleCopyLink = (link) => {
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(link);
-      setNotification("Meeting link copied to clipboard!");
-      setTimeout(() => setNotification(""), 3000);
-    }
-  };
+  const [notification] = useState("");
 
   const filteredInterviews = interviews.filter((item) =>
     activeTab === "UPCOMING" ? item.status === "Upcoming" : item.status === "Completed"
@@ -91,6 +82,7 @@ export default function Interviews() {
         {/* Tab Filter */}
         <div className="flex items-center bg-[#14141f] border border-gray-800 p-1 rounded-xl">
           <button
+            type="button"
             onClick={() => setActiveTab("UPCOMING")}
             className={`px-4 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
               activeTab === "UPCOMING"
@@ -101,6 +93,7 @@ export default function Interviews() {
             Upcoming
           </button>
           <button
+            type="button"
             onClick={() => setActiveTab("COMPLETED")}
             className={`px-4 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
               activeTab === "COMPLETED"
@@ -207,7 +200,7 @@ export default function Interviews() {
                 </div>
               )}
 
-              {/* Action Buttons: Join Link / Copy Link */}
+              {/* Action Buttons: Join Link */}
               {interview.status === "Upcoming" && (
                 <div className="flex flex-wrap items-center justify-between gap-4 pt-2 border-t border-gray-800/60">
                   <div className="text-xs text-gray-400">
@@ -226,26 +219,16 @@ export default function Interviews() {
 
                   <div className="flex items-center gap-3">
                     {interview.meetingLink && (
-                      <>
-                        <button
-                          onClick={() => handleCopyLink(interview.meetingLink)}
-                          className="px-3.5 py-2 bg-[#0a0a0f] hover:bg-gray-800 border border-gray-800 text-gray-300 hover:text-white text-xs font-semibold rounded-xl transition-all cursor-pointer inline-flex items-center gap-1.5"
-                        >
-                          <Copy className="w-3.5 h-3.5" />
-                          Copy Link
-                        </button>
-
-                        <a
-                          href={interview.meetingLink}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="px-5 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-semibold rounded-xl shadow-md cursor-pointer transition-all inline-flex items-center gap-2"
-                        >
-                          <Video className="w-4 h-4" />
-                          Join Meeting
-                          <ExternalLink className="w-3.5 h-3.5" />
-                        </a>
-                      </>
+                      <a
+                        href={interview.meetingLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-5 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-semibold rounded-xl shadow-md cursor-pointer transition-all inline-flex items-center gap-2"
+                      >
+                        <Video className="w-4 h-4" />
+                        Join Meeting
+                        <ExternalLink className="w-3.5 h-3.5" />
+                      </a>
                     )}
                   </div>
                 </div>
