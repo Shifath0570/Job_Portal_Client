@@ -8,8 +8,6 @@ import {
   Briefcase,
   Eye,
   CheckCircle,
-  Edit,
-  Power,
   Trash2,
   X,
   DollarSign,
@@ -29,17 +27,7 @@ export default function ManageJobs() {
 
   // Modal States
   const [viewingJob, setViewingJob] = useState(null);
-  const [editingJob, setEditingJob] = useState(null);
   const [deletingJob, setDeletingJob] = useState(null); // Delete Confirmation Modal State
-
-  const [editFormData, setEditFormData] = useState({
-    title: "",
-    company: "",
-    location: "",
-    salary: "",
-    type: "Full-Time",
-    description: "",
-  });
 
   const showToast = (msg) => {
     setToastMessage(msg);
@@ -102,15 +90,6 @@ export default function ManageJobs() {
     showToast(`Job "${title}" approved and published!`);
   };
 
-  // Toggle Close / Reopen Job
-  const handleToggleJobStatus = (id, title, currentStatus) => {
-    const newStatus = currentStatus === "Active" ? "Closed" : "Active";
-    setJobs((prev) =>
-      prev.map((j) => (j.id === id ? { ...j, status: newStatus } : j))
-    );
-    showToast(`Job "${title}" is now ${newStatus.toLowerCase()}.`);
-  };
-
   // Open Delete Confirmation Modal
   const handleOpenDelete = (job) => {
     setDeletingJob(job);
@@ -141,44 +120,6 @@ export default function ManageJobs() {
     } finally {
       setDeletingJob(null);
     }
-  };
-
-  // Open Edit Modal
-  const handleOpenEdit = (job) => {
-    setEditingJob(job);
-    setEditFormData({
-      title: job.title,
-      company: job.company,
-      location: job.location,
-      salary: job.salary,
-      type: job.type,
-      description: job.description,
-    });
-  };
-
-  // Save Edit Job
-  const handleSaveEdit = (e) => {
-    e.preventDefault();
-    if (!editingJob) return;
-
-    setJobs((prev) =>
-      prev.map((j) =>
-        j.id === editingJob.id
-          ? {
-              ...j,
-              title: editFormData.title,
-              company: editFormData.company,
-              location: editFormData.location,
-              salary: editFormData.salary,
-              type: editFormData.type,
-              description: editFormData.description,
-            }
-          : j
-      )
-    );
-
-    showToast(`Job "${editFormData.title}" updated.`);
-    setEditingJob(null);
   };
 
   // Status Badge Helper
@@ -217,7 +158,7 @@ export default function ManageJobs() {
             Manage Jobs
           </h1>
           <p className="text-gray-400 text-sm pt-1">
-            Monitor, approve, modify, close, or delete job postings across the platform.
+            Monitor, approve, or delete job postings across the platform.
           </p>
         </div>
 
@@ -369,6 +310,7 @@ export default function ManageJobs() {
                       <div className="flex items-center justify-end gap-1.5">
                         {/* View Job Details Button */}
                         <button
+                          type="button"
                           onClick={() => setViewingJob(job)}
                           title="View Job Details"
                           className="p-2 bg-[#0a0a0f] hover:bg-gray-800 border border-gray-800 text-gray-300 hover:text-white rounded-xl transition-all cursor-pointer"
@@ -379,6 +321,7 @@ export default function ManageJobs() {
                         {/* Approve Button (if pending) */}
                         {job.status === "Pending" && (
                           <button
+                            type="button"
                             onClick={() => handleApprove(job.id, job.title)}
                             title="Approve Job Posting"
                             className="p-2 bg-[#0a0a0f] hover:bg-emerald-500/10 border border-gray-800 hover:border-emerald-500/30 text-emerald-400 rounded-xl transition-all cursor-pointer"
@@ -387,38 +330,9 @@ export default function ManageJobs() {
                           </button>
                         )}
 
-                        {/* Edit Job Button */}
-                        <button
-                          onClick={() => handleOpenEdit(job)}
-                          title="Edit Job Information"
-                          className="p-2 bg-[#0a0a0f] hover:bg-purple-500/10 border border-gray-800 hover:border-purple-500/30 text-gray-300 hover:text-purple-400 rounded-xl transition-all cursor-pointer"
-                        >
-                          <Edit className="w-3.5 h-3.5" />
-                        </button>
-
-                        {/* Close / Reopen Toggle Button */}
-                        {job.status !== "Pending" && (
-                          <button
-                            onClick={() =>
-                              handleToggleJobStatus(job.id, job.title, job.status)
-                            }
-                            title={
-                              job.status === "Active"
-                                ? "Close Job Posting"
-                                : "Reopen Job Posting"
-                            }
-                            className={`p-2 bg-[#0a0a0f] border rounded-xl transition-all cursor-pointer ${
-                              job.status === "Active"
-                                ? "border-gray-800 text-amber-400 hover:bg-amber-500/10 hover:border-amber-500/30"
-                                : "border-gray-800 text-emerald-400 hover:bg-emerald-500/10 hover:border-emerald-500/30"
-                            }`}
-                          >
-                            <Power className="w-3.5 h-3.5" />
-                          </button>
-                        )}
-
                         {/* Delete Job Button */}
                         <button
+                          type="button"
                           onClick={() => handleOpenDelete(job)}
                           title="Delete Job Posting"
                           className="p-2 bg-[#0a0a0f] hover:bg-rose-500/10 border border-gray-800 hover:border-rose-500/30 text-gray-400 hover:text-rose-400 rounded-xl transition-all cursor-pointer"
@@ -460,6 +374,7 @@ export default function ManageJobs() {
               </div>
 
               <button
+                type="button"
                 onClick={() => setViewingJob(null)}
                 className="text-gray-400 hover:text-white cursor-pointer"
               >
@@ -529,168 +444,6 @@ export default function ManageJobs() {
       )}
 
       {/* ========================================== */}
-      {/* EDIT JOB MODAL                             */}
-      {/* ========================================== */}
-      {editingJob && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-[#14141f] border border-gray-800 rounded-2xl w-full max-w-md p-6 space-y-6 shadow-2xl relative">
-            {/* Header */}
-            <div className="flex items-center justify-between border-b border-gray-800 pb-4">
-              <div>
-                <h2 className="text-base font-bold text-white">
-                  Edit Job Posting
-                </h2>
-                <p className="text-xs text-purple-400">ID: {editingJob.id}</p>
-              </div>
-
-              <button
-                onClick={() => setEditingJob(null)}
-                className="text-gray-400 hover:text-white cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Form */}
-            <form onSubmit={handleSaveEdit} className="space-y-3.5 text-xs">
-              <div className="space-y-1.5">
-                <label className="text-gray-300 font-semibold block">
-                  Job Title
-                </label>
-                <input
-                  type="text"
-                  value={editFormData.title}
-                  onChange={(e) =>
-                    setEditFormData((prev) => ({
-                      ...prev,
-                      title: e.target.value,
-                    }))
-                  }
-                  required
-                  className="w-full px-3.5 py-2.5 bg-[#0a0a0f] border border-gray-800 focus:border-purple-500 text-white rounded-xl outline-none"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <label className="text-gray-300 font-semibold block">
-                    Company
-                  </label>
-                  <input
-                    type="text"
-                    value={editFormData.company}
-                    onChange={(e) =>
-                      setEditFormData((prev) => ({
-                        ...prev,
-                        company: e.target.value,
-                      }))
-                    }
-                    required
-                    className="w-full px-3.5 py-2.5 bg-[#0a0a0f] border border-gray-800 focus:border-purple-500 text-white rounded-xl outline-none"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-gray-300 font-semibold block">
-                    Job Type
-                  </label>
-                  <select
-                    value={editFormData.type}
-                    onChange={(e) =>
-                      setEditFormData((prev) => ({
-                        ...prev,
-                        type: e.target.value,
-                      }))
-                    }
-                    className="w-full px-3.5 py-2.5 bg-[#0a0a0f] border border-gray-800 focus:border-purple-500 text-white rounded-xl outline-none cursor-pointer"
-                  >
-                    <option value="Full-Time">Full-Time</option>
-                    <option value="Part-Time">Part-Time</option>
-                    <option value="Contract">Contract</option>
-                    <option value="Internship">Internship</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <label className="text-gray-300 font-semibold block">
-                    Location
-                  </label>
-                  <input
-                    type="text"
-                    value={editFormData.location}
-                    onChange={(e) =>
-                      setEditFormData((prev) => ({
-                        ...prev,
-                        location: e.target.value,
-                      }))
-                    }
-                    required
-                    className="w-full px-3.5 py-2.5 bg-[#0a0a0f] border border-gray-800 focus:border-purple-500 text-white rounded-xl outline-none"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-gray-300 font-semibold block">
-                    Salary Range
-                  </label>
-                  <input
-                    type="text"
-                    value={editFormData.salary}
-                    onChange={(e) =>
-                      setEditFormData((prev) => ({
-                        ...prev,
-                        salary: e.target.value,
-                      }))
-                    }
-                    required
-                    className="w-full px-3.5 py-2.5 bg-[#0a0a0f] border border-gray-800 focus:border-purple-500 text-white rounded-xl outline-none"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1.5">
-                <label className="text-gray-300 font-semibold block">
-                  Description
-                </label>
-                <textarea
-                  rows={3}
-                  value={editFormData.description}
-                  onChange={(e) =>
-                    setEditFormData((prev) => ({
-                      ...prev,
-                      description: e.target.value,
-                    }))
-                  }
-                  required
-                  className="w-full px-3.5 py-2.5 bg-[#0a0a0f] border border-gray-800 focus:border-purple-500 text-white rounded-xl outline-none resize-none"
-                />
-              </div>
-
-              {/* Actions */}
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-800">
-                <button
-                  type="button"
-                  onClick={() => setEditingJob(null)}
-                  className="px-4 py-2 bg-[#0a0a0f] hover:bg-gray-800 border border-gray-800 text-gray-300 rounded-xl transition-all cursor-pointer font-medium"
-                >
-                  Cancel
-                </button>
-
-                <button
-                  type="submit"
-                  className="px-5 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold rounded-xl shadow-md cursor-pointer transition-all"
-                >
-                  Save Changes
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* ========================================== */}
       {/* DELETE CONFIRMATION MODAL                 */}
       {/* ========================================== */}
       {deletingJob && (
@@ -702,6 +455,7 @@ export default function ManageJobs() {
                 Confirm Deletion
               </div>
               <button
+                type="button"
                 onClick={() => setDeletingJob(null)}
                 className="text-gray-400 hover:text-white cursor-pointer"
               >
@@ -740,5 +494,6 @@ export default function ManageJobs() {
     </div>
   );
 }
+
 
 

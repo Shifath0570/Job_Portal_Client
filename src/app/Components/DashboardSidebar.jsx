@@ -57,7 +57,6 @@ const DashboardSidebar = () => {
     { id: "application", href: "/Admin/application", label: "Application", icon: CreditCard },
     { id: "reportsManagement", href: "/Admin/reportsManagement", label: "Reports Management", icon: CreditCard },
     { id: "notifications", href: "/Admin/notifications", label: "Notifications", icon: CreditCard },
-    { id: "analyticsDashboard", href: "/Admin/analyticsDashboard", label: "Analytics Dashboard", icon: CreditCard },
   ];
 
   const navLinkMap = {
