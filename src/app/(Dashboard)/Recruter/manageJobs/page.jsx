@@ -5,7 +5,6 @@ import { authClient } from "@/app/lib/auth-client";
 import React, { useState, useEffect, useCallback } from "react";
 import {
   Eye as EyeIcon,
-  SquarePen as EditIcon,
   Trash2 as TrashIcon,
   Lock as LockIcon,
   LockKeyholeOpen as UnlockIcon,
@@ -22,7 +21,6 @@ export default function ManageJobs() {
   const [isFetching, setIsFetching] = useState(false);
   const [error, setError] = useState(null);
   const [selectedJob, setSelectedJob] = useState(null);
-  const [editingJob, setEditingJob] = useState(null);
   const [filterStatus, setFilterStatus] = useState("All");
 
   // Fetch jobs list for the logged-in user's company email
@@ -138,19 +136,6 @@ export default function ManageJobs() {
     }
   };
 
-  // Save Edited Job
-  const handleSaveEdit = (e) => {
-    e.preventDefault();
-    setJobs((prev) =>
-      prev.map((job) =>
-        (job._id || job.id) === (editingJob._id || editingJob.id)
-          ? editingJob
-          : job
-      )
-    );
-    setEditingJob(null);
-  };
-
   const filteredJobs = jobs.filter((job) => {
     if (filterStatus === "Active") return job.status === "Active";
     if (filterStatus === "Closed") return job.status === "Closed";
@@ -166,7 +151,7 @@ export default function ManageJobs() {
             Manage Jobs
           </h1>
           <p className="text-gray-400 text-sm pt-1">
-            View, edit, close, reopen, or remove posted job listings for{" "}
+            View, close, reopen, or remove posted job listings for{" "}
             <span className="text-indigo-400 font-medium">
               {userEmail || "your account"}
             </span>
@@ -175,6 +160,7 @@ export default function ManageJobs() {
         </div>
         <div className="flex items-center gap-3">
           <button
+            type="button"
             onClick={handleFetchJobs}
             disabled={isFetching || !userEmail}
             className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#14141f] hover:bg-gray-800 border border-gray-800 text-gray-300 hover:text-white text-sm font-medium rounded-xl transition-all disabled:opacity-50 cursor-pointer"
@@ -199,6 +185,7 @@ export default function ManageJobs() {
         {["All", "Active", "Closed"].map((status) => (
           <button
             key={status}
+            type="button"
             onClick={() => setFilterStatus(status)}
             className={`px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
               filterStatus === status
@@ -241,6 +228,8 @@ export default function ManageJobs() {
                 filteredJobs.map((job) => {
                   const jobId = job._id || job.id;
                   const currentStatus = job.status || "Active";
+                  const isActive = currentStatus === "Active";
+
                   return (
                     <tr
                       key={jobId}
@@ -251,7 +240,8 @@ export default function ManageJobs() {
                           {job.title}
                         </div>
                         <div className="text-xs text-gray-400">
-                          {job.location || "Remote"} • {job.employmentType || "Full Time"}
+                          {job.location || "Remote"} •{" "}
+                          {job.employmentType || "Full Time"}
                         </div>
                       </td>
                       <td className="py-4 px-6 text-gray-300">
@@ -263,9 +253,9 @@ export default function ManageJobs() {
                       <td className="py-4 px-6">
                         <span
                           className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${
-                            currentStatus === "Active"
+                            isActive
                               ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-                              : "bg-gray-500/10 text-gray-400 border-gray-500/20"
+                              : "bg-rose-500/10 text-rose-400 border-rose-500/20"
                           }`}
                         >
                           {currentStatus}
@@ -274,6 +264,7 @@ export default function ManageJobs() {
                       <td className="py-4 px-6 text-right space-x-2">
                         {/* View Job */}
                         <button
+                          type="button"
                           onClick={() => setSelectedJob(job)}
                           title="View Job Details"
                           className="p-2 bg-[#0a0a0f] border border-gray-800 hover:border-gray-700 text-gray-300 hover:text-white rounded-lg transition-all cursor-pointer inline-flex items-center justify-center"
@@ -281,28 +272,20 @@ export default function ManageJobs() {
                           <EyeIcon className="w-4 h-4" />
                         </button>
 
-                        {/* Edit Job */}
-                        <button
-                          onClick={() => setEditingJob(job)}
-                          title="Edit Job"
-                          className="p-2 bg-[#0a0a0f] border border-gray-800 hover:border-purple-500/40 text-purple-400 rounded-lg transition-all cursor-pointer inline-flex items-center justify-center"
-                        >
-                          <EditIcon className="w-4 h-4" />
-                        </button>
-
                         {/* Close / Reopen Job */}
                         <button
+                          type="button"
                           onClick={() => handleToggleStatus(jobId, currentStatus)}
                           title={
-                            currentStatus === "Active" ? "Close Job" : "Reopen Job"
+                            isActive ? "Close Job" : "Reopen Job"
                           }
                           className={`p-2 bg-[#0a0a0f] border border-gray-800 rounded-lg transition-all cursor-pointer inline-flex items-center justify-center ${
-                            currentStatus === "Active"
-                              ? "hover:border-amber-500/40 text-amber-400"
+                            isActive
+                              ? "hover:border-rose-500/40 text-rose-400"
                               : "hover:border-emerald-500/40 text-emerald-400"
                           }`}
                         >
-                          {currentStatus === "Active" ? (
+                          {isActive ? (
                             <LockIcon className="w-4 h-4" />
                           ) : (
                             <UnlockIcon className="w-4 h-4" />
@@ -311,6 +294,7 @@ export default function ManageJobs() {
 
                         {/* Delete Job */}
                         <button
+                          type="button"
                           onClick={() => handleDeleteJob(jobId)}
                           title="Delete Job"
                           className="p-2 bg-[#0a0a0f] border border-gray-800 hover:border-rose-500/40 text-rose-400 rounded-lg transition-all cursor-pointer inline-flex items-center justify-center"
@@ -336,6 +320,7 @@ export default function ManageJobs() {
                 {selectedJob.title}
               </h3>
               <button
+                type="button"
                 onClick={() => setSelectedJob(null)}
                 className="text-gray-400 hover:text-white cursor-pointer"
               >
@@ -373,98 +358,10 @@ export default function ManageJobs() {
           </div>
         </div>
       )}
-
-      {/* Edit Job Modal */}
-      {editingJob && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <form
-            onSubmit={handleSaveEdit}
-            className="bg-[#14141f] border border-gray-800 rounded-2xl w-full max-w-lg p-6 space-y-4 shadow-2xl relative"
-          >
-            <div className="flex items-center justify-between pb-3 border-b border-gray-800">
-              <h3 className="text-lg font-bold text-white">
-                Edit Job Details
-              </h3>
-              <button
-                type="button"
-                onClick={() => setEditingJob(null)}
-                className="text-gray-400 hover:text-white cursor-pointer"
-              >
-                <CloseIcon className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="space-y-3">
-              <div>
-                <label className="text-xs font-semibold text-gray-400">
-                  Job Title
-                </label>
-                <input
-                  type="text"
-                  value={editingJob.title || ""}
-                  onChange={(e) =>
-                    setEditingJob({ ...editingJob, title: e.target.value })
-                  }
-                  className="w-full mt-1 px-3 py-2 bg-[#0a0a0f] border border-gray-800 text-white text-sm rounded-xl outline-none focus:border-purple-500"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-gray-400">
-                  Category
-                </label>
-                <input
-                  type="text"
-                  value={editingJob.category || ""}
-                  onChange={(e) =>
-                    setEditingJob({
-                      ...editingJob,
-                      category: e.target.value,
-                    })
-                  }
-                  className="w-full mt-1 px-3 py-2 bg-[#0a0a0f] border border-gray-800 text-white text-sm rounded-xl outline-none focus:border-purple-500"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-gray-400">
-                  Location
-                </label>
-                <input
-                  type="text"
-                  value={editingJob.location || ""}
-                  onChange={(e) =>
-                    setEditingJob({ ...editingJob, location: e.target.value })
-                  }
-                  className="w-full mt-1 px-3 py-2 bg-[#0a0a0f] border border-gray-800 text-white text-sm rounded-xl outline-none focus:border-purple-500"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-3 pt-3">
-              <button
-                type="button"
-                onClick={() => setEditingJob(null)}
-                className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs font-semibold rounded-xl transition-all cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold rounded-xl transition-all shadow-md cursor-pointer"
-              >
-                Save Changes
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
     </div>
   );
 }
+
 
 
 
