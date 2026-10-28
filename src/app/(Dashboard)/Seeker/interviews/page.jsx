@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   CheckCircle2,
   Calendar,
@@ -11,60 +11,108 @@ import {
   Video,
   ExternalLink,
 } from "lucide-react";
-
-const INITIAL_INTERVIEWS = [
-  {
-    id: "int-101",
-    companyName: "Starlight Design Studio",
-    companyLogo: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=100&auto=format&fit=crop&q=80",
-    jobTitle: "UI/UX Product Designer",
-    date: "Aug 12, 2026",
-    time: "02:00 PM - 03:00 PM EST",
-    type: "Virtual / Technical Round",
-    meetingLink: "https://meet.google.com/abc-defg-hij",
-    interviewLocation: "Google Meet",
-    recruiterNotes:
-      "Please prepare a 15-minute presentation walking through your recent Design Systems portfolio case study. You will be interviewing with Sarah Jenkins (Lead Product Designer).",
-    status: "Upcoming",
-  },
-  {
-    id: "int-102",
-    companyName: "Acme Technologies",
-    companyLogo: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100&auto=format&fit=crop&q=80",
-    jobTitle: "Senior React Developer",
-    date: "Aug 18, 2026",
-    time: "10:30 AM - 11:30 AM PST",
-    type: "On-site / Final Cultural Round",
-    meetingLink: null,
-    interviewLocation: "500 Howard St, Suite 400, San Francisco, CA",
-    recruiterNotes:
-      "Please check in at the 4th-floor lobby guest counter. Ask for David Miller. Parking validation is provided at the garage entrance.",
-    status: "Upcoming",
-  },
-  {
-    id: "int-103",
-    companyName: "CyberPulse Labs",
-    companyLogo: "https://images.unsplash.com/photo-1531482615713-2afd69097998?w=100&auto=format&fit=crop&q=80",
-    jobTitle: "Full Stack JavaScript Developer",
-    date: "Jul 29, 2026",
-    time: "01:00 PM - 02:00 PM EST",
-    type: "Virtual / Initial Screener",
-    meetingLink: "https://zoom.us/j/9876543210",
-    interviewLocation: "Zoom Video Call",
-    recruiterNotes:
-      "Informal conversation regarding past experience with Node.js and AWS deployment pipelines.",
-    status: "Completed",
-  },
-];
+import { authClient } from "@/app/lib/auth-client";
 
 export default function Interviews() {
-  const [interviews] = useState(INITIAL_INTERVIEWS);
+  const [interviews, setInterviews] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState("UPCOMING");
   const [notification] = useState("");
 
-  const filteredInterviews = interviews.filter((item) =>
-    activeTab === "UPCOMING" ? item.status === "Upcoming" : item.status === "Completed"
-  );
+  const { data: session, isPending: sessionLoading } = authClient.useSession();
+  const user = session?.user;
+  const userEmail = user?.email?.toLowerCase().trim() || "";
+
+  // Fetch interviews from backend API once session resolves
+  useEffect(() => {
+    if (sessionLoading) return;
+
+    async function fetchInterviews() {
+      try {
+        setLoading(true);
+        if (!userEmail) {
+          setInterviews([]);
+          return;
+        }
+
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000";
+
+        const res = await fetch(`${baseUrl}/api/interviews/${encodeURIComponent(userEmail)}`);
+        const data = await res.json();
+
+        if (data.success && Array.isArray(data.interviews)) {
+          // Strictly filter items where the applicant's email matches the user's email
+          const matchedInterviews = data.interviews.filter((item) => {
+            const candidateMail = (
+              item.applicantEmail ||
+              item.candidateEmail ||
+              item.email ||
+              ""
+            ).toLowerCase().trim();
+            return candidateMail === userEmail;
+          });
+
+          const formattedInterviews = matchedInterviews.map((item) => ({
+            ...item,
+            id: item._id || item.id,
+            companyName: item.companyName || "Company Not Specified",
+            companyLogo:
+              item.companyLogo ||
+              "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=100&auto=format&fit=crop&q=80",
+            jobTitle: item.jobTitle || item.jobPosition || "Role Not Specified",
+            date: item.date || "TBD",
+            time: item.time || "Time Not Specified",
+            type: item.type || "Virtual / Interview",
+            meetingLink: item.meetingLink || null,
+            interviewLocation:
+              item.officeAddress || item.interviewLocation || "Online / Remote",
+            recruiterNotes: item.notes || item.recruiterNotes || "No notes provided.",
+            status: item.status || "Upcoming",
+          }));
+
+          setInterviews(formattedInterviews);
+        } else {
+          setError(data.message || "Failed to load interviews");
+        }
+      } catch (err) {
+        console.error("Fetch Interviews Error:", err);
+        setError("Something went wrong while fetching interviews.");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchInterviews();
+  }, [sessionLoading, userEmail]);
+
+  // Filter interviews based on active tab
+  const filteredInterviews = interviews.filter((item) => {
+    const status = (item.status || "").toLowerCase();
+    if (activeTab === "UPCOMING") {
+      return status === "upcoming" || status === "interview scheduled";
+    } else {
+      return status === "completed" || status === "hired" || status === "rejected";
+    }
+  });
+
+  if (loading || sessionLoading) {
+    return (
+      <div className="min-h-screen flex-1 bg-[#0a0a0f] text-white flex items-center justify-center">
+        <p className="text-purple-400 text-sm animate-pulse">Loading interview schedules...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex-1 bg-[#0a0a0f] text-white flex items-center justify-center p-6">
+        <div className="p-6 bg-red-500/10 border border-red-500/30 text-red-300 text-sm rounded-xl">
+          {error}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex-1 bg-[#0a0a0f] text-white p-4 sm:p-6 lg:p-8 space-y-8">
@@ -84,22 +132,20 @@ export default function Interviews() {
           <button
             type="button"
             onClick={() => setActiveTab("UPCOMING")}
-            className={`px-4 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-              activeTab === "UPCOMING"
+            className={`px-4 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${activeTab === "UPCOMING"
                 ? "bg-purple-600 text-white shadow-md"
                 : "text-gray-400 hover:text-white"
-            }`}
+              }`}
           >
             Upcoming
           </button>
           <button
             type="button"
             onClick={() => setActiveTab("COMPLETED")}
-            className={`px-4 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-              activeTab === "COMPLETED"
+            className={`px-4 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${activeTab === "COMPLETED"
                 ? "bg-purple-600 text-white shadow-md"
                 : "text-gray-400 hover:text-white"
-            }`}
+              }`}
           >
             Completed
           </button>
@@ -192,7 +238,7 @@ export default function Interviews() {
                 <div className="p-4 bg-[#0a0a0f] border border-gray-800/80 rounded-xl space-y-1.5 text-xs">
                   <div className="flex items-center gap-1.5 text-gray-400 font-semibold">
                     <FileText className="w-4 h-4 text-purple-400" />
-                    <span>Recruiter Notes</span>
+                    <span>Recruiter Notes / Instructions</span>
                   </div>
                   <p className="text-gray-300 leading-relaxed pl-5">
                     {interview.recruiterNotes}
@@ -201,7 +247,7 @@ export default function Interviews() {
               )}
 
               {/* Action Buttons: Join Link */}
-              {interview.status === "Upcoming" && (
+              {activeTab === "UPCOMING" && (
                 <div className="flex flex-wrap items-center justify-between gap-4 pt-2 border-t border-gray-800/60">
                   <div className="text-xs text-gray-400">
                     {interview.meetingLink ? (
@@ -240,7 +286,6 @@ export default function Interviews() {
     </div>
   );
 }
-
 
 
 
