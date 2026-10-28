@@ -192,21 +192,67 @@ export default function ViewApplicants() {
     }
   };
 
-  // Schedule Interview Submission
+  // Schedule Interview Submission with API Integration
   const handleScheduleInterview = async (e) => {
     e.preventDefault();
     if (!interviewModalApplicant) return;
 
-    const targetId = interviewModalApplicant._id || interviewModalApplicant.id;
-    await handleStatusChange(targetId, "Interview Scheduled");
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000";
 
-    setNotificationMsg(
-      `Interview scheduled with ${interviewModalApplicant.name}. A notification email has been dispatched!`
-    );
-    setInterviewModalApplicant(null);
-    setInterviewForm({ date: "", time: "", meetingLink: "", officeAddress: "", notes: "" });
+      // Construct the interview payload
+      const interviewPayload = {
+        applicantId: interviewModalApplicant._id || interviewModalApplicant.id,
+        applicantName: interviewModalApplicant.name,
+        applicantEmail: interviewModalApplicant.email,
+        jobPosition: interviewModalApplicant.jobPosition,
+        companyName: interviewModalApplicant.companyName,
+        interviewerEmail: userEmail,
+        date: interviewForm.date,
+        time: interviewForm.time,
+        meetingLink: interviewForm.meetingLink,
+        officeAddress: interviewForm.officeAddress,
+        notes: interviewForm.notes,
+        status: "Interview Scheduled",
+        createdAt: new Date().toISOString(),
+      };
 
-    setTimeout(() => setNotificationMsg(""), 5000);
+      // Send POST request to backend interview schedule endpoint
+      const res = await fetch(`${baseUrl}/api/interviews`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(interviewPayload),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || "Failed to schedule interview");
+      }
+
+      // Also update the applicant status locally & in database
+      const targetId = interviewModalApplicant._id || interviewModalApplicant.id;
+      await handleStatusChange(targetId, "Interview Scheduled");
+
+      setNotificationMsg(
+        `Interview scheduled successfully with ${interviewModalApplicant.name}!`
+      );
+      setInterviewModalApplicant(null);
+      setInterviewForm({
+        date: "",
+        time: "",
+        meetingLink: "",
+        officeAddress: "",
+        notes: "",
+      });
+
+      setTimeout(() => setNotificationMsg(""), 5000);
+    } catch (err) {
+      console.error("Interview Schedule Error:", err);
+      alert(`Failed to schedule interview: ${err.message}`);
+    }
   };
 
   // Filter & Search Logic
@@ -696,6 +742,13 @@ export default function ViewApplicants() {
     </div>
   );
 }
+
+
+
+
+
+
+
 
 
 
