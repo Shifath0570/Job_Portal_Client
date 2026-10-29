@@ -16,6 +16,13 @@ import {
 } from "lucide-react";
 import { authClient } from "@/app/lib/auth-client";
 
+const STATUS_OPTIONS = [
+  "Interview Scheduled",
+  "Completed",
+  "Cancelled",
+  "Rescheduled",
+];
+
 export default function Interviews() {
   const [interviews, setInterviews] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -75,7 +82,7 @@ export default function Interviews() {
             interviewLocation:
               item.officeAddress || item.interviewLocation || "Online / Remote",
             recruiterNotes: item.notes || item.recruiterNotes || "No notes provided.",
-            status: item.status || "Upcoming",
+            status: item.status || "Interview Scheduled",
           }));
 
           setInterviews(formattedInterviews);
@@ -92,6 +99,41 @@ export default function Interviews() {
 
     fetchInterviews();
   }, [sessionLoading, userEmail]);
+
+  // Handle Status Update API Integration
+  const handleStatusChange = async (interviewId, newStatus) => {
+    // Optimistic UI update
+    setInterviews((prev) =>
+      prev.map((item) =>
+        (item._id === interviewId || item.id === interviewId)
+          ? { ...item, status: newStatus }
+          : item
+      )
+    );
+
+    try {
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000";
+      const response = await fetch(`${baseUrl}/api/interviews/${interviewId}/status`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || "Failed to update interview status");
+      }
+
+      setNotification(`Interview status updated to "${newStatus}" successfully!`);
+      setTimeout(() => setNotification(""), 3000);
+    } catch (err) {
+      console.error("Status Update Error:", err);
+      alert(`Failed to update status: ${err.message}`);
+    }
+  };
 
   // Confirm and Execute Delete Interview
   const confirmDeleteInterview = async () => {
@@ -141,9 +183,9 @@ export default function Interviews() {
   const filteredInterviews = interviews.filter((item) => {
     const status = (item.status || "").toLowerCase();
     if (activeTab === "UPCOMING") {
-      return status === "upcoming" || status === "interview scheduled";
+      return status === "upcoming" || status === "interview scheduled" || status === "rescheduled";
     } else {
-      return status === "completed" || status === "hired" || status === "rejected";
+      return status === "completed" || status === "cancelled" || status === "hired" || status === "rejected";
     }
   });
 
@@ -183,24 +225,22 @@ export default function Interviews() {
           <button
             type="button"
             onClick={() => setActiveTab("UPCOMING")}
-            className={`px-4 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-              activeTab === "UPCOMING"
+            className={`px-4 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${activeTab === "UPCOMING"
                 ? "bg-purple-600 text-white shadow-md"
                 : "text-gray-400 hover:text-white"
-            }`}
+              }`}
           >
             Upcoming
           </button>
           <button
             type="button"
             onClick={() => setActiveTab("COMPLETED")}
-            className={`px-4 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-              activeTab === "COMPLETED"
+            className={`px-4 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${activeTab === "COMPLETED"
                 ? "bg-purple-600 text-white shadow-md"
                 : "text-gray-400 hover:text-white"
-            }`}
+              }`}
           >
-            Completed
+            Completed / Past
           </button>
         </div>
       </div>
@@ -231,7 +271,7 @@ export default function Interviews() {
                 key={interviewId}
                 className="bg-[#14141f] border border-gray-800 hover:border-purple-500/40 rounded-2xl p-6 space-y-6 transition-all shadow-xl relative"
               >
-                {/* Header: Company, Job & Status Pill */}
+                {/* Header: Company, Job & Status Selector */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-800 pb-5">
                   <div className="flex items-center gap-4">
                     <img
@@ -249,10 +289,22 @@ export default function Interviews() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3">
-                    <span className="px-3 py-1 bg-purple-500/10 border border-purple-500/20 text-purple-300 text-[11px] font-semibold rounded-full">
-                      {interview.type}
-                    </span>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-gray-400 font-medium">Status:</span>
+                      <select
+                        value={interview.status || "Interview Scheduled"}
+                        onChange={(e) => handleStatusChange(interviewId, e.target.value)}
+                        className="px-3 py-1.5 bg-[#0a0a0f] border border-gray-800 focus:border-purple-500 text-xs font-semibold text-white rounded-xl outline-none cursor-pointer"
+                      >
+                        {STATUS_OPTIONS.map((st) => (
+                          <option key={st} value={st}>
+                            {st}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
                     <button
                       type="button"
                       onClick={() => setDeleteModalInterview(interview)}
@@ -310,7 +362,7 @@ export default function Interviews() {
                 )}
 
                 {/* Action Buttons: Join Link */}
-                {activeTab === "UPCOMING" && (
+                {activeTab === "UPCOMING" && interview.status !== "Completed" && (
                   <div className="flex flex-wrap items-center justify-between gap-4 pt-2 border-t border-gray-800/60">
                     <div className="text-xs text-gray-400">
                       {interview.meetingLink ? (
@@ -401,6 +453,9 @@ export default function Interviews() {
     </div>
   );
 }
+
+
+
 
 
 
