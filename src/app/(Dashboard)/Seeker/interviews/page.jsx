@@ -10,6 +10,9 @@ import {
   FileText,
   Video,
   ExternalLink,
+  Trash2 as TrashIcon,
+  X as CloseIcon,
+  AlertTriangle as AlertTriangleIcon,
 } from "lucide-react";
 import { authClient } from "@/app/lib/auth-client";
 
@@ -18,7 +21,11 @@ export default function Interviews() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState("UPCOMING");
-  const [notification] = useState("");
+  const [notification, setNotification] = useState("");
+
+  // Delete Modal State
+  const [deleteModalInterview, setDeleteModalInterview] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const { data: session, isPending: sessionLoading } = authClient.useSession();
   const user = session?.user;
@@ -86,6 +93,50 @@ export default function Interviews() {
     fetchInterviews();
   }, [sessionLoading, userEmail]);
 
+  // Confirm and Execute Delete Interview
+  const confirmDeleteInterview = async () => {
+    if (!deleteModalInterview) return;
+
+    const interviewId = deleteModalInterview._id || deleteModalInterview.id;
+
+    if (!interviewId) {
+      alert("Error: Invalid interview ID.");
+      return;
+    }
+
+    try {
+      setIsDeleting(true);
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000";
+
+      const res = await fetch(`${baseUrl}/api/interviews/${interviewId}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || "Failed to delete interview");
+      }
+
+      // Remove from local state
+      setInterviews((prev) =>
+        prev.filter((item) => (item._id || item.id) !== interviewId)
+      );
+
+      setNotification("Interview removed successfully.");
+      setTimeout(() => setNotification(""), 3000);
+      setDeleteModalInterview(null);
+    } catch (err) {
+      console.error("Delete Error:", err);
+      alert(`Failed to delete interview: ${err.message}`);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   // Filter interviews based on active tab
   const filteredInterviews = interviews.filter((item) => {
     const status = (item.status || "").toLowerCase();
@@ -132,20 +183,22 @@ export default function Interviews() {
           <button
             type="button"
             onClick={() => setActiveTab("UPCOMING")}
-            className={`px-4 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${activeTab === "UPCOMING"
+            className={`px-4 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+              activeTab === "UPCOMING"
                 ? "bg-purple-600 text-white shadow-md"
                 : "text-gray-400 hover:text-white"
-              }`}
+            }`}
           >
             Upcoming
           </button>
           <button
             type="button"
             onClick={() => setActiveTab("COMPLETED")}
-            className={`px-4 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${activeTab === "COMPLETED"
+            className={`px-4 py-2 text-xs font-bold rounded-lg transition-all cursor-pointer ${
+              activeTab === "COMPLETED"
                 ? "bg-purple-600 text-white shadow-md"
                 : "text-gray-400 hover:text-white"
-              }`}
+            }`}
           >
             Completed
           </button>
@@ -171,121 +224,185 @@ export default function Interviews() {
             </p>
           </div>
         ) : (
-          filteredInterviews.map((interview) => (
-            <div
-              key={interview.id}
-              className="bg-[#14141f] border border-gray-800 hover:border-purple-500/40 rounded-2xl p-6 space-y-6 transition-all shadow-xl"
-            >
-              {/* Header: Company, Job & Status Pill */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-800 pb-5">
-                <div className="flex items-center gap-4">
-                  <img
-                    src={interview.companyLogo}
-                    alt={interview.companyName}
-                    className="w-12 h-12 rounded-xl object-cover border border-gray-800 shrink-0"
-                  />
-                  <div>
-                    <h2 className="text-base font-bold text-white">
-                      {interview.jobTitle}
-                    </h2>
-                    <p className="text-xs text-purple-400 font-semibold pt-0.5">
-                      {interview.companyName}
+          filteredInterviews.map((interview) => {
+            const interviewId = interview._id || interview.id;
+            return (
+              <div
+                key={interviewId}
+                className="bg-[#14141f] border border-gray-800 hover:border-purple-500/40 rounded-2xl p-6 space-y-6 transition-all shadow-xl relative"
+              >
+                {/* Header: Company, Job & Status Pill */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-gray-800 pb-5">
+                  <div className="flex items-center gap-4">
+                    <img
+                      src={interview.companyLogo}
+                      alt={interview.companyName}
+                      className="w-12 h-12 rounded-xl object-cover border border-gray-800 shrink-0"
+                    />
+                    <div>
+                      <h2 className="text-base font-bold text-white">
+                        {interview.jobTitle}
+                      </h2>
+                      <p className="text-xs text-purple-400 font-semibold pt-0.5">
+                        {interview.companyName}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <span className="px-3 py-1 bg-purple-500/10 border border-purple-500/20 text-purple-300 text-[11px] font-semibold rounded-full">
+                      {interview.type}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setDeleteModalInterview(interview)}
+                      title="Delete Interview"
+                      className="p-2 bg-[#0a0a0f] border border-gray-800 hover:border-rose-500/40 text-rose-400 rounded-xl transition-all cursor-pointer inline-flex items-center justify-center"
+                    >
+                      <TrashIcon className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Grid Details: Date, Time & Location */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+                  {/* Date */}
+                  <div className="p-3.5 bg-[#0a0a0f] border border-gray-800 rounded-xl space-y-1">
+                    <span className="text-gray-500 text-[10px] uppercase font-bold tracking-wider flex items-center gap-1.5">
+                      <Calendar className="w-3.5 h-3.5 text-purple-400" />
+                      Date
+                    </span>
+                    <p className="font-bold text-white text-sm">{interview.date}</p>
+                  </div>
+
+                  {/* Time */}
+                  <div className="p-3.5 bg-[#0a0a0f] border border-gray-800 rounded-xl space-y-1">
+                    <span className="text-gray-500 text-[10px] uppercase font-bold tracking-wider flex items-center gap-1.5">
+                      <Clock className="w-3.5 h-3.5 text-blue-400" />
+                      Time Slot
+                    </span>
+                    <p className="font-bold text-white text-sm">{interview.time}</p>
+                  </div>
+
+                  {/* Location */}
+                  <div className="p-3.5 bg-[#0a0a0f] border border-gray-800 rounded-xl space-y-1">
+                    <span className="text-gray-500 text-[10px] uppercase font-bold tracking-wider flex items-center gap-1.5">
+                      <MapPin className="w-3.5 h-3.5 text-emerald-400" />
+                      Location
+                    </span>
+                    <p className="font-bold text-white text-sm truncate">
+                      {interview.interviewLocation}
                     </p>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <span className="px-3 py-1 bg-purple-500/10 border border-purple-500/20 text-purple-300 text-[11px] font-semibold rounded-full">
-                    {interview.type}
-                  </span>
-                </div>
+                {/* Recruiter Notes Block */}
+                {interview.recruiterNotes && (
+                  <div className="p-4 bg-[#0a0a0f] border border-gray-800/80 rounded-xl space-y-1.5 text-xs">
+                    <div className="flex items-center gap-1.5 text-gray-400 font-semibold">
+                      <FileText className="w-4 h-4 text-purple-400" />
+                      <span>Recruiter Notes / Instructions</span>
+                    </div>
+                    <p className="text-gray-300 leading-relaxed pl-5">
+                      {interview.recruiterNotes}
+                    </p>
+                  </div>
+                )}
+
+                {/* Action Buttons: Join Link */}
+                {activeTab === "UPCOMING" && (
+                  <div className="flex flex-wrap items-center justify-between gap-4 pt-2 border-t border-gray-800/60">
+                    <div className="text-xs text-gray-400">
+                      {interview.meetingLink ? (
+                        <span className="flex items-center gap-2">
+                          <Video className="w-4 h-4 text-emerald-400" />
+                          Online Video Conference
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-2">
+                          <MapPin className="w-4 h-4 text-amber-400" />
+                          In-Person Meeting
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      {interview.meetingLink && (
+                        <a
+                          href={interview.meetingLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-5 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-semibold rounded-xl shadow-md cursor-pointer transition-all inline-flex items-center gap-2"
+                        >
+                          <Video className="w-4 h-4" />
+                          Join Meeting
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
-
-              {/* Grid Details: Date, Time & Location */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
-                {/* Date */}
-                <div className="p-3.5 bg-[#0a0a0f] border border-gray-800 rounded-xl space-y-1">
-                  <span className="text-gray-500 text-[10px] uppercase font-bold tracking-wider flex items-center gap-1.5">
-                    <Calendar className="w-3.5 h-3.5 text-purple-400" />
-                    Date
-                  </span>
-                  <p className="font-bold text-white text-sm">{interview.date}</p>
-                </div>
-
-                {/* Time */}
-                <div className="p-3.5 bg-[#0a0a0f] border border-gray-800 rounded-xl space-y-1">
-                  <span className="text-gray-500 text-[10px] uppercase font-bold tracking-wider flex items-center gap-1.5">
-                    <Clock className="w-3.5 h-3.5 text-blue-400" />
-                    Time Slot
-                  </span>
-                  <p className="font-bold text-white text-sm">{interview.time}</p>
-                </div>
-
-                {/* Location */}
-                <div className="p-3.5 bg-[#0a0a0f] border border-gray-800 rounded-xl space-y-1">
-                  <span className="text-gray-500 text-[10px] uppercase font-bold tracking-wider flex items-center gap-1.5">
-                    <MapPin className="w-3.5 h-3.5 text-emerald-400" />
-                    Location
-                  </span>
-                  <p className="font-bold text-white text-sm truncate">
-                    {interview.interviewLocation}
-                  </p>
-                </div>
-              </div>
-
-              {/* Recruiter Notes Block */}
-              {interview.recruiterNotes && (
-                <div className="p-4 bg-[#0a0a0f] border border-gray-800/80 rounded-xl space-y-1.5 text-xs">
-                  <div className="flex items-center gap-1.5 text-gray-400 font-semibold">
-                    <FileText className="w-4 h-4 text-purple-400" />
-                    <span>Recruiter Notes / Instructions</span>
-                  </div>
-                  <p className="text-gray-300 leading-relaxed pl-5">
-                    {interview.recruiterNotes}
-                  </p>
-                </div>
-              )}
-
-              {/* Action Buttons: Join Link */}
-              {activeTab === "UPCOMING" && (
-                <div className="flex flex-wrap items-center justify-between gap-4 pt-2 border-t border-gray-800/60">
-                  <div className="text-xs text-gray-400">
-                    {interview.meetingLink ? (
-                      <span className="flex items-center gap-2">
-                        <Video className="w-4 h-4 text-emerald-400" />
-                        Online Video Conference
-                      </span>
-                    ) : (
-                      <span className="flex items-center gap-2">
-                        <MapPin className="w-4 h-4 text-amber-400" />
-                        In-Person Meeting
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    {interview.meetingLink && (
-                      <a
-                        href={interview.meetingLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="px-5 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white text-xs font-semibold rounded-xl shadow-md cursor-pointer transition-all inline-flex items-center gap-2"
-                      >
-                        <Video className="w-4 h-4" />
-                        Join Meeting
-                        <ExternalLink className="w-3.5 h-3.5" />
-                      </a>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-          ))
+            );
+          })
         )}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {deleteModalInterview && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#14141f] border border-gray-800 rounded-2xl w-full max-w-md p-6 space-y-5 shadow-2xl relative">
+            <div className="flex items-center justify-between pb-3 border-b border-gray-800">
+              <div className="flex items-center gap-2.5 text-rose-400">
+                <AlertTriangleIcon className="w-5 h-5" />
+                <h3 className="text-lg font-bold text-white">Confirm Deletion</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => !isDeleting && setDeleteModalInterview(null)}
+                className="text-gray-400 hover:text-white cursor-pointer"
+              >
+                <CloseIcon className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-2 text-xs text-gray-300">
+              <p>
+                Are you sure you want to remove the interview for{" "}
+                <strong className="text-white">{deleteModalInterview.jobTitle}</strong> at{" "}
+                <strong className="text-purple-400">{deleteModalInterview.companyName}</strong>?
+              </p>
+              <p className="text-gray-500">
+                This action is permanent and will remove this interview record from your schedule.
+              </p>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-3 border-t border-gray-800">
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={() => setDeleteModalInterview(null)}
+                className="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 text-xs font-semibold rounded-xl cursor-pointer transition-all"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={isDeleting}
+                onClick={confirmDeleteInterview}
+                className="px-5 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-semibold rounded-xl cursor-pointer shadow-md transition-all flex items-center gap-2 disabled:opacity-50"
+              >
+                {isDeleting ? "Deleting..." : "Delete Interview"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
+
 
 
 
