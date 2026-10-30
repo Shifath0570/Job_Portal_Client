@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Briefcase,
   Bookmark,
@@ -10,83 +10,85 @@ import {
   XCircle,
   RefreshCw,
 } from "lucide-react";
-
-
-const INITIAL_OVERVIEW_STATS = {
-  totalApplications: 18,
-  savedJobs: 12,
-  interviews: 4,
-  acceptedApplications: 3,
-  rejectedApplications: 2,
-};
-
-const INITIAL_RECENT_APPLICATIONS = [
-  {
-    id: "app-201",
-    company: "Acme Technologies",
-    jobTitle: "Senior React Developer",
-    location: "Remote",
-    appliedDate: "Aug 06, 2026",
-    status: "Accepted",
-    statusNote: "Offer Letter Issued",
-  },
-  {
-    id: "app-202",
-    company: "Starlight Labs",
-    jobTitle: "Frontend Engineer",
-    location: "San Francisco, CA",
-    appliedDate: "Aug 02, 2026",
-    status: "Interview Scheduled",
-    statusNote: "Google Meet • Aug 10 at 2:00 PM",
-  },
-  {
-    id: "app-203",
-    company: "Nexus Software",
-    jobTitle: "Full Stack Engineer",
-    location: "New York, NY",
-    appliedDate: "Jul 28, 2026",
-    status: "Accepted",
-    statusNote: "Application Shortlisted",
-  },
-  {
-    id: "app-204",
-    company: "Apex Cloud Innovations",
-    jobTitle: "UI Engineer",
-    location: "Remote",
-    appliedDate: "Jul 20, 2026",
-    status: "Rejected",
-    statusNote: "Position Filled",
-  },
-  {
-    id: "app-205",
-    company: "CyberPulse Systems",
-    jobTitle: "JavaScript Tech Lead",
-    location: "Austin, TX",
-    appliedDate: "Jul 15, 2026",
-    status: "Rejected",
-    statusNote: "Candidate Not Shortlisted",
-  },
-];
+import { authClient } from "@/app/lib/auth-client";
 
 export default function SeekerOverview() {
-  const [stats, setStats] = useState(INITIAL_OVERVIEW_STATS);
-  const [recentApps] = useState(INITIAL_RECENT_APPLICATIONS);
+  const [stats, setStats] = useState({
+    totalApplications: 0,
+    savedJobs: 0,
+    interviews: 0,
+    acceptedApplications: 0,
+    rejectedApplications: 0,
+  });
+  const [recentApps, setRecentApps] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [activeFilter, setActiveFilter] = useState("ALL");
 
-  // Fetch / Sync candidate dashboard data without useEffect
-  const handleRefreshData = async () => {
-    setIsRefreshing(true);
+  const { data: session, isPending: sessionLoading } = authClient.useSession();
+  const user = session?.user;
+  const userEmail = user?.email?.toLowerCase().trim() || "";
+
+  // Fetch candidate applications & compute stats from backend API
+  const fetchDashboardData = async () => {
     try {
-      const response = await fetch("/api/candidate/overview");
-      if (!response.ok) throw new Error("Failed to fetch overview");
-      const data = await response.json();
-      if (data.stats) setStats(data.stats);
+      if (!userEmail) return;
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000";
+
+      const res = await fetch(`${baseUrl}/api/applications/${encodeURIComponent(userEmail)}`);
+      const data = await res.json();
+
+      if (data.success && Array.isArray(data.applications)) {
+        const apps = data.applications;
+
+        // Compute dynamic counts
+        const total = apps.length;
+        const accepted = apps.filter(
+          (a) => (a.status || "").toLowerCase() === "accepted" || (a.status || "").toLowerCase() === "shortlisted"
+        ).length;
+        const interviews = apps.filter(
+          (a) => (a.status || "").toLowerCase() === "interview scheduled"
+        ).length;
+        const rejected = apps.filter(
+          (a) => (a.status || "").toLowerCase() === "rejected"
+        ).length;
+
+        setStats({
+          totalApplications: total,
+          savedJobs: 0, // Update if you have a saved jobs collection/endpoint
+          interviews: interviews,
+          acceptedApplications: accepted,
+          rejectedApplications: rejected,
+        });
+
+        const formattedApps = apps.map((item) => ({
+          id: item._id || item.id,
+          company: item.companyName || item.company || "Company Not Specified",
+          jobTitle: item.jobTitle || item.jobPosition || "Role Not Specified",
+          location: item.location || item.officeAddress || "Remote",
+          appliedDate: item.appliedDate || item.createdAt ? new Date(item.appliedDate || item.createdAt).toLocaleDateString() : "Recent",
+          status: item.status || "Applied",
+          statusNote: item.statusNote || item.notes || "Application submitted successfully",
+        }));
+
+        setRecentApps(formattedApps);
+      }
     } catch (error) {
-      console.warn("Server sync unavailable. Showing local overview:", error);
+      console.error("Error fetching overview data:", error);
     } finally {
+      setLoading(false);
       setIsRefreshing(false);
     }
+  };
+
+  useEffect(() => {
+    if (sessionLoading) return;
+    fetchDashboardData();
+  }, [sessionLoading, userEmail]);
+
+  const handleRefreshData = async () => {
+    setIsRefreshing(true);
+    await fetchDashboardData();
   };
 
   const overviewCards = [
@@ -137,14 +139,14 @@ export default function SeekerOverview() {
     },
   ];
 
-  // Helper status badge styles
   const getStatusBadge = (status) => {
-    switch (status) {
-      case "Accepted":
+    switch ((status || "").toLowerCase()) {
+      case "accepted":
+      case "shortlisted":
         return "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
-      case "Interview Scheduled":
+      case "interview scheduled":
         return "bg-indigo-500/10 text-indigo-400 border-indigo-500/20";
-      case "Rejected":
+      case "rejected":
         return "bg-rose-500/10 text-rose-400 border-rose-500/20";
       default:
         return "bg-gray-500/10 text-gray-400 border-gray-500/20";
@@ -152,11 +154,20 @@ export default function SeekerOverview() {
   };
 
   const filteredApps = recentApps.filter((app) => {
-    if (activeFilter === "ACCEPTED") return app.status === "Accepted";
-    if (activeFilter === "INTERVIEW") return app.status === "Interview Scheduled";
-    if (activeFilter === "REJECTED") return app.status === "Rejected";
+    const st = (app.status || "").toLowerCase();
+    if (activeFilter === "ACCEPTED") return st === "accepted" || st === "shortlisted";
+    if (activeFilter === "INTERVIEW") return st === "interview scheduled";
+    if (activeFilter === "REJECTED") return st === "rejected";
     return true;
   });
+
+  if (loading || sessionLoading) {
+    return (
+      <div className="min-h-screen flex-1 bg-[#0a0a0f] text-white flex items-center justify-center">
+        <p className="text-purple-400 text-sm animate-pulse">Loading dashboard overview...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex-1 bg-[#0a0a0f] text-white p-4 sm:p-6 lg:p-8 space-y-8">
@@ -173,6 +184,7 @@ export default function SeekerOverview() {
 
         <div className="flex items-center gap-3">
           <button
+            type="button"
             onClick={handleRefreshData}
             disabled={isRefreshing}
             className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#14141f] hover:bg-gray-800 border border-gray-800 text-gray-300 hover:text-white text-xs font-medium rounded-xl transition-all cursor-pointer disabled:opacity-50"
@@ -234,7 +246,7 @@ export default function SeekerOverview() {
               </div>
               <div className="w-full h-2 bg-[#0a0a0f] rounded-full overflow-hidden border border-gray-800">
                 <div
-                  className="h-full bg-emerald-500 rounded-full"
+                  className="h-full bg-emerald-500 rounded-full transition-all"
                   style={{
                     width: `${(stats.acceptedApplications / (stats.totalApplications || 1)) * 100}%`,
                   }}
@@ -251,7 +263,7 @@ export default function SeekerOverview() {
               </div>
               <div className="w-full h-2 bg-[#0a0a0f] rounded-full overflow-hidden border border-gray-800">
                 <div
-                  className="h-full bg-indigo-500 rounded-full"
+                  className="h-full bg-indigo-500 rounded-full transition-all"
                   style={{
                     width: `${(stats.interviews / (stats.totalApplications || 1)) * 100}%`,
                   }}
@@ -268,7 +280,7 @@ export default function SeekerOverview() {
               </div>
               <div className="w-full h-2 bg-[#0a0a0f] rounded-full overflow-hidden border border-gray-800">
                 <div
-                  className="h-full bg-rose-500 rounded-full"
+                  className="h-full bg-rose-500 rounded-full transition-all"
                   style={{
                     width: `${(stats.rejectedApplications / (stats.totalApplications || 1)) * 100}%`,
                   }}
@@ -293,6 +305,7 @@ export default function SeekerOverview() {
               ].map((tab) => (
                 <button
                   key={tab.id}
+                  type="button"
                   onClick={() => setActiveFilter(tab.id)}
                   className={`px-3 py-1 rounded-lg text-[11px] font-medium transition-all cursor-pointer ${
                     activeFilter === tab.id
@@ -358,9 +371,6 @@ export default function SeekerOverview() {
     </div>
   );
 }
-
-
-
 
 
 
