@@ -29,37 +29,38 @@ export default function SeekerOverview() {
   const user = session?.user;
   const userEmail = user?.email?.toLowerCase().trim() || "";
 
-  // Fetch candidate applications & compute stats from backend API
+  // Fetch candidate applications & saved jobs count from backend APIs
   const fetchDashboardData = async () => {
     try {
       if (!userEmail) return;
       const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000";
 
-      const res = await fetch(`${baseUrl}/api/applications/${encodeURIComponent(userEmail)}`);
-      const data = await res.json();
+      // Fetch applications and saved jobs concurrently
+      const [appRes, savedRes] = await Promise.all([
+        fetch(`${baseUrl}/api/applications/${encodeURIComponent(userEmail)}`),
+        fetch(`${baseUrl}/api/savejob?email=${encodeURIComponent(userEmail)}`),
+      ]);
 
-      if (data.success && Array.isArray(data.applications)) {
-        const apps = data.applications;
+      const appData = await appRes.json();
+      const savedData = await savedRes.json();
 
-        // Compute dynamic counts
-        const total = apps.length;
-        const accepted = apps.filter(
+      let total = 0;
+      let accepted = 0;
+      let interviews = 0;
+      let rejected = 0;
+
+      if (appData.success && Array.isArray(appData.applications)) {
+        const apps = appData.applications;
+        total = apps.length;
+        accepted = apps.filter(
           (a) => (a.status || "").toLowerCase() === "accepted" || (a.status || "").toLowerCase() === "shortlisted"
         ).length;
-        const interviews = apps.filter(
+        interviews = apps.filter(
           (a) => (a.status || "").toLowerCase() === "interview scheduled"
         ).length;
-        const rejected = apps.filter(
+        rejected = apps.filter(
           (a) => (a.status || "").toLowerCase() === "rejected"
         ).length;
-
-        setStats({
-          totalApplications: total,
-          savedJobs: 0, // Update if you have a saved jobs collection/endpoint
-          interviews: interviews,
-          acceptedApplications: accepted,
-          rejectedApplications: rejected,
-        });
 
         const formattedApps = apps.map((item) => ({
           id: item._id || item.id,
@@ -73,6 +74,17 @@ export default function SeekerOverview() {
 
         setRecentApps(formattedApps);
       }
+
+      // Calculate saved job count from response
+      const savedJobsCount = savedData.success && Array.isArray(savedData.jobs) ? savedData.jobs.length : 0;
+
+      setStats({
+        totalApplications: total,
+        savedJobs: savedJobsCount,
+        interviews: interviews,
+        acceptedApplications: accepted,
+        rejectedApplications: rejected,
+      });
     } catch (error) {
       console.error("Error fetching overview data:", error);
     } finally {
@@ -371,6 +383,8 @@ export default function SeekerOverview() {
     </div>
   );
 }
+
+
 
 
 
