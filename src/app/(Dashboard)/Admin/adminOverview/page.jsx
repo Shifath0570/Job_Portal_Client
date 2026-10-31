@@ -1,7 +1,7 @@
 
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Users,
   UserCheck,
@@ -16,12 +16,11 @@ import {
   FileCheck,
 } from "lucide-react";
 
-
-const METRICS = [
+const INITIAL_METRICS = [
   {
     id: "total-users",
     title: "Total Users",
-    value: "24,890",
+    value: "0",
     change: "+12.5%",
     isPositive: true,
     icon: Users,
@@ -30,7 +29,7 @@ const METRICS = [
   {
     id: "total-candidates",
     title: "Total Candidates",
-    value: "19,420",
+    value: "0",
     change: "+14.2%",
     isPositive: true,
     icon: UserCheck,
@@ -39,7 +38,7 @@ const METRICS = [
   {
     id: "total-recruiters",
     title: "Total Recruiters",
-    value: "5,470",
+    value: "0",
     change: "+6.8%",
     isPositive: true,
     icon: Users,
@@ -129,6 +128,54 @@ const RECENT_LOGS = [
 
 export default function AdminOverview() {
   const [timeRange, setTimeRange] = useState("30d");
+  const [metrics, setMetrics] = useState(INITIAL_METRICS);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch users and compute counts on mount
+  useEffect(() => {
+    async function fetchUserCounts() {
+      try {
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000";
+        const res = await fetch(`${baseUrl}/api/users`);
+        const data = await res.json();
+
+        if (data.success && Array.isArray(data.users)) {
+          const users = data.users;
+          const totalUsersCount = users.length;
+
+          // Count candidates & recruiters based on role property (adjust field name if needed e.g. user.role or user.accountType)
+          const candidatesCount = users.filter(
+            (u) => (u.role || u.accountType || "").toLowerCase() === "candidate" || (u.role || "").toLowerCase() === "seeker"
+          ).length;
+
+          const recruitersCount = users.filter(
+            (u) => (u.role || u.accountType || "").toLowerCase() === "recruiter" || (u.role || "").toLowerCase() === "employer"
+          ).length;
+
+          setMetrics((prevMetrics) =>
+            prevMetrics.map((metric) => {
+              if (metric.id === "total-users") {
+                return { ...metric, value: totalUsersCount.toLocaleString() };
+              }
+              if (metric.id === "total-candidates") {
+                return { ...metric, value: candidatesCount.toLocaleString() };
+              }
+              if (metric.id === "total-recruiters") {
+                return { ...metric, value: recruitersCount.toLocaleString() };
+              }
+              return metric;
+            })
+          );
+        }
+      } catch (err) {
+        console.error("Failed to fetch user metrics:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchUserCounts();
+  }, []);
 
   return (
     <div className="min-h-screen flex-1 bg-[#0a0a0f] text-white p-4 sm:p-6 lg:p-8 space-y-8">
@@ -148,6 +195,7 @@ export default function AdminOverview() {
           {["7d", "30d", "90d", "1y"].map((range) => (
             <button
               key={range}
+              type="button"
               onClick={() => setTimeRange(range)}
               className={`px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
                 timeRange === range
@@ -163,7 +211,7 @@ export default function AdminOverview() {
 
       {/* 8 Dashboard Metric Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {METRICS.map((metric) => {
+        {metrics.map((metric) => {
           const IconComponent = metric.icon;
           return (
             <div
@@ -278,7 +326,10 @@ export default function AdminOverview() {
             </div>
           </div>
 
-          <button className="w-full py-2.5 bg-[#0a0a0f] hover:bg-gray-800 border border-gray-800 text-gray-300 hover:text-white text-xs font-semibold rounded-xl transition-all cursor-pointer mt-4">
+          <button
+            type="button"
+            className="w-full py-2.5 bg-[#0a0a0f] hover:bg-gray-800 border border-gray-800 text-gray-300 hover:text-white text-xs font-semibold rounded-xl transition-all cursor-pointer mt-4"
+          >
             View All Audit Logs
           </button>
         </div>
@@ -286,8 +337,6 @@ export default function AdminOverview() {
     </div>
   );
 }
-
-
 
 
 
