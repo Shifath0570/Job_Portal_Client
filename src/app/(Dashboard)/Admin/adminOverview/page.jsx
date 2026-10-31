@@ -47,7 +47,7 @@ const INITIAL_METRICS = [
   {
     id: "total-jobs",
     title: "Total Jobs",
-    value: "8,350",
+    value: "0",
     change: "+18.4%",
     isPositive: true,
     icon: Briefcase,
@@ -56,7 +56,7 @@ const INITIAL_METRICS = [
   {
     id: "active-jobs",
     title: "Active Jobs",
-    value: "3,120",
+    value: "0",
     change: "+4.1%",
     isPositive: true,
     icon: CheckCircle,
@@ -131,50 +131,85 @@ export default function AdminOverview() {
   const [metrics, setMetrics] = useState(INITIAL_METRICS);
   const [loading, setLoading] = useState(true);
 
-  // Fetch users and compute counts on mount
+  // Fetch users and jobs counts on mount
   useEffect(() => {
-    async function fetchUserCounts() {
+    async function fetchAdminMetrics() {
       try {
         const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000";
-        const res = await fetch(`${baseUrl}/api/users`);
-        const data = await res.json();
 
-        if (data.success && Array.isArray(data.users)) {
-          const users = data.users;
-          const totalUsersCount = users.length;
+        // Fetch users and jobs concurrently
+        const [usersRes, jobsRes] = await Promise.all([
+          fetch(`${baseUrl}/api/users`),
+          fetch(`${baseUrl}/api/jobs`),
+        ]);
 
-          // Count candidates & recruiters based on role property (adjust field name if needed e.g. user.role or user.accountType)
-          const candidatesCount = users.filter(
-            (u) => (u.role || u.accountType || "").toLowerCase() === "candidate" || (u.role || "").toLowerCase() === "seeker"
+        const usersData = await usersRes.json();
+        const jobsData = await jobsRes.json();
+
+        let totalUsersCount = 0;
+        let candidatesCount = 0;
+        let recruitersCount = 0;
+
+        if (usersData.success && Array.isArray(usersData.users)) {
+          const users = usersData.users;
+          totalUsersCount = users.length;
+
+          candidatesCount = users.filter(
+            (u) =>
+              (u.role || u.accountType || "").toLowerCase() === "candidate" ||
+              (u.role || "").toLowerCase() === "seeker"
           ).length;
 
-          const recruitersCount = users.filter(
-            (u) => (u.role || u.accountType || "").toLowerCase() === "recruiter" || (u.role || "").toLowerCase() === "employer"
+          recruitersCount = users.filter(
+            (u) =>
+              (u.role || u.accountType || "").toLowerCase() === "recruiter" ||
+              (u.role || "").toLowerCase() === "employer"
           ).length;
-
-          setMetrics((prevMetrics) =>
-            prevMetrics.map((metric) => {
-              if (metric.id === "total-users") {
-                return { ...metric, value: totalUsersCount.toLocaleString() };
-              }
-              if (metric.id === "total-candidates") {
-                return { ...metric, value: candidatesCount.toLocaleString() };
-              }
-              if (metric.id === "total-recruiters") {
-                return { ...metric, value: recruitersCount.toLocaleString() };
-              }
-              return metric;
-            })
-          );
         }
+
+        let totalJobsCount = 0;
+        let activeJobsCount = 0;
+
+        // Your /api/jobs endpoint returns an array directly
+        const jobsList = Array.isArray(jobsData) ? jobsData : jobsData.jobs || [];
+        totalJobsCount = jobsList.length;
+
+        // Active jobs calculation (adjust status property name if necessary, e.g. status === "Active")
+        activeJobsCount = jobsList.filter(
+          (j) =>
+            (j.status || "").toLowerCase() === "active" ||
+            (j.isActive === true) ||
+            !j.status
+        ).length;
+
+        setMetrics((prevMetrics) =>
+          prevMetrics.map((metric) => {
+            if (metric.id === "total-users") {
+              return { ...metric, value: totalUsersCount.toLocaleString() };
+            }
+            if (metric.id === "total-candidates") {
+              return { ...metric, value: candidatesCount.toLocaleString() };
+            }
+            if (metric.id === "total-recruiters") {
+              return { ...metric, value: recruitersCount.toLocaleString() };
+            }
+            if (metric.id === "total-jobs") {
+              return { ...metric, value: totalJobsCount.toLocaleString() };
+            }
+            if (metric.id === "active-jobs") {
+              return { ...metric, value: activeJobsCount.toLocaleString() };
+            }
+            return metric;
+          })
+        );
       } catch (err) {
-        console.error("Failed to fetch user metrics:", err);
+        console.error("Failed to fetch admin metrics:", err);
       } finally {
         setLoading(false);
       }
     }
 
-    fetchUserCounts();
+    fetchAdminMetrics();
   }, []);
 
   return (
@@ -337,6 +372,7 @@ export default function AdminOverview() {
     </div>
   );
 }
+
 
 
 
