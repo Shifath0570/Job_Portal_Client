@@ -65,7 +65,7 @@ const INITIAL_METRICS = [
   {
     id: "total-applications",
     title: "Total Applications",
-    value: "142,600",
+    value: "0",
     change: "+22.9%",
     isPositive: true,
     icon: FileText,
@@ -131,20 +131,22 @@ export default function AdminOverview() {
   const [metrics, setMetrics] = useState(INITIAL_METRICS);
   const [loading, setLoading] = useState(true);
 
-  // Fetch users and jobs counts on mount
+  // Fetch users, jobs, and applications counts on mount
   useEffect(() => {
     async function fetchAdminMetrics() {
       try {
         const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000";
 
-        // Fetch users and jobs concurrently
-        const [usersRes, jobsRes] = await Promise.all([
+        // Fetch users, jobs, and applications concurrently
+        const [usersRes, jobsRes, appsRes] = await Promise.all([
           fetch(`${baseUrl}/api/users`),
           fetch(`${baseUrl}/api/jobs`),
+          fetch(`${baseUrl}/api/application/all`),
         ]);
 
         const usersData = await usersRes.json();
         const jobsData = await jobsRes.json();
+        const appsData = await appsRes.json();
 
         let totalUsersCount = 0;
         let candidatesCount = 0;
@@ -170,17 +172,20 @@ export default function AdminOverview() {
         let totalJobsCount = 0;
         let activeJobsCount = 0;
 
-        // Your /api/jobs endpoint returns an array directly
         const jobsList = Array.isArray(jobsData) ? jobsData : jobsData.jobs || [];
         totalJobsCount = jobsList.length;
 
-        // Active jobs calculation (adjust status property name if necessary, e.g. status === "Active")
         activeJobsCount = jobsList.filter(
           (j) =>
             (j.status || "").toLowerCase() === "active" ||
             (j.isActive === true) ||
             !j.status
         ).length;
+
+        let totalApplicationsCount = 0;
+        if (appsData.success && Array.isArray(appsData.data)) {
+          totalApplicationsCount = appsData.data.length;
+        }
 
         setMetrics((prevMetrics) =>
           prevMetrics.map((metric) => {
@@ -198,6 +203,9 @@ export default function AdminOverview() {
             }
             if (metric.id === "active-jobs") {
               return { ...metric, value: activeJobsCount.toLocaleString() };
+            }
+            if (metric.id === "total-applications") {
+              return { ...metric, value: totalApplicationsCount.toLocaleString() };
             }
             return metric;
           })
