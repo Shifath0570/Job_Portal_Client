@@ -15,7 +15,6 @@ import {
   ShieldAlert,
 } from "lucide-react";
 
-
 export default function Application() {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -26,7 +25,7 @@ export default function Application() {
 
   // Modal & Notification State
   const [viewingApp, setViewingApp] = useState(null);
-  const [deletingApp, setDeletingApp] = useState(null); // Delete Confirmation Modal State
+  const [deletingApp, setDeletingApp] = useState(null);
   const [toastMessage, setToastMessage] = useState("");
 
   const showToast = (msg) => {
@@ -54,19 +53,19 @@ export default function Application() {
       const result = await response.json();
       const rawApps = result.data || result.applications || (Array.isArray(result) ? result : []);
 
-      // Normalize MongoDB document structure
+      // Normalize MongoDB document structure based on your schema
       const formattedApps = rawApps.map((app, idx) => ({
         id: app._id || app.id || `app-${301 + idx}`,
-        candidateName: app.candidateName || app.fullName || app.applicantName || "Candidate",
-        candidateEmail: app.candidateEmail || app.email || app.applicantEmail || "applicant@example.com",
+        candidateName: app.applicantName || app.candidateName || app.fullName || "Candidate",
+        candidateEmail: app.applicantEmail || app.candidateEmail || app.email || "applicant@example.com",
         candidateAvatar: app.candidateAvatar || app.avatar || app.applicantImage || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80",
         jobTitle: app.jobTitle || app.position || "Full Stack Developer",
-        company: app.company || app.companyName || "Company Name",
+        company: app.companyName || app.company || "Company Name",
         companyLogo: app.companyLogo || app.logo || "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=100&auto=format&fit=crop&q=80",
-        applicationDate: app.createdAt ? new Date(app.createdAt).toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" }) : app.applicationDate || "Recent",
+        applicationDate: app.appliedAt || app.createdAt ? new Date(app.appliedAt || app.createdAt).toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" }) : "Recent",
         status: app.status || "Pending",
-        coverNote: app.coverNote || app.coverLetter || "No cover note provided by applicant.",
-        resumeUrl: app.resumeUrl || app.resume || "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
+        coverNote: app.coverLetter || app.coverNote || "No cover note provided by applicant.",
+        resumeUrl: app.resume?.fileUrl || app.resumeUrl || app.resume || "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf",
       }));
 
       setApplications(formattedApps);
@@ -81,14 +80,6 @@ export default function Application() {
   useEffect(() => {
     fetchApplications();
   }, [fetchApplications]);
-
-  // Status Change Handler
-  const handleStatusChange = (id, newStatus, candidateName) => {
-    setApplications((prev) =>
-      prev.map((app) => (app.id === id ? { ...app, status: newStatus } : app))
-    );
-    showToast(`Application status for ${candidateName} updated to "${newStatus}".`);
-  };
 
   // Open Delete Confirmation Modal
   const handleOpenDelete = (app) => {
@@ -128,6 +119,7 @@ export default function Application() {
       case "Accepted":
         return "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
       case "Interview":
+      case "Interview Scheduled":
         return "bg-purple-500/10 text-purple-300 border-purple-500/20";
       case "Pending":
         return "bg-amber-500/10 text-amber-400 border-amber-500/20";
@@ -213,6 +205,7 @@ export default function Application() {
             <option value="ALL">All Statuses</option>
             <option value="Pending">Pending</option>
             <option value="Interview">Interview</option>
+            <option value="Interview Scheduled">Interview Scheduled</option>
             <option value="Accepted">Accepted</option>
             <option value="Rejected">Rejected</option>
           </select>
@@ -299,30 +292,15 @@ export default function Application() {
                       {app.applicationDate}
                     </td>
 
-                    {/* Application Status Dropdown */}
+                    {/* Application Status Badge (Dropdown Removed) */}
                     <td className="py-4 px-4">
-                      <select
-                        value={app.status}
-                        onChange={(e) =>
-                          handleStatusChange(app.id, e.target.value, app.candidateName)
-                        }
-                        className={`px-3 py-1 rounded-full text-[11px] font-semibold border bg-[#0a0a0f] outline-none cursor-pointer transition-all ${getStatusBadgeStyle(
+                      <span
+                        className={`inline-block px-3 py-1 rounded-full text-[11px] font-semibold border ${getStatusBadgeStyle(
                           app.status
                         )}`}
                       >
-                        <option value="Pending" className="bg-[#14141f] text-amber-400">
-                          Pending
-                        </option>
-                        <option value="Interview" className="bg-[#14141f] text-purple-300">
-                          Interview
-                        </option>
-                        <option value="Accepted" className="bg-[#14141f] text-emerald-400">
-                          Accepted
-                        </option>
-                        <option value="Rejected" className="bg-[#14141f] text-rose-400">
-                          Rejected
-                        </option>
-                      </select>
+                        {app.status}
+                      </span>
                     </td>
 
                     {/* Actions */}
@@ -446,7 +424,7 @@ export default function Application() {
       )}
 
       {/* ========================================== */}
-      {/* DELETE CONFIRMATION MODAL                 */}
+      {/* DELETE CONFIRMATION MODAL                  */}
       {/* ========================================== */}
       {deletingApp && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
@@ -496,7 +474,6 @@ export default function Application() {
     </div>
   );
 }
-
 
 
 
