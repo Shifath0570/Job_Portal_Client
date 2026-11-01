@@ -23,7 +23,7 @@ export function Navbar() {
   const { data: session, isPending } = authClient.useSession();
   const user = session?.user;
 
-  
+
   // Resolve current dashboard link by user role
   const currentRole = user?.role?.toLowerCase() || "seeker";
   const userDashboardHref = dashboardLinks[currentRole] || "/Seeker/seekerOverview";
@@ -56,7 +56,7 @@ export function Navbar() {
     <header className="w-full bg-[#0a0a0f] border-b border-gray-800 text-white sticky top-0 z-50">
       {/* 75% Max Content Width Container */}
       <div className="w-full lg:w-[75%] mx-auto px-4 py-3.5 flex items-center justify-between">
-        
+
         {/* Brand Logo & Name */}
         <Link href="/" className="flex items-center gap-3 cursor-pointer shrink-0">
           <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-purple-600 via-purple-500 to-indigo-400 flex items-center justify-center font-bold text-lg shadow-lg shadow-purple-500/30 text-white">
@@ -71,43 +71,31 @@ export function Navbar() {
         <nav className="hidden lg:flex items-center gap-6 xl:gap-8 text-sm font-medium text-gray-300">
           <Link
             href="/publicPages/findJobs"
-            className={`transition-colors ${
-              pathname === "/jobs" ? "text-white font-semibold" : "hover:text-white"
-            }`}
+            className={`transition-colors ${pathname === "/jobs" ? "text-white font-semibold" : "hover:text-white"
+              }`}
           >
             Find Jobs
           </Link>
           <Link
             href="/publicPages/companies"
-            className={`transition-colors ${
-              pathname === "/companies" ? "text-white font-semibold" : "hover:text-white"
-            }`}
+            className={`transition-colors ${pathname === "/companies" ? "text-white font-semibold" : "hover:text-white"
+              }`}
           >
             Companies
           </Link>
           <Link
-            href="/publicPages/blog"
-            className={`transition-colors ${
-              pathname === "/blog" ? "text-white font-semibold" : "hover:text-white"
-            }`}
-          >
-            Blog
-          </Link>
-          <Link
             href="/publicPages/aboutUs"
-            className={`transition-colors whitespace-nowrap ${
-              pathname === "/about" ? "text-white font-semibold" : "hover:text-white"
-            }`}
+            className={`transition-colors whitespace-nowrap ${pathname === "/about" ? "text-white font-semibold" : "hover:text-white"
+              }`}
           >
             About Us
           </Link>
           <Link
-            href="/publicPages/contactUs"
-            className={`transition-colors whitespace-nowrap ${
-              pathname === "/contact" ? "text-white font-semibold" : "hover:text-white"
-            }`}
+            href="/publicPages/blog"
+            className={`transition-colors ${pathname === "/blog" ? "text-white font-semibold" : "hover:text-white"
+              }`}
           >
-            Contact Us
+            Blog
           </Link>
         </nav>
 
@@ -145,9 +133,8 @@ export function Navbar() {
                   {session.user.name || "Account"}
                 </span>
                 <svg
-                  className={`w-4 h-4 text-gray-400 transition-transform ${
-                    profileOpen ? "rotate-180" : ""
-                  }`}
+                  className={`w-4 h-4 text-gray-400 transition-transform ${profileOpen ? "rotate-180" : ""
+                    }`}
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
