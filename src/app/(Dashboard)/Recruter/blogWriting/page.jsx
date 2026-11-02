@@ -16,15 +16,15 @@ import {
     FileText,
     Upload,
     Loader2,
+    Sparkles,
 } from "lucide-react";
 import { authClient } from "@/app/lib/auth-client";
+import { GoogleGenAI } from "@google/genai";
 
 export default function BlogWrite() {
     // 1️⃣ ALL HOOKS CALLED UNCONDITIONALLY FIRST
     const { data: session, isPending } = authClient.useSession();
     const user = session?.user;
-
-    console.log(user)
 
     const [formData, setFormData] = useState({
         title: "",
@@ -41,6 +41,11 @@ export default function BlogWrite() {
     const [toastMessage, setToastMessage] = useState("");
     const [submitting, setSubmitting] = useState(false);
     const [isUploadingImage, setIsUploadingImage] = useState(false);
+    
+    // AI Generator Modal & Loading State
+    const [isAiModalOpen, setIsAiModalOpen] = useState(false);
+    const [aiPrompt, setAiPrompt] = useState("");
+    const [isGeneratingAi, setIsGeneratingAi] = useState(false);
 
     // Sync user details whenever `user` object updates from session
     useEffect(() => {
@@ -61,8 +66,6 @@ export default function BlogWrite() {
             </div>
         );
     }
-
-    console.log("Better Auth Session User:", user);
 
     const showToast = (msg) => {
         setToastMessage(msg);
@@ -119,6 +122,62 @@ export default function BlogWrite() {
         }
     };
 
+    // 🤖 AI Generator Handler using GoogleGenAI (gemini-2.5-flash)
+    const handleGenerateAiContent = async (e) => {
+        e.preventDefault();
+        if (!aiPrompt.trim()) {
+            showToast("Please enter a topic or title for the AI.");
+            return;
+        }
+
+        setIsGeneratingAi(true);
+        showToast("Generating blog post with AI...");
+
+        try {
+            const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+            if (!apiKey) {
+                throw new Error("NEXT_PUBLIC_GEMINI_API_KEY is missing in your environment variables.");
+            }
+
+            const ai = new GoogleGenAI({ apiKey });
+            
+            const promptText = `Write a professional, structured blog post about: "${aiPrompt}". 
+            Format the response strictly with the title on the first line prefixed by "TITLE: ", followed by a blank line, and then the full article content in clean Markdown format with headings and bullet points.`;
+
+            const response = await ai.models.generateContent({
+                model: 'gemini-2.5-flash',
+                contents: promptText,
+            });
+
+            const textOutput = response.text || "";
+            
+            // Parse title and content from AI output
+            let generatedTitle = aiPrompt;
+            let generatedContent = textOutput;
+
+            if (textOutput.startsWith("TITLE:")) {
+                const parts = textOutput.split("\n\n");
+                generatedTitle = parts[0].replace("TITLE:", "").trim();
+                generatedContent = parts.slice(1).join("\n\n").trim();
+            }
+
+            setFormData((prev) => ({
+                ...prev,
+                title: generatedTitle,
+                content: generatedContent || textOutput,
+            }));
+
+            setIsAiModalOpen(false);
+            setAiPrompt("");
+            showToast("Blog post generated successfully by AI!");
+        } catch (error) {
+            console.error("AI Generation Error:", error);
+            showToast(`AI generation failed: ${error.message}`);
+        } finally {
+            setIsGeneratingAi(false);
+        }
+    };
+
     const handleSubmit = async (e, saveStatus) => {
         e.preventDefault();
         if (!formData.title.trim() || !formData.content.trim()) {
@@ -154,6 +213,16 @@ export default function BlogWrite() {
                 </div>
 
                 <div className="flex items-center gap-3">
+                    {/* AI Generator Button */}
+                    <button
+                        type="button"
+                        onClick={() => setIsAiModalOpen(true)}
+                        className="px-4 py-2 bg-gradient-to-r from-purple-600/20 to-indigo-600/20 hover:from-purple-600/30 hover:to-indigo-600/30 border border-purple-500/40 text-purple-300 text-xs font-semibold rounded-xl transition-all cursor-pointer inline-flex items-center gap-2 shadow-lg"
+                    >
+                        <Sparkles className="w-4 h-4 text-purple-400 animate-pulse" />
+                        AI Generate Blog
+                    </button>
+
                     <button
                         type="button"
                         onClick={() => setPreviewMode(true)}
@@ -240,7 +309,7 @@ export default function BlogWrite() {
                             <textarea
                                 name="content"
                                 rows={12}
-                                placeholder="Start writing your article content here..."
+                                placeholder="Start writing your article content here or click 'AI Generate Blog' above..."
                                 value={formData.content}
                                 onChange={handleChange}
                                 required
@@ -348,7 +417,6 @@ export default function BlogWrite() {
                             Author Details
                         </h2>
 
-                        {/* Live Author Card */}
                         <div className="flex items-center gap-3 p-3 bg-[#0a0a0f] border border-gray-800 rounded-xl">
                             <img
                                 src={formData.authorAvatar}
@@ -393,6 +461,61 @@ export default function BlogWrite() {
                     </div>
                 </div>
             </form>
+
+            {/* 🤖 AI Generator Modal */}
+            {isAiModalOpen && (
+                <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+                    <div className="bg-[#14141f] border border-gray-800 rounded-2xl w-full max-w-md p-6 space-y-6 shadow-2xl relative">
+                        <div className="flex items-center justify-between border-b border-gray-800 pb-4">
+                            <div className="flex items-center gap-2 text-purple-400 font-bold text-sm">
+                                <Sparkles className="w-5 h-5" />
+                                AI Blog Generator
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => setIsAiModalOpen(false)}
+                                className="text-gray-400 hover:text-white cursor-pointer"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleGenerateAiContent} className="space-y-4 text-xs">
+                            <div className="space-y-2">
+                                <label className="text-gray-300 font-semibold block">
+                                    What topic or title should AI write about?
+                                </label>
+                                <textarea
+                                    rows={3}
+                                    placeholder="e.g. Master React Server Components in Next.js App Router with practical examples"
+                                    value={aiPrompt}
+                                    onChange={(e) => setAiPrompt(e.target.value)}
+                                    required
+                                    className="w-full p-3 bg-[#0a0a0f] border border-gray-800 focus:border-purple-500 text-white rounded-xl outline-none resize-none"
+                                />
+                            </div>
+
+                            <div className="flex items-center justify-end gap-3 pt-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setIsAiModalOpen(false)}
+                                    className="px-4 py-2 bg-[#0a0a0f] hover:bg-gray-800 border border-gray-800 text-gray-300 rounded-xl transition-all cursor-pointer font-medium"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={isGeneratingAi}
+                                    className="px-5 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold rounded-xl shadow-md cursor-pointer transition-all inline-flex items-center gap-2 disabled:opacity-50"
+                                >
+                                    {isGeneratingAi && <Loader2 className="w-4 h-4 animate-spin" />}
+                                    {isGeneratingAi ? "Generating..." : "Generate with AI"}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
 
             {/* Live Preview Modal */}
             {previewMode && (
@@ -461,6 +584,8 @@ export default function BlogWrite() {
         </div>
     );
 }
+
+
 
 
 
