@@ -19,7 +19,7 @@ import {
     Sparkles,
 } from "lucide-react";
 import { authClient } from "@/app/lib/auth-client";
-import { GoogleGenAI } from "@google/genai";
+// import { GoogleGenAI } from "@google/genai";
 
 export default function BlogWrite() {
     // 1️⃣ ALL HOOKS CALLED UNCONDITIONALLY FIRST
