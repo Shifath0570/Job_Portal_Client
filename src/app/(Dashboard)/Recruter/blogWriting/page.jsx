@@ -123,7 +123,52 @@ export default function BlogWrite() {
         }
     };
 
-    // 🤖 Advanced AI Blog Generator Handler (Title + Description)
+    // 🤖 Quick AI Content Generator (Uses current form title and category automatically)
+    const handleQuickAiGenerate = async () => {
+        if (!formData.title.trim()) {
+            showToast("Please enter an Article Title first before generating content!");
+            return;
+        }
+
+        setIsGeneratingAi(true);
+        showToast("AI is crafting your article content...");
+
+        try {
+            const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+            if (!apiKey) {
+                throw new Error("NEXT_PUBLIC_GEMINI_API_KEY is missing in your environment variables.");
+            }
+
+            const ai = new GoogleGenAI({ apiKey });
+            
+            const promptText = `Write a professional, detailed, and structured blog post for the following:
+            - Title: "${formData.title}"
+            - Category: "${formData.category}"
+            
+            Format the response in clean Markdown format with headings, bullet points, and practical takeaways.`;
+
+            const response = await ai.models.generateContent({
+                model: 'gemini-2.5-flash',
+                contents: promptText,
+            });
+
+            const textOutput = response.text || "";
+
+            setFormData((prev) => ({
+                ...prev,
+                content: textOutput,
+            }));
+
+            showToast("Article content generated successfully!");
+        } catch (error) {
+            console.error("AI Generation Error:", error);
+            showToast(`AI generation failed: ${error.message}`);
+        } finally {
+            setIsGeneratingAi(false);
+        }
+    };
+
+    // 🤖 Advanced AI Blog Generator Handler (Title + Description) via Modal
     const handleGenerateAiContent = async (e) => {
         e.preventDefault();
         if (!aiTitleInput.trim()) {
@@ -232,7 +277,7 @@ export default function BlogWrite() {
                 </div>
 
                 <div className="flex items-center gap-3">
-                    {/* AI Generator Button */}
+                    {/* AI Generator Modal Button */}
                     <button
                         type="button"
                         onClick={() => setIsAiModalOpen(true)}
@@ -319,6 +364,23 @@ export default function BlogWrite() {
                             </div>
                         </div>
 
+                        {/* 🚀 AI Content Generation Action Bar (Placed right after Title, Category, and Read Time) */}
+                        <div className="pt-2 pb-1">
+                            <button
+                                type="button"
+                                onClick={handleQuickAiGenerate}
+                                disabled={isGeneratingAi}
+                                className="w-full py-3 bg-gradient-to-r from-purple-600/30 via-indigo-600/30 to-purple-600/30 hover:from-purple-600/40 hover:to-indigo-600/40 border border-purple-500/50 text-purple-200 text-xs font-bold rounded-xl transition-all cursor-pointer inline-flex items-center justify-center gap-2 shadow-md disabled:opacity-50"
+                            >
+                                {isGeneratingAi ? (
+                                    <Loader2 className="w-4 h-4 animate-spin text-purple-400" />
+                                ) : (
+                                    <Sparkles className="w-4 h-4 text-purple-400 animate-pulse" />
+                                )}
+                                {isGeneratingAi ? "Generating Article Content..." : "✨ Generate AI Content for this Title & Category"}
+                            </button>
+                        </div>
+
                         {/* Content Textarea */}
                         <div className="space-y-2">
                             <label className="text-xs font-semibold text-gray-300 block flex items-center gap-1.5">
@@ -328,7 +390,7 @@ export default function BlogWrite() {
                             <textarea
                                 name="content"
                                 rows={12}
-                                placeholder="Start writing your article content here or click 'AI Generate Blog' above..."
+                                placeholder="Click the button above to auto-generate content, or type your article here..."
                                 value={formData.content}
                                 onChange={handleChange}
                                 required
@@ -618,5 +680,8 @@ export default function BlogWrite() {
         </div>
     );
 }
+
+
+
 
 
