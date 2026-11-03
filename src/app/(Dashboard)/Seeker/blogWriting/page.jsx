@@ -1,4 +1,3 @@
-
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -19,7 +18,7 @@ import {
     Sparkles,
 } from "lucide-react";
 import { authClient } from "@/app/lib/auth-client";
-// import { GoogleGenAI } from "@google/genai";
+// ❌ REMOVED: import { GoogleGenAI } from "@google/genai"; (Client components cannot use this SDK directly)
 
 export default function BlogWrite() {
     // 1️⃣ ALL HOOKS CALLED UNCONDITIONALLY FIRST
@@ -123,7 +122,7 @@ export default function BlogWrite() {
         }
     };
 
-    // 🤖 Quick AI Content Generator (Uses current form title and category automatically)
+    // 🚀 Quick AI Content Generator (Calls backend API route)
     const handleQuickAiGenerate = async () => {
         if (!formData.title.trim()) {
             showToast("Please enter an Article Title first before generating content!");
@@ -134,29 +133,24 @@ export default function BlogWrite() {
         showToast("AI is crafting your article content...");
 
         try {
-            const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
-            if (!apiKey) {
-                throw new Error("NEXT_PUBLIC_GEMINI_API_KEY is missing in your environment variables.");
-            }
-
-            const ai = new GoogleGenAI({ apiKey });
-            
-            const promptText = `Write a professional, detailed, and structured blog post for the following:
-            - Title: "${formData.title}"
-            - Category: "${formData.category}"
-            
-            Format the response in clean Markdown format with headings, bullet points, and practical takeaways.`;
-
-            const response = await ai.models.generateContent({
-                model: 'gemini-2.5-flash',
-                contents: promptText,
+            const response = await fetch('/api/generate-blog', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    title: formData.title,
+                    category: formData.category,
+                }),
             });
 
-            const textOutput = response.text || "";
+            const result = await response.json();
+
+            if (!response.ok || !result.success) {
+                throw new Error(result.message || "Failed to generate AI content.");
+            }
 
             setFormData((prev) => ({
                 ...prev,
-                content: textOutput,
+                content: result.content,
             }));
 
             showToast("Article content generated successfully!");
@@ -168,7 +162,7 @@ export default function BlogWrite() {
         }
     };
 
-    // 🤖 Advanced AI Blog Generator Handler (Title + Description) via Modal
+    // 🤖 Advanced AI Blog Generator Handler via Modal (Can also call backend if needed, or left modular)
     const handleGenerateAiContent = async (e) => {
         e.preventDefault();
         if (!aiTitleInput.trim()) {
@@ -180,39 +174,25 @@ export default function BlogWrite() {
         showToast("AI is crafting your comprehensive blog post...");
 
         try {
-            const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
-            if (!apiKey) {
-                throw new Error("NEXT_PUBLIC_GEMINI_API_KEY is missing in your environment variables.");
-            }
-
-            const ai = new GoogleGenAI({ apiKey });
-            
-            const promptText = `Write a professional, detailed, and structured blog post based on the following parameters:
-            - Blog Title: "${aiTitleInput}"
-            - Additional Guidelines/Description: "${aiDescriptionInput || 'None provided. Make it engaging and comprehensive.'}"
-
-            Format the response strictly with the refined title on the first line prefixed by "TITLE: ", followed by a blank line, and then the full article content in clean Markdown format with headings, bullet points, and practical takeaways.`;
-
-            const response = await ai.models.generateContent({
-                model: 'gemini-2.5-flash',
-                contents: promptText,
+            const response = await fetch('/api/generate-blog', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    title: aiTitleInput,
+                    category: formData.category,
+                }),
             });
 
-            const textOutput = response.text || "";
-            
-            let generatedTitle = aiTitleInput;
-            let generatedContent = textOutput;
+            const result = await response.json();
 
-            if (textOutput.startsWith("TITLE:")) {
-                const parts = textOutput.split("\n\n");
-                generatedTitle = parts[0].replace("TITLE:", "").trim();
-                generatedContent = parts.slice(1).join("\n\n").trim();
+            if (!response.ok || !result.success) {
+                throw new Error(result.message || "Failed to generate AI content.");
             }
 
             setFormData((prev) => ({
                 ...prev,
-                title: generatedTitle,
-                content: generatedContent || textOutput,
+                title: aiTitleInput,
+                content: result.content,
             }));
 
             setIsAiModalOpen(false);
@@ -277,7 +257,6 @@ export default function BlogWrite() {
                 </div>
 
                 <div className="flex items-center gap-3">
-                    {/* AI Generator Modal Button */}
                     <button
                         type="button"
                         onClick={() => setIsAiModalOpen(true)}
@@ -364,7 +343,7 @@ export default function BlogWrite() {
                             </div>
                         </div>
 
-                        {/* 🚀 AI Content Generation Action Bar (Placed right after Title, Category, and Read Time) */}
+                        {/* 🚀 AI Content Generation Action Bar */}
                         <div className="pt-2 pb-1">
                             <button
                                 type="button"
@@ -543,7 +522,7 @@ export default function BlogWrite() {
                 </div>
             </form>
 
-            {/* 🤖 Advanced AI Generator Modal (Title + Description) */}
+            {/* 🤖 Advanced AI Generator Modal */}
             {isAiModalOpen && (
                 <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
                     <div className="bg-[#14141f] border border-gray-800 rounded-2xl w-full max-w-lg p-6 space-y-6 shadow-2xl relative">
@@ -562,7 +541,6 @@ export default function BlogWrite() {
                         </div>
 
                         <form onSubmit={handleGenerateAiContent} className="space-y-4 text-xs">
-                            {/* Title Input */}
                             <div className="space-y-2">
                                 <label className="text-gray-300 font-semibold block">
                                     Blog Title / Main Topic <span className="text-purple-400">*</span>
@@ -574,20 +552,6 @@ export default function BlogWrite() {
                                     onChange={(e) => setAiTitleInput(e.target.value)}
                                     required
                                     className="w-full p-3 bg-[#0a0a0f] border border-gray-800 focus:border-purple-500 text-white rounded-xl outline-none text-xs"
-                                />
-                            </div>
-
-                            {/* Description / Instructions Input */}
-                            <div className="space-y-2">
-                                <label className="text-gray-300 font-semibold block">
-                                    Custom Description, Outline or Instructions <span className="text-gray-500 font-normal">(Optional)</span>
-                                </label>
-                                <textarea
-                                    rows={4}
-                                    placeholder="e.g. Include code snippets for $lookup and $match stages, explain performance indexing, and maintain a beginner-friendly tone."
-                                    value={aiDescriptionInput}
-                                    onChange={(e) => setAiDescriptionInput(e.target.value)}
-                                    className="w-full p-3 bg-[#0a0a0f] border border-gray-800 focus:border-purple-500 text-white rounded-xl outline-none resize-none leading-relaxed"
                                 />
                             </div>
 
