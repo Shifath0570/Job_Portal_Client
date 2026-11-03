@@ -42,9 +42,10 @@ export default function BlogWrite() {
     const [submitting, setSubmitting] = useState(false);
     const [isUploadingImage, setIsUploadingImage] = useState(false);
     
-    // AI Generator Modal & Loading State
+    // AI Generator Modal & State Inputs
     const [isAiModalOpen, setIsAiModalOpen] = useState(false);
-    const [aiPrompt, setAiPrompt] = useState("");
+    const [aiTitleInput, setAiTitleInput] = useState("");
+    const [aiDescriptionInput, setAiDescriptionInput] = useState("");
     const [isGeneratingAi, setIsGeneratingAi] = useState(false);
 
     // Sync user details whenever `user` object updates from session
@@ -122,16 +123,16 @@ export default function BlogWrite() {
         }
     };
 
-    // 🤖 AI Generator Handler using GoogleGenAI (gemini-2.5-flash)
+    // 🤖 Advanced AI Blog Generator Handler (Title + Description)
     const handleGenerateAiContent = async (e) => {
         e.preventDefault();
-        if (!aiPrompt.trim()) {
-            showToast("Please enter a topic or title for the AI.");
+        if (!aiTitleInput.trim()) {
+            showToast("Please provide at least a blog title.");
             return;
         }
 
         setIsGeneratingAi(true);
-        showToast("Generating blog post with AI...");
+        showToast("AI is crafting your comprehensive blog post...");
 
         try {
             const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
@@ -141,8 +142,11 @@ export default function BlogWrite() {
 
             const ai = new GoogleGenAI({ apiKey });
             
-            const promptText = `Write a professional, structured blog post about: "${aiPrompt}". 
-            Format the response strictly with the title on the first line prefixed by "TITLE: ", followed by a blank line, and then the full article content in clean Markdown format with headings and bullet points.`;
+            const promptText = `Write a professional, detailed, and structured blog post based on the following parameters:
+            - Blog Title: "${aiTitleInput}"
+            - Additional Guidelines/Description: "${aiDescriptionInput || 'None provided. Make it engaging and comprehensive.'}"
+
+            Format the response strictly with the refined title on the first line prefixed by "TITLE: ", followed by a blank line, and then the full article content in clean Markdown format with headings, bullet points, and practical takeaways.`;
 
             const response = await ai.models.generateContent({
                 model: 'gemini-2.5-flash',
@@ -151,8 +155,7 @@ export default function BlogWrite() {
 
             const textOutput = response.text || "";
             
-            // Parse title and content from AI output
-            let generatedTitle = aiPrompt;
+            let generatedTitle = aiTitleInput;
             let generatedContent = textOutput;
 
             if (textOutput.startsWith("TITLE:")) {
@@ -168,8 +171,9 @@ export default function BlogWrite() {
             }));
 
             setIsAiModalOpen(false);
-            setAiPrompt("");
-            showToast("Blog post generated successfully by AI!");
+            setAiTitleInput("");
+            setAiDescriptionInput("");
+            showToast("Full blog post generated successfully by AI!");
         } catch (error) {
             console.error("AI Generation Error:", error);
             showToast(`AI generation failed: ${error.message}`);
@@ -188,15 +192,30 @@ export default function BlogWrite() {
         setSubmitting(true);
         const finalData = { ...formData, status: saveStatus };
 
-        setTimeout(() => {
-            console.log("Submitting blog post:", finalData);
+        try {
+            const response = await fetch('/api/blogs', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(finalData),
+            });
+
+            const result = await response.json();
+
+            if (!response.ok || !result.success) {
+                throw new Error(result.message || "Failed to submit blog post.");
+            }
+
             setSubmitting(false);
             showToast(
                 saveStatus === "Published"
-                    ? "Blog post published successfully!"
-                    : "Draft saved successfully!"
+                    ? "Blog post published successfully to database!"
+                    : "Draft saved successfully to database!"
             );
-        }, 800);
+        } catch (error) {
+            console.error("Blog submission error:", error);
+            setSubmitting(false);
+            showToast(`Submission failed: ${error.message}`);
+        }
     };
 
     return (
@@ -462,14 +481,14 @@ export default function BlogWrite() {
                 </div>
             </form>
 
-            {/* 🤖 AI Generator Modal */}
+            {/* 🤖 Advanced AI Generator Modal (Title + Description) */}
             {isAiModalOpen && (
                 <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-                    <div className="bg-[#14141f] border border-gray-800 rounded-2xl w-full max-w-md p-6 space-y-6 shadow-2xl relative">
+                    <div className="bg-[#14141f] border border-gray-800 rounded-2xl w-full max-w-lg p-6 space-y-6 shadow-2xl relative">
                         <div className="flex items-center justify-between border-b border-gray-800 pb-4">
                             <div className="flex items-center gap-2 text-purple-400 font-bold text-sm">
                                 <Sparkles className="w-5 h-5" />
-                                AI Blog Generator
+                                AI Blog Content Generator
                             </div>
                             <button
                                 type="button"
@@ -481,17 +500,32 @@ export default function BlogWrite() {
                         </div>
 
                         <form onSubmit={handleGenerateAiContent} className="space-y-4 text-xs">
+                            {/* Title Input */}
                             <div className="space-y-2">
                                 <label className="text-gray-300 font-semibold block">
-                                    What topic or title should AI write about?
+                                    Blog Title / Main Topic <span className="text-purple-400">*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    placeholder="e.g. Mastering MongoDB Aggregation Pipelines in Node.js"
+                                    value={aiTitleInput}
+                                    onChange={(e) => setAiTitleInput(e.target.value)}
+                                    required
+                                    className="w-full p-3 bg-[#0a0a0f] border border-gray-800 focus:border-purple-500 text-white rounded-xl outline-none text-xs"
+                                />
+                            </div>
+
+                            {/* Description / Instructions Input */}
+                            <div className="space-y-2">
+                                <label className="text-gray-300 font-semibold block">
+                                    Custom Description, Outline or Instructions <span className="text-gray-500 font-normal">(Optional)</span>
                                 </label>
                                 <textarea
-                                    rows={3}
-                                    placeholder="e.g. Master React Server Components in Next.js App Router with practical examples"
-                                    value={aiPrompt}
-                                    onChange={(e) => setAiPrompt(e.target.value)}
-                                    required
-                                    className="w-full p-3 bg-[#0a0a0f] border border-gray-800 focus:border-purple-500 text-white rounded-xl outline-none resize-none"
+                                    rows={4}
+                                    placeholder="e.g. Include code snippets for $lookup and $match stages, explain performance indexing, and maintain a beginner-friendly tone."
+                                    value={aiDescriptionInput}
+                                    onChange={(e) => setAiDescriptionInput(e.target.value)}
+                                    className="w-full p-3 bg-[#0a0a0f] border border-gray-800 focus:border-purple-500 text-white rounded-xl outline-none resize-none leading-relaxed"
                                 />
                             </div>
 
@@ -509,7 +543,7 @@ export default function BlogWrite() {
                                     className="px-5 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold rounded-xl shadow-md cursor-pointer transition-all inline-flex items-center gap-2 disabled:opacity-50"
                                 >
                                     {isGeneratingAi && <Loader2 className="w-4 h-4 animate-spin" />}
-                                    {isGeneratingAi ? "Generating..." : "Generate with AI"}
+                                    {isGeneratingAi ? "AI is writing..." : "Generate Full Blog"}
                                 </button>
                             </div>
                         </form>
@@ -584,8 +618,5 @@ export default function BlogWrite() {
         </div>
     );
 }
-
-
-
 
 
