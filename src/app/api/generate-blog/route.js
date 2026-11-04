@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { GoogleGenAI } from "@google/genai";
 
 export async function POST(req) {
     try {
@@ -14,20 +13,31 @@ export async function POST(req) {
             return NextResponse.json({ success: false, message: "GEMINI_API_KEY is missing on the server." }, { status: 500 });
         }
 
-        const ai = new GoogleGenAI({ apiKey });
-
         const promptText = `Write a professional, detailed, and structured blog post for the following:
         - Title: "${title}"
         - Category: "${category || 'General'}"
         
         Format the response in clean Markdown format with headings, bullet points, and practical takeaways.`;
 
-        const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents: promptText,
-        });
+        // Call the Gemini API directly via REST endpoint (gemini-2.5-flash)
+        const geminiRes = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key=${apiKey}`,
+            {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: promptText }] }],
+                }),
+            }
+        );
 
-        const textOutput = response.text || "";
+        const data = await geminiRes.json();
+
+        if (!geminiRes.ok) {
+            throw new Error(data.error?.message || "Failed to generate content from Gemini API.");
+        }
+
+        const textOutput = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
 
         return NextResponse.json({ success: true, content: textOutput });
     } catch (error) {
