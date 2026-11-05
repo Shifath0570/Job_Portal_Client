@@ -44,7 +44,7 @@ const DashboardSidebar = () => {
     { id: "jobForm", href: "/Recruter/jobForm", label: "Post a Job", icon: PlusCircle },
     { id: "manageJobs", href: "/Recruter/manageJobs", label: "Manage Jobs", icon: FileText },
     { id: "viewApplicants", href: "/Recruter/viewApplicants", label: "View Applicants", icon: Users },
-    { id: "blogWriting", href: "/Seeker/blogWriting", label: "Blog Writing", icon: FileText },
+    { id: "blogWriting", href: "/Recruter/blogWriting", label: "Blog Writing", icon: FileText },
     { id: "notifications", href: "/Recruter/notifications", label: "Notifications", icon: User },
   ];
 
