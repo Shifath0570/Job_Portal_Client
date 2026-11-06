@@ -29,6 +29,7 @@ export default function BlogWrite() {
         category: "Career Advice",
         coverImage: "",
         authorName: "",
+        authorEmail: "",
         authorAvatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80",
         readTime: "5 min read",
         content: "",
@@ -49,6 +50,7 @@ export default function BlogWrite() {
             setFormData((prev) => ({
                 ...prev,
                 authorName: user.name || user.fullName || prev.authorName,
+                authorEmail: user.email || prev.authorEmail,
                 authorAvatar: user.image || user.avatar || prev.authorAvatar,
             }));
         }
@@ -199,7 +201,7 @@ export default function BlogWrite() {
         }
     };
 
-    // POST Submission Handler pointing directly to Express backend
+    // POST Submission Handler including authorEmail
     const handleSubmit = async (e, saveStatus) => {
         e.preventDefault();
         if (!formData.title.trim() || !formData.content.trim()) {
@@ -208,7 +210,13 @@ export default function BlogWrite() {
         }
 
         setSubmitting(true);
-        const finalData = { ...formData, status: saveStatus };
+        
+        // Explicitly include authorEmail from session user or state
+        const finalData = { 
+            ...formData, 
+            authorEmail: user?.email || formData.authorEmail || "",
+            status: saveStatus 
+        };
 
         try {
             const backendUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000";
@@ -513,8 +521,6 @@ export default function BlogWrite() {
         </div>
     );
 }
-
-
 
 
 
