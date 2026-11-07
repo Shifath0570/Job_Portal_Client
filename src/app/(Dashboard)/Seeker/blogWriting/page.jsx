@@ -43,7 +43,7 @@ export default function BlogWrite() {
     });
 
     const [previewMode, setPreviewMode] = useState(false);
-    const [selectedBlogForDetail, setSelectedBlogForDetail] = useState(null); // For "See More" modal viewing
+    const [selectedBlogForDetail, setSelectedBlogForDetail] = useState(null);
     const [toastMessage, setToastMessage] = useState("");
     const [submitting, setSubmitting] = useState(false);
     const [isUploadingImage, setIsUploadingImage] = useState(false);
@@ -108,6 +108,18 @@ export default function BlogWrite() {
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData((prev) => ({ ...prev, [name]: value }));
+    };
+
+    // Helper to strip markdown symbols like # and * for clean plain-text writing
+    const stripMarkdown = (text) => {
+        if (!text) return "";
+        return text
+            .replace(/#{1,6}\s?/g, "") // Remove headers
+            .replace(/(\*\*|__)(.*?)\1/g, "$2") // Remove bold
+            .replace(/(\*|_)(.*?)\1/g, "$2") // Remove italics
+            .replace(/`{1,3}(.*?)`{1,3}/g, "$1") // Remove code formatting
+            .replace(/>\s?/g, "") // Remove blockquotes
+            .trim();
     };
 
     // ImgBB Upload Handler for Cover Image
@@ -203,7 +215,7 @@ export default function BlogWrite() {
         }
 
         setIsGeneratingAi(true);
-        showToast("AI is crafting your article content...");
+        showToast("AI is crafting your clean article content...");
 
         try {
             const response = await fetch('/api/generate-blog', {
@@ -221,9 +233,11 @@ export default function BlogWrite() {
                 throw new Error(result.message || "Failed to generate AI content.");
             }
 
+            const plainContent = stripMarkdown(result.content);
+
             setFormData((prev) => ({
                 ...prev,
-                content: result.content,
+                content: plainContent,
             }));
 
             showToast("Article content generated successfully!");
@@ -243,7 +257,7 @@ export default function BlogWrite() {
         }
 
         setIsGeneratingAi(true);
-        showToast("AI is crafting your comprehensive blog post...");
+        showToast("AI is crafting your clean blog post...");
 
         try {
             const response = await fetch('/api/generate-blog', {
@@ -261,15 +275,17 @@ export default function BlogWrite() {
                 throw new Error(result.message || "Failed to generate AI content.");
             }
 
+            const plainContent = stripMarkdown(result.content);
+
             setFormData((prev) => ({
                 ...prev,
                 title: aiTitleInput,
-                content: result.content,
+                content: plainContent,
             }));
 
             setIsAiModalOpen(false);
             setAiTitleInput("");
-            showToast("Full blog post generated successfully by AI!");
+            showToast("Full plain-text blog post generated successfully by AI!");
         } catch (error) {
             console.error("AI Generation Error:", error);
             showToast(`AI generation failed: ${error.message}`);
@@ -524,7 +540,7 @@ export default function BlogWrite() {
                             ) : (
                                 <Sparkles className="w-4 h-4 text-purple-400 animate-pulse" />
                             )}
-                            {isGeneratingAi ? "Generating Article Content..." : "Generate AI Content for this Title and Category"}
+                            {isGeneratingAi ? "Generating Clean Content..." : "Generate AI Content (Plain Text)"}
                         </button>
                     </div>
 
@@ -642,7 +658,7 @@ export default function BlogWrite() {
                         <div className="flex items-center justify-between border-b border-gray-800 pb-4">
                             <div className="flex items-center gap-2 text-purple-400 font-bold text-sm">
                                 <Sparkles className="w-5 h-5" />
-                                AI Blog Content Generator
+                                AI Blog Content Generator (Plain Text)
                             </div>
                             <button
                                 type="button"
@@ -666,6 +682,9 @@ export default function BlogWrite() {
                                     required
                                     className="w-full p-3 bg-[#0a0a0f] border border-gray-800 focus:border-purple-500 text-white rounded-xl outline-none text-xs"
                                 />
+                                <p className="text-[11px] text-gray-500">
+                                    Generated content will be in clean, readable plain writing without markdown tags (#, *).
+                                </p>
                             </div>
 
                             <div className="flex items-center justify-end gap-3 pt-2">
@@ -682,7 +701,7 @@ export default function BlogWrite() {
                                     className="px-5 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold rounded-xl shadow-md cursor-pointer transition-all inline-flex items-center gap-2 disabled:opacity-50"
                                 >
                                     {isGeneratingAi && <Loader2 className="w-4 h-4 animate-spin" />}
-                                    {isGeneratingAi ? "AI is writing..." : "Generate Full Blog"}
+                                    {isGeneratingAi ? "AI is writing..." : "Generate Plain Text Blog"}
                                 </button>
                             </div>
                         </form>
@@ -785,6 +804,9 @@ export default function BlogWrite() {
         </div>
     );
 }
+
+
+
 
 
 
