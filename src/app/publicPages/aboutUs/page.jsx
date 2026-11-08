@@ -366,13 +366,13 @@ export default function AboutUsPage() {
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4 pt-2">
             <Link
-              href="/find-jobs"
+              href="/publicPages/findJobs"
               className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-medium text-sm rounded-xl transition-all shadow-md"
             >
               Find Jobs <ArrowRight className="w-4 h-4" />
             </Link>
             <Link
-              href="/companies"
+              href="/publicPages/companies"
               className="inline-flex items-center justify-center px-6 py-3 bg-[#0a0a0f] border border-gray-800 hover:border-purple-500/40 text-gray-300 hover:text-white font-medium text-sm rounded-xl transition-all"
             >
               Explore Employers
