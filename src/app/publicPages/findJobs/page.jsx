@@ -492,7 +492,7 @@ export default function FindJobsPage() {
                       {/* Right Column: View Details CTA */}
                       <div className="sm:text-right shrink-0">
                         <Link
-                          href={`/jobs/${jobId}`}
+                          href={`/publicPages/findJobs/${jobId}`}
                           className="inline-flex items-center justify-center w-full sm:w-auto px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-medium text-xs sm:text-sm rounded-xl transition-all shadow-md hover:shadow-indigo-500/20"
                         >
                           View Details
