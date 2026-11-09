@@ -323,7 +323,7 @@ export default function CompaniesPage() {
                                             </span>
 
                                             <Link
-                                                href={`/companies/${company.id}`}
+                                                href={`/publicPages/companies/${company.id}`}
                                                 className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-300 hover:text-white transition-colors group-hover:translate-x-0.5 duration-200"
                                             >
                                                 View Company <ArrowRight className="w-3.5 h-3.5 text-purple-400" />
