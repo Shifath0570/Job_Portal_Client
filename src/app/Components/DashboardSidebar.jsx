@@ -35,7 +35,6 @@ const DashboardSidebar = () => {
     { id: "myApplications", href: "/Seeker/myApplications", label: "My Applications", icon: FileText },
     { id: "blogWriting", href: "/Seeker/blogWriting", label: "Blog Writing", icon: FileText },
     { id: "interviews", href: "/Seeker/interviews", label: "Interviews", icon: FileText },
-    { id: "notifications", href: "/Seeker/notifications", label: "Notifications", icon: FileText },
   ];
 
   const recruiterNavItems = [
@@ -45,7 +44,6 @@ const DashboardSidebar = () => {
     { id: "manageJobs", href: "/Recruter/manageJobs", label: "Manage Jobs", icon: FileText },
     { id: "viewApplicants", href: "/Recruter/viewApplicants", label: "View Applicants", icon: Users },
     { id: "blogWriting", href: "/Recruter/blogWriting", label: "Blog Writing", icon: FileText },
-    { id: "notifications", href: "/Recruter/notifications", label: "Notifications", icon: User },
   ];
 
   const adminNavItems = [
@@ -56,7 +54,6 @@ const DashboardSidebar = () => {
     { id: "manageJobs", href: "/Admin/manageJobs", label: "Manage Jobs", icon: CreditCard },
     { id: "application", href: "/Admin/application", label: "Application", icon: CreditCard },
     { id: "reportsManagement", href: "/Admin/reportsManagement", label: "Reports Management", icon: CreditCard },
-    { id: "notifications", href: "/Admin/notifications", label: "Notifications", icon: CreditCard },
   ];
 
   const navLinkMap = {
