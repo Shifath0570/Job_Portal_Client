@@ -169,7 +169,7 @@ export function Navbar() {
                   </Link>
 
                   <Link
-                    href="/profile"
+                    href="/publicPages/profile"
                     onClick={() => setProfileOpen(false)}
                     className="flex items-center gap-2 px-4 py-2.5 text-gray-300 hover:bg-purple-600/20 hover:text-white transition-colors"
                   >
@@ -263,7 +263,7 @@ export function Navbar() {
                   Dashboard
                 </Link>
                 <Link
-                  href="/profile"
+                  href="/publicPages/profile"
                   onClick={() => setMobileOpen(false)}
                   className="w-full text-center border border-gray-700 text-white py-2 rounded-md text-sm font-medium"
                 >
