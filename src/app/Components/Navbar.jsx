@@ -1,3 +1,4 @@
+
 "use client";
 
 import React, { useState } from "react";
@@ -23,10 +24,10 @@ export function Navbar() {
   const { data: session, isPending } = authClient.useSession();
   const user = session?.user;
 
-
   // Resolve current dashboard link by user role
   const currentRole = user?.role?.toLowerCase() || "seeker";
   const userDashboardHref = dashboardLinks[currentRole] || "/Seeker/seekerOverview";
+  const isAdmin = currentRole === "admin";
 
   const handleLogout = async () => {
     await authClient.signOut({
@@ -168,16 +169,19 @@ export function Navbar() {
                     Dashboard
                   </Link>
 
-                  <Link
-                    href="/publicPages/profile"
-                    onClick={() => setProfileOpen(false)}
-                    className="flex items-center gap-2 px-4 py-2.5 text-gray-300 hover:bg-purple-600/20 hover:text-white transition-colors"
-                  >
-                    <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                    Profile
-                  </Link>
+                  {/* Profile Link (Hidden for Admins) */}
+                  {!isAdmin && (
+                    <Link
+                      href="/publicPages/profile"
+                      onClick={() => setProfileOpen(false)}
+                      className="flex items-center gap-2 px-4 py-2.5 text-gray-300 hover:bg-purple-600/20 hover:text-white transition-colors"
+                    >
+                      <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                      </svg>
+                      Profile
+                    </Link>
+                  )}
 
                   <div className="border-t border-gray-800/80 mt-1 pt-1">
                     <button
@@ -262,13 +266,18 @@ export function Navbar() {
                 >
                   Dashboard
                 </Link>
-                <Link
-                  href="/publicPages/profile"
-                  onClick={() => setMobileOpen(false)}
-                  className="w-full text-center border border-gray-700 text-white py-2 rounded-md text-sm font-medium"
-                >
-                  Profile
-                </Link>
+
+                {/* Profile Link (Hidden for Admins) */}
+                {!isAdmin && (
+                  <Link
+                    href="/publicPages/profile"
+                    onClick={() => setMobileOpen(false)}
+                    className="w-full text-center border border-gray-700 text-white py-2 rounded-md text-sm font-medium"
+                  >
+                    Profile
+                  </Link>
+                )}
+
                 <button
                   onClick={handleLogout}
                   className="w-full border border-red-600/80 text-red-400 py-2 rounded-md text-sm font-medium hover:bg-red-950/30 cursor-pointer"
@@ -302,4 +311,11 @@ export function Navbar() {
 }
 
 export default Navbar;
+
+
+
+
+
+
+
 
