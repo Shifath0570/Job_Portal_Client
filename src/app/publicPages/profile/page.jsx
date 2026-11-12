@@ -94,19 +94,20 @@ export default function UserProfilePage() {
                 const sessionEmail = session?.user?.email;
                 const userRole = session?.user?.role;
 
-                let endpoint = `${baseUrl}/api/user/profile`;
+                if (!sessionEmail) {
+                    throw new Error("No session email found");
+                }
 
-                // If user is a recruiter or email matches the company mock, fetch from your company route
-                const isRecruiterRoute =
+                // Determine if user is a recruiter based on role or email match
+                const isRecruiter =
                     userRole === "recruiter" ||
                     userRole === "employer" ||
                     sessionEmail === MOCK_RECRUITER_USER.email;
 
-                if (isRecruiterRoute && sessionEmail) {
-                    endpoint = `${baseUrl}/api/company/profile/${encodeURIComponent(sessionEmail)}`;
-                } else if (sessionEmail) {
-                    endpoint = `${baseUrl}/api/user/profile?email=${encodeURIComponent(sessionEmail)}`;
-                }
+                // Pick the correct endpoint based on user type
+                const endpoint = isRecruiter
+                    ? `${baseUrl}/api/company/profile/${encodeURIComponent(sessionEmail)}`
+                    : `${baseUrl}/api/seeker/profile/${encodeURIComponent(sessionEmail)}`;
 
                 const response = await fetch(endpoint, {
                     method: "GET",
@@ -116,13 +117,12 @@ export default function UserProfilePage() {
                 if (!response.ok) throw new Error("Failed to load profile data");
 
                 const result = await response.json();
-                // Handle different response structures (direct document or wrapper object)
                 const data = result.data || result.user || result;
                 setUser(data);
             } catch (err) {
                 console.warn("Backend API unreachable or failed. Falling back to mock profiles:", err);
 
-                // Fallback logic for preview/testing
+                // Fallback logic for local testing
                 const sessionEmail = session?.user?.email;
                 if (sessionEmail === MOCK_RECRUITER_USER.email) {
                     setUser(MOCK_RECRUITER_USER);
@@ -154,7 +154,7 @@ export default function UserProfilePage() {
         );
     }
 
-    // Determine account type based on role or company-specific fields returned from MongoDB
+    // Determine account type based on role or company-specific fields
     const isRecruiter =
         user.role?.toLowerCase() === "recruiter" ||
         user.role?.toLowerCase() === "employer" ||
@@ -507,8 +507,6 @@ function RecruiterProfileBody({ user }) {
         </div>
     );
 }
-
-
 
 
 
