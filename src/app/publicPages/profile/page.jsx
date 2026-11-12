@@ -24,63 +24,10 @@ import {
 } from "lucide-react";
 import { authClient } from "@/app/lib/auth-client";
 
-// Mock Seeker User Data
-const MOCK_SEEKER_USER = {
-    email: "sharifulamin5555@gmail.com",
-    SeekerName: "Rafid",
-    fullName: "Rafid",
-    role: "seeker",
-    aboutMe:
-        "Driven Full-Stack Engineer with over 4 years of experience delivering pixel-perfect Web Apps using React, Node.js, and TypeScript.",
-    address: "742 Evergreen Terrace, San Francisco, CA",
-    dateOfBirth: "1997-04-12",
-    education:
-        "B.Sc. in Computer Science — University of California, Berkeley (2017 - 2021)",
-    experience:
-        "Senior Frontend Engineer at Apex Labs (2023 - Present)\nFull Stack Developer at Bright Web Studio (2021 - 2023)",
-    gender: "Non-binary",
-    gitHub: "https://github.com/alexrivera-dev",
-    linkedIn: "https://linkedin.com/in/alexrivera-dev",
-    portfolioWebsite: "https://alexrivera.dev",
-    languages: "English (Native), Spanish (Intermediate)",
-    phone: "01826987456",
-    profilePhoto:
-        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80",
-    resume: {
-        fileName: "Alex_Rivera_Resume_2026.pdf",
-        fileSize: "1.8 MB",
-        uploadDate: "Aug 01, 2026",
-        fileUrl: "/resumes/alex-rivera-resume.pdf",
-    },
-    skills: ["React", "TypeScript", "Next.js", "Node.js", "Tailwind CSS", "GraphQL"],
-    updatedAt: "2026-10-12T06:48:01.677Z",
-};
-
-// Mock Recruiter / Company User Data
-const MOCK_RECRUITER_USER = {
-    email: "sharifulamin2222@gmail.com",
-    role: "recruiter",
-    companyName: "Rifath",
-    companyLogo: "https://i.ibb.co/VWSs4HHp/resume-session.jpg",
-    companySize: "51-200 employees",
-    industry: "Software Farm",
-    location: "Chandgaong abashik",
-    address: "",
-    description: "Leading tech hub specializing in scalable enterprise software solutions.",
-    phoneNumber: "01800000000",
-    website: "https://rifath.tech",
-    socialLinks: {
-        linkedin: "https://linkedin.com/company/rifath",
-        twitter: "https://twitter.com/rifath_tech",
-        facebook: "https://facebook.com/rifath",
-        github: "https://github.com/rifath-org",
-    },
-    updatedAt: "2026-10-16T16:38:41.428Z",
-};
-
 export default function UserProfilePage() {
     const [user, setUser] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [errorMessage, setErrorMessage] = useState("");
 
     const { data: session, isPending: isSessionPending } = authClient.useSession();
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000";
@@ -90,19 +37,21 @@ export default function UserProfilePage() {
             if (isSessionPending) return;
 
             setLoading(true);
+            setErrorMessage("");
+
             try {
                 const sessionEmail = session?.user?.email;
                 const userRole = session?.user?.role;
 
                 if (!sessionEmail) {
-                    throw new Error("No session email found");
+                    setLoading(false);
+                    return;
                 }
 
-                // Determine if user is a recruiter based on role or email match
+                // Determine if user is a recruiter based on role
                 const isRecruiter =
-                    userRole === "recruiter" ||
-                    userRole === "employer" ||
-                    sessionEmail === MOCK_RECRUITER_USER.email;
+                    userRole?.toLowerCase() === "recruiter" ||
+                    userRole?.toLowerCase() === "employer";
 
                 // Pick the correct endpoint based on user type
                 const endpoint = isRecruiter
@@ -114,21 +63,16 @@ export default function UserProfilePage() {
                     headers: { "Content-Type": "application/json" },
                 });
 
-                if (!response.ok) throw new Error("Failed to load profile data");
+                if (!response.ok) {
+                    throw new Error("Failed to load profile data from server");
+                }
 
                 const result = await response.json();
                 const data = result.data || result.user || result;
                 setUser(data);
             } catch (err) {
-                console.warn("Backend API unreachable or failed. Falling back to mock profiles:", err);
-
-                // Fallback logic for local testing
-                const sessionEmail = session?.user?.email;
-                if (sessionEmail === MOCK_RECRUITER_USER.email) {
-                    setUser(MOCK_RECRUITER_USER);
-                } else {
-                    setUser(MOCK_SEEKER_USER);
-                }
+                console.error("Profile fetch error:", err);
+                setErrorMessage("Could not load profile. Please check your connection or log in.");
             } finally {
                 setLoading(false);
             }
@@ -146,10 +90,18 @@ export default function UserProfilePage() {
         );
     }
 
-    if (!user) {
+    if (!session?.user) {
         return (
             <div className="min-h-screen bg-[#0a0a0f] text-white flex items-center justify-center">
-                <p className="text-sm text-gray-400">No profile data found. Please log in.</p>
+                <p className="text-sm text-gray-400">Please log in to view your profile.</p>
+            </div>
+        );
+    }
+
+    if (!user) {
+        return (
+            <div className="min-h-screen bg-[#0a0a0f] text-white flex flex-col items-center justify-center space-y-3">
+                <p className="text-sm text-red-400">{errorMessage || "No profile data found."}</p>
             </div>
         );
     }
@@ -507,8 +459,6 @@ function RecruiterProfileBody({ user }) {
         </div>
     );
 }
-
-
 
 
 
