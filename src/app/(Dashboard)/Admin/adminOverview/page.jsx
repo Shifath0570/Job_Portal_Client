@@ -107,7 +107,6 @@ const RECENT_LOGS = [
 ];
 
 export default function AdminOverview() {
-    const [timeRange, setTimeRange] = useState("30d");
     const [metrics, setMetrics] = useState(INITIAL_METRICS);
     const [loading, setLoading] = useState(true);
 
@@ -212,24 +211,6 @@ export default function AdminOverview() {
                         Real-time platform metrics, user growth, and management activities.
                     </p>
                 </div>
-
-                {/* Time Period Filter */}
-                <div className="flex items-center bg-[#14141f] border border-gray-800 p-1 rounded-xl">
-                    {["7d", "30d", "90d", "1y"].map((range) => (
-                        <button
-                            key={range}
-                            type="button"
-                            onClick={() => setTimeRange(range)}
-                            className={`px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-                                timeRange === range
-                                    ? "bg-purple-600 text-white shadow-md"
-                                    : "text-gray-400 hover:text-white"
-                            }`}
-                        >
-                            {range.toUpperCase()}
-                        </button>
-                    ))}
-                </div>
             </div>
 
             {/* Dashboard Metric Cards Grid (6 cards balanced for 3-col or 2-col layouts) */}
@@ -258,7 +239,7 @@ export default function AdminOverview() {
                                     <TrendingUp className="w-3.5 h-3.5" />
                                     <span>{metric.change}</span>
                                     <span className="text-gray-500 text-[10px] font-normal pl-0.5">
-                                        vs {timeRange}
+                                        vs last period
                                     </span>
                                 </div>
                             </div>
