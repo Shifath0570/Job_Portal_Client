@@ -289,11 +289,6 @@ export default function RecruiterOverview() {
                         <RefreshIcon className={`w-4 h-4 ${isFetching ? "animate-spin" : ""}`} />
                         {isFetching ? "Syncing..." : "Refresh Data"}
                     </button>
-
-                    <button className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-medium text-sm rounded-xl transition-all shadow-md cursor-pointer">
-                        <PlusIcon className="w-4 h-4" />
-                        Post New Job
-                    </button>
                 </div>
             </div>
 
