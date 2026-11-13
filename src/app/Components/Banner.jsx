@@ -47,18 +47,11 @@ export function Banner() {
           {/* Action Buttons */}
           <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 mb-12">
             <Link
-              href="#find-jobs"
+              href="/publicPages/findJobs"
               className="flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-medium px-6 py-3 rounded-lg text-sm transition-all duration-200 shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 cursor-pointer"
             >
               <Search className="w-4 h-4" />
               Find Jobs
-            </Link>
-
-            <Link
-              href="#post-job"
-              className="flex items-center justify-center gap-2 border border-gray-700 hover:border-gray-500 bg-gray-900/40 hover:bg-gray-800/60 text-gray-200 hover:text-white font-medium px-6 py-3 rounded-lg text-sm transition-all duration-200 cursor-pointer"
-            >
-              Post a Job
             </Link>
           </div>
 
