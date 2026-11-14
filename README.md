@@ -1,36 +1,58 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# 🚀 Job Portal Platform (Findora / CareerHub)
 
-## Getting Started
+A modern, full-stack job portal web application designed to connect job seekers with top recruiters and companies. Built with a responsive dark-mode UI, role-based workflows, resume handling, and real-time application tracking.
 
-First, run the development server:
+🌐 **Live Demo:** [https://job-portal-jet-nu.vercel.app](https://job-portal-jet-nu.vercel.app)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🛠️ Tech Stack
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+### **Frontend**
+*   **Framework:** Next.js (React / App Router)
+*   **Styling:** Tailwind CSS
+*   **Icons:** Lucide React
+*   **Authentication Client:** Auth Client (`@/app/lib/auth-client`)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### **Backend & Database**
+*   **Server Runtime:** Node.js, Express.js
+*   **Database:** MongoDB & MongoDB Native/Mongoose Driver
+*   **Hosting / Deployment:** Vercel (Frontend), Node Backend Server
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## ✨ Key Features
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### 👤 For Job Seekers
+*   **Advanced Job Search & Filtering:** Search by job title, required skills, company, category, job type (Full-Time, Part-Time, Contract), workplace type (Remote, Hybrid, On-site), and salary ranges.
+*   **Profile Management:** Maintain candidate profile details, contact info, skills, experience, education, and resume document attachments.
+*   **Quick Applications:** Apply to jobs seamlessly with pre-linked resumes and optional cover letters.
+*   **Saved Jobs Dashboard:** Bookmark/save interesting job postings to review or apply to later.
+*   **Application Tracking:** Monitor application statuses (e.g., Pending, Reviewed, Interview, Rejected).
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 🏢 For Recruiters & Employers
+*   **Job Posting & Management:** Create, update, archive, and manage active job listings.
+*   **Applicant Tracking:** Review incoming candidate applications, cover letters, and applicant qualifications in real time.
+*   **Company Branding:** Manage company profile information, logos, and contact details.
 
-## Deploy on Vercel
+### 🛡️ For Administrators
+*   **Admin Overview Dashboard:** Real-time platform metrics tracking total users, candidates, recruiters, total jobs, active jobs, and total applications.
+*   **System Audit Logs:** Monitor automated flags, company verifications, and administrative actions.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 📂 Project Structure
+
+```text
+job-portal/
+├── app/                  # Next.js App Router Pages & Components
+│   ├── lib/              # Authentication and utility clients
+│   ├── browse/           # Job browsing & filtering view
+│   └── dashboard/        # User & Admin dashboards
+├── server/               # Express Backend Server (API routes)
+│   ├── models/           # Database schemas
+│   └── routes/           # Endpoints for jobs, applications, users
+├── public/               # Static assets & images
+└── package.json          # Project dependencies & scripts
+
+
