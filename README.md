@@ -1,4 +1,4 @@
-# 🚀 Job Portal Platform (Findora / CareerHub)
+# 🚀 Job Portal Platform (CareerConnect)
 
 A modern, full-stack job portal web application designed to connect job seekers with top recruiters and companies. Built with a responsive dark-mode UI, role-based workflows, resume handling, and real-time application tracking.
 
